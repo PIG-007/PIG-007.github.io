@@ -1,0 +1,349 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta name="description" content="1.常规checksec,开了NX保护，IDA打开找漏洞，发现程序特别奇怪，没有main函数，这里应该是把elf文件的符号信息给清除了。正常情况下编译出来的文件里面带有符号信息和调试信息，这些信息在调试的时候非常有用，但是当文件发布时，这些符号信息用处不大，并且会增大文件大小，这时可以清除掉可执行文件的符号信息和调试信息，文件尺寸可以大大减小。可以使用strip命令实现清除符号信息的目的。 2.虽">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pwnable.kr-login">
+<meta property="og:url" content="http://pig-007.github.io/2021/08/14/Alictf%202016-vss/index.html">
+<meta property="og:site_name" content="PIG-007">
+<meta property="og:description" content="1.常规checksec,开了NX保护，IDA打开找漏洞，发现程序特别奇怪，没有main函数，这里应该是把elf文件的符号信息给清除了。正常情况下编译出来的文件里面带有符号信息和调试信息，这些信息在调试的时候非常有用，但是当文件发布时，这些符号信息用处不大，并且会增大文件大小，这时可以清除掉可执行文件的符号信息和调试信息，文件尺寸可以大大减小。可以使用strip命令实现清除符号信息的目的。 2.虽">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191549889.jpeg">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191550236.jpeg">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191549806.jpeg">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191549760.jpeg">
+<meta property="article:published_time" content="2021-08-14T05:40:30.000Z">
+<meta property="article:modified_time" content="2021-08-19T07:50:20.738Z">
+<meta property="article:author" content="PIG-007">
+<meta property="article:tag" content="hijackStack">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191549889.jpeg"><title>pwnable.kr-login | PIG-007</title><link ref="canonical" href="http://pig-007.github.io/2021/08/14/Alictf%202016-vss/"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.12.1/css/all.min.css" type="text/css"><link rel="stylesheet" href="/css/index.css?v=2.6.2"><script>var Stun = window.Stun || {};
+var CONFIG = {
+  root: '/',
+  algolia: undefined,
+  assistSearch: undefined,
+  fontIcon: {"prompt":{"success":"fas fa-check-circle","info":"fas fa-arrow-circle-right","warning":"fas fa-exclamation-circle","error":"fas fa-times-circle"},"copyBtn":"fas fa-copy"},
+  sidebar: {"offsetTop":"20px","tocMaxDepth":6},
+  header: {"enable":true,"showOnPost":true,"scrollDownIcon":false},
+  postWidget: {"endText":true},
+  nightMode: {"enable":true},
+  back2top: {"enable":true},
+  codeblock: {"style":"default","highlight":"light","wordWrap":true},
+  reward: false,
+  fancybox: false,
+  zoomImage: {"gapAside":"20px"},
+  galleryWaterfall: undefined,
+  lazyload: false,
+  pjax: undefined,
+  externalLink: {"icon":{"enable":true,"name":"fas fa-external-link-alt"}},
+  shortcuts: undefined,
+  prompt: {"copyButton":"Copy","copySuccess":"Copy Success","copyError":"Copy Error"},
+  sourcePath: {"js":"js","css":"css","images":"images"},
+};
+
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content" id="content"><!-- Just used to judge whether it is an article page--><div id="is-post"></div><div class="post"><header class="post-header"><h1 class="post-title">pwnable.kr-login</h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><p>1.常规checksec,开了NX保护，IDA打开找漏洞，发现程序特别奇怪，没有main函数，这里应该是把elf文件的符号信息给清除了。正常情况下编译出来的文件里面带有符号信息和调试信息，这些信息在调试的时候非常有用，但是当文件发布时，这些符号信息用处不大，并且会增大文件大小，这时可以清除掉可执行文件的符号信息和调试信息，文件尺寸可以大大减小。可以使用strip命令实现清除符号信息的目的。</p>
+<p>2.虽然这里找不到main函数，但是start函数是一定会存在的，由于start按F5反汇编不成功，所以这里进入到start函数的汇编代码中：</p>
+<p>由于start中的结构基本固定，最后基本上都是如下，所以这里sub_4011B1其实就是main函数，这里就可以点进去看了。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">mov     rdi, offset main</span><br><span class="line">call    _libc_start_main</span><br></pre></td></tr></table></div></figure>
+
+<p>2.这里的main函数可以反汇编成功，那么就开始分析漏洞。第一个函数是sub_4374E0，进去之后如下</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">signed __int64 result; // rax</span><br><span class="line">result = 37LL;</span><br><span class="line">__asm &#123; syscall; LINUX - sys_alarm &#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>使用系统调用号37，也就是0x25，代表alarm。</p>
+<p>3.sub_408800字符串单参数，且参数都被打印到屏幕上，可以猜测是puts。sub_437EA0调用sub_437EBD，并且fd参数位为0号，且接收三个参数，看下汇编代码：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">mov       eax, 0</span><br><span class="line">syscall;  LINUX - sys_read</span><br></pre></td></tr></table></div></figure>
+
+<p>调用0号syscall，推测为read函数。(系统调用号有)</p>
+<p>4.进入sub_40108E函数中分析，这个函数处理了我们的输入，可以说就是关键函数了。看半天啥也没看懂，直接上调试。先输入十几个A看看，发现经过sub_400330函数之后，内存中输入的A，也就是a1处的内容被复制到了v2，这里先猜测是个类似strncpy函数的东西。然后看内容，既然局部变量v2只有0x40,而这个复制函数的的参数有80,也就是0x50，多了0x10。那么再调试看看，输入0x48个字节A，发现sub_40108E函数的ebp被我们改掉了：</p>
+<p>sub_400330((__int64)&amp;v2, a1, 80LL);</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191549889.jpeg" alt="img"></p>
+<p>但是程序接着运行下去却不太行，陷入了循环，然后一直运行后崩溃，连之后的read(v8, (__int64)&amp;v3, 40LL);这段read代码都没有运行。</p>
+<p>5.再观察下程序，有个代码有意思：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">sub_400330((__int64)&amp;v2, a1, 0x50LL);</span><br><span class="line">if ( (_BYTE)v2 == &#x27;p&#x27; &amp;&amp; BYTE1(v2) == &#x27;y&#x27; )</span><br><span class="line">    return 1LL;</span><br></pre></td></tr></table></div></figure>
+
+<p>在复制完字符串之后进入一个判断语句，如果开头是py，就直接retn，不经过下面代码，所以我们完全可以在这就直接返回。但是这里有个问题，这个return有没有汇编指令里的leave操作呢，如果没有，那rsp仍然在最前面，不会跳转到返回地址的地方，看汇编代码，可以看到最后是通过判断后跳转到了locret_40011AF，而这段地址里就是leave和retn的汇编操作，能够将rsp拉到返回地址处，那直接return就完事了。<img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191550236.jpeg" alt="img"></p>
+<p>6.那么这里就可以判断出来我们的输入会被复制到v2这个局部变量中，并且最多0x50，也就是说除开rbp，我们可以再控制一个该函数的返回地址。那么开始尝试呗。由于只有一个返回地址，没有后门程序，最先想到的肯定是onegadget，但是不知道libc版本，没办法onegadget。那只有一个返回地址可以做什么，那么只有栈劫持了。其它WP大多都是抬高rsp，我想可不可以降低rsp，通过一次payload来getshell，也就是通过ROPgadget搜索sub rsp，但是搜出来的都不太行，要么太大，超过0x50，要么就很奇怪。然后一般栈劫持需要一个ret来接着控制程序流，这里也没搜到。同时由于使用的复制函数经过调试就是strncpy，字符串里不能有\x00，否则会被当做字符串截断从而无法复制满0x50字节制造可控溢出，这就意味着任何地址(因为地址基本都会在最开始带上00)都不能被写在前0x48个字节中，彻底断了sub rsp的念想。所以还是抬高栈吧。但是抬高栈也有点问题，就是我们输入的被复制的只有0x50个字节，抬高有啥用，不可控啊。然后就想到之前的read函数，读了400个字节，而紧接着就是调用该函数。刚好局部变量v2第一个被压栈，与sub_40108E函数栈的栈底紧紧挨在一起，也就是说越过sub_40108E函数栈的栈底和返回地址就可以直接来到main函数栈。而main函数栈中又只有一个我们输入的局部变量v4，所以sub_40108E函数栈的返回地址之后的第一个地址就是我们输入的局部变量v4的地址。(这里通过调试也可以发现)</p>
+<p>7.那么经过计算，其实只要有一个pop,ret操作，让rsp抬高一下就可以到达我们输入的首地址。但是由于经过前面分析，我们需要在程序开头输入py来使得该函数直接return，那么如果只是一个pop,ret操作，那么程序第一个执行的代码就是我们输入的开头，包含了py的开头，这就完全不可控了，开头如果是py那怎么计算才能是一个有效地址呢。</p>
+<p>8.那么就只能查找add rsp，只要满足add rsp 0x50之上就可以完全操控了。这里至少需要0x50也是因为这是strncpy，不能将地址写到前0x48个字节，否则会截断，而最后返回地址的覆盖可以被完全复制是这里本来就是一个返回地址，保存的内容应该是00401216，也就是之前call sub_40108E的下一段地址。这里在复制的时候肯定被截断了，但是由于本来就是找到一个可用的地址，截断了覆盖的也只是将401216换成了add rsp 0x58;ret这个地址(如果我们的add rsp的有效地址地方包含了00，那指定会出错)。那么payload的语句应该是payload = “py” + “a”*(0x48-0x02) + add_rsp_addr + padding + 实际控制代码。</p>
+<p>9.利用ROPgadget搜索add esp的相关内容，可以查到一个地址0x46f205，操作是add rsp, 0x58; ret，这样就可以顺利将栈抬升到0x58的地方，所以payload的组成应该是：payload = “py” + “a”<em>0x46 + p64(0x46f205) + “a”</em>8 + p64(addr2)+…(a*8是用来填充的，因为抬升到了0x58处，复制之后0x50处是一段空白地方，所以还需要填充一下使p64(addr2)能顺利被抬升至0x58处被执行)。后面的p64(addr2)和…就是我们的常规gadget操作了。</p>
+<p>10.现在需要system函数和/bin/sh字符串了。没有Libc，system函数和/bin/sh也没有，所以这里需要输入/bin/sh字符串，然后system函数需要通过syscall来实现。(64位程序下是syscall函数，32位程序下就是Int 0x80)</p>
+<p>11.这里先完成binsh的输入：payload = p64(pop_rdx) + p64(rdx_value) + p64(pop_rsi) + p64(rsi_value) + p64(pop_rdi) + p64(rdi_value) + p64(pop_rax)+ p64(rax_value) + p64(syscall)因为是64位程序，函数从左往右读取参数所取寄存器依次为：rdi，rsi，rdx, rcx, r8, r9, 栈传递，但是实际情况中是从右往左读取参数，也就是当只有三个参数时，读取顺序应该是rdx,rsi,rdi对应的为read(rdi,rsi,rdx)。</p>
+<p>这里rdx是输入的大小，rsi是输入的内存地址buf(随便找一段可读可写的就行了)，rdi是fd标志位，由于是通过syscall调用，所以除了配置三个read函数参数还需要配置系统调用号，也就是rax的传参为0x0。<img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191549806.jpeg" alt="img">这里如果不使用syscall，其实也可以用我们之前猜出来的read函数的plt表，只是这样就可以不用设置rax了。</p>
+<p>▲这里不能使用401202处的call read，因为call会压入下一行代码的作为read返回地址，那样就不可控了。这里选择系统调用是因为没有read在got表中的真实地址，不然其实调用got表地址也可以。</p>
+<p>12.接着调用system函数，同样采用syscall系统调用，需要几个参数的设置rax=59,rdx=0,rsi=0,（这是调用syscall必须的前置条件，因为是linux规定的，可以上网查一下就知道）。都可以通过Pop gadget来实现，之后传参rdi为&amp;buf，最后调用即可getshell。(59为系统调用号)所以紧接着的payload = p64(pop_rax) + p64(rax_value) + p64(pop_rdx) + p64(rdx_value) + p64(pop_rsi) + p64(rsi_value) + p64(pop_rdi) + p64(rdi_value) + p64(syscall)<img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191549760.jpeg" alt="img">这里就必须的设置rax为0x3b了。</p>
+<p>▲sh不能用来传给syscall开shell，但是int 0x80可以。syscall-64，int 0x80-32。</p>
+<p>▲syscall是在上进入内核模式的默认方法x86-64。该指令在Intel处理器的 32位操作模式下不可用。sysenter是最常用于以32位操作模式调用系统调用的指令。它类似于syscall，但是使用起来有点困难，但这是内核的关注点。int 0x80 是调用系统调用的传统方式，应避免使用，是32位程序下的。</p>
+<p>系统调用查询网址：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://syscalls.w3challs.com/" >https://syscalls.w3challs.com/</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>参考资料：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157" >https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+</div><footer class="post-footer"><div class="post-ending ending"><div class="ending__text">------ END ------</div></div><div class="post-copyright copyright"><div class="copyright-author"><span class="copyright-author__name">Author: </span><span class="copyright-author__value"><a href="http://PIG-007.github.io">PIG-007</a></span></div><div class="copyright-link"><span class="copyright-link__name">Link: </span><span class="copyright-link__value"><a href="http://pig-007.github.io/2021/08/14/Alictf%202016-vss/">http://pig-007.github.io/2021/08/14/Alictf%202016-vss/</a></span></div><div class="copyright-notice"><span class="copyright-notice__name">Copyright: </span><span class="copyright-notice__value">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" rel="external nofollow" target="_blank">BY-NC-SA</a> unless stating additionally</span></div></div><div class="post-tags"><span class="post-tags-item"><span class="post-tags-item__icon"><i class="fas fa-tag"></i></span><a class="post-tags-item__link" href="http://pig-007.github.io/tags/hijackStack/">hijackStack</a></span></div><nav class="post-paginator paginator"><div class="paginator-prev"><a class="paginator-prev__link" href="/2021/08/14/360ichunqiu%202017-smallest/"><span class="paginator-prev__icon"><i class="fas fa-angle-left"></i></span><span class="paginator-prev__text">360ichunqiu 2017-smallest</span></a></div><div class="paginator-next"><a class="paginator-next__link" href="/2021/08/14/BCTF%202017-100levels/"><span class="paginator-prev__text">BCTF 2017-100levels</span><span class="paginator-next__icon"><i class="fas fa-angle-right"></i></span></a></div></nav></footer></div></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><div class="sidebar-nav"><span class="sidebar-nav-toc current">Catalog</span><span class="sidebar-nav-ov">Overview</span></div><section class="sidebar-toc"></section><!-- ov = overview--><section class="sidebar-ov hide"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">hello world</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">93</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">40</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">43</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section><div class="sidebar-reading"><div class="sidebar-reading-info"><span class="sidebar-reading-info__text">You have read </span><span class="sidebar-reading-info__num">0</span><span class="sidebar-reading-info__perc">%</span></div><div class="sidebar-reading-line"></div></div></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2021</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
+  var isXML = true;
+  var search_path = 'search.json';
+
+  if (!search_path) {
+    search_path = 'search.xml';
+  } else if (/json$/i.test(search_path)) {
+    isXML = false;
+  }
+
+  var path = '/' + search_path;
+  $.ajax({
+    url: path,
+    dataType: isXML ? 'xml' : 'json',
+    async: true,
+    success: function (res) {
+      var datas = isXML ? $('entry', res).map(function () {
+        // 将 XML 转为 JSON
+        return {
+          title: $('title', this).text(),
+          content: $('content', this).text(),
+          url: $('url', this).text()
+        };
+      }).get() : res;
+      var $input = $('.search-input input');
+      var $result = $('.search-results');
+      // 搜索对象（标题、内容）的权重，影响显示顺序
+      var WEIGHT = { title: 100, content: 1 };
+      var searchPost = function () {
+        var searchText = $input.val().toLowerCase().trim();
+        // 根据空白字符分隔关键字
+        var keywords = searchText.split(/[\s]+/);
+        // 搜索结果
+        var matchPosts = [];
+
+        // 有多个关键字时，将原文字整个保存下来
+        if (keywords.length > 1) {
+          keywords.push(searchText);
+        }
+        // 防止未输入字符时搜索
+        if (searchText.length > 0) {
+          datas.forEach(function (data) {
+            var isMatch  = false;
+            // 没有标题的文章使用预设的 i18n 变量代替
+            var title = (data.title && data.title.trim()) || '[ Untitled ]';
+            var titleLower = title && title.toLowerCase();
+            // 删除 HTML 标签 和 所有空白字符
+            var content = data.content && data.content.replace(/<[^>]+>/g, '');
+            var contentLower = content && content.toLowerCase();
+            // 删除重复的 /
+            var postURL = data.url && decodeURI(data.url).replace(/\/{2,}/g, '/');
+            // 标题中匹配到的关键词
+            var titleHitSlice = [];
+            // 内容中匹配到的关键词
+            var contentHitSlice = [];
+
+            keywords.forEach(function (keyword) {
+              /**
+              * 获取匹配的关键词的索引
+              * @param {String} keyword 要匹配的关键字
+              * @param {String} text 原文字
+              * @param {Boolean} caseSensitive 是否区分大小写
+              * @param {Number} weight 匹配对象的权重。权重大的优先显示
+              * @return {Array}
+              */
+              function getIndexByword (word, text, caseSensitive, weight) {
+                if (!word || !text) {
+                  return [];
+                };
+
+                var startIndex = 0; // 每次匹配的开始索引
+                var index = -1;     // 匹配到的索引值
+                var result = [];    // 匹配结果
+
+                if (!caseSensitive) {
+                  word = word.toLowerCase();
+                  text = text.toLowerCase();
+                }
+
+                while((index = text.indexOf(word, startIndex)) !== -1) {
+                  var hasMatch = false;
+                  // 索引位置相同的关键词，保留长度较长的
+                  titleHitSlice.forEach(function (hit) {
+                    if (hit.index === index && hit.word.length < word.length) {
+                      hit.word = word;
+                      hasMatch = true;
+                    }
+                  });
+                  startIndex = index + word.length;
+                  !hasMatch && result.push({ index: index, word: word, weight: weight });
+                }
+                return result;
+              }
+              titleHitSlice = titleHitSlice.concat(getIndexByword(keyword, titleLower, false, WEIGHT.title));
+              contentHitSlice = contentHitSlice.concat(getIndexByword(keyword, contentLower, false, WEIGHT.content));
+            });
+
+            var hitTitle = titleHitSlice.length;
+            var hitContent = contentHitSlice.length;
+
+            if (hitTitle > 0 || hitContent > 0) {
+              isMatch = true;
+            }
+            if (isMatch) {
+              ;[titleHitSlice, contentHitSlice].forEach(function (hit) {
+                // 按照匹配文字的索引的递增顺序排序
+                hit.sort(function (left, right) {
+                  return left.index - right.index;
+                });
+              });
+              /**
+              * 给文本中匹配到的关键词添加标记，从而进行高亮显示
+              * @param {String} text 原文本
+              * @param {Array} hitSlice 匹配项的索引信息
+              * @param {Number} start 开始索引
+              * @param {Number} end 结束索引
+              * @return {String}
+              */
+              function highlightKeyword (text, hitSlice, start, end) {
+                if (!text || !hitSlice || !hitSlice.length) {
+                  return;
+                }
+
+                var result = '';
+                var startIndex = start;
+                var endIndex = end;
+                hitSlice.forEach(function (hit) {
+                  if (hit.index < startIndex) {
+                    return;
+                  }
+
+                  var hitWordEnd = hit.index + hit.word.length;
+                  result += text.slice(startIndex, hit.index);
+                  result += '<b>' + text.slice(hit.index, hitWordEnd) + '</b>';
+                  startIndex = hitWordEnd;
+                });
+                result += text.slice(startIndex, endIndex);
+                return result;
+              }
+
+              var postData = {};
+              // 文章总的搜索权重
+              var postWeight = titleHitSlice.length * WEIGHT.title + contentHitSlice.length * WEIGHT.content;
+              // 标记匹配关键词后的标题
+              var postTitle = highlightKeyword(title, titleHitSlice, 0, title.length) || title;
+              // 标记匹配关键词后的内容
+              var postContent;
+              // 显示内容的长度
+              var SHOW_WORD_LENGTH = 200;
+              // 命中关键词前的字符显示长度
+              var SHOW_WORD_FRONT_LENGTH = 20;
+              var SHOW_WORD_END_LENGTH = SHOW_WORD_LENGTH - SHOW_WORD_FRONT_LENGTH;
+
+              // 截取匹配的第一个字符，前后共 200 个字符来显示
+              if (contentHitSlice.length > 0) {
+                var firstIndex = contentHitSlice[0].index;
+                var start = firstIndex > SHOW_WORD_FRONT_LENGTH ? firstIndex - SHOW_WORD_FRONT_LENGTH : 0;
+                var end = firstIndex + SHOW_WORD_END_LENGTH;
+                postContent = highlightKeyword(content, contentHitSlice, start, end);
+              } else { // 未匹配到内容，直接截取前 200 个字符来显示
+                postContent = content.slice(0, SHOW_WORD_LENGTH);
+              }
+              postData.title = postTitle;
+              postData.content = postContent;
+              postData.url = postURL;
+              postData.weight = postWeight;
+              matchPosts.push(postData);
+            }
+          });
+        }
+
+        var resultInnerHtml = '';
+        if (matchPosts.length) {
+          // 按权重递增的顺序排序，使权重大的优先显示
+          matchPosts.sort(function (left, right) {
+            return right.weight - left.weight;
+          });
+          resultInnerHtml += '<ul>';
+          matchPosts.forEach(function (post) {
+            resultInnerHtml += '<li><a class="search-results-title" href="' + post.url + '">';
+            resultInnerHtml += post.title;
+            resultInnerHtml += '</a><div class="search-results-content">';
+            resultInnerHtml += post.content;
+            resultInnerHtml += '</div></li>';
+          });
+          resultInnerHtml += '</ul>';
+        } else {
+          resultInnerHtml += '<div class="search-results-none"><i class="far fa-meh"></i></div>';
+        }
+        $result.html(resultInnerHtml);
+      };
+      $input.on('input', searchPost);
+      $input.on('keyup', function (e) {
+        if (e.keyCode === Stun.utils.codeToKeyCode('Enter')) {
+          searchPost();
+        }
+      });
+    }
+  });
+}
+
+function closeSearch () {
+  $('body').css({ overflow: 'auto' });
+  $('.search-popup').css({ display: 'none' });
+  $('.search-mask').css({ display: 'none' });
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  Stun.utils.pjaxReloadLocalSearch = function () {
+    $('.header-nav-search').on('click', function (e) {
+      e.stopPropagation();
+      $('body').css('overflow', 'hidden');
+      $('.search-popup')
+        .velocity('stop')
+        .velocity('transition.expandIn', {
+          duration: 300,
+          complete: function () {
+            $('.search-popup input').focus();
+          }
+        });
+      $('.search-mask')
+        .velocity('stop')
+        .velocity('transition.fadeIn', {
+          duration: 300
+        });
+
+      initSearch();
+    });
+    $('.search-mask, .search-close').on('click', function () {
+      closeSearch();
+    });
+    $(document).on('keydown', function (e) {
+      // Escape <=> 27
+      if (e.keyCode === Stun.utils.codeToKeyCode('Escape')) {
+        closeSearch();
+      }
+    });
+  };
+
+  Stun.utils.pjaxReloadLocalSearch();
+}, false);
+
+function safeOpenUrl(url) {
+  var newTab = window.open();
+  newTab.opener = null;
+  newTab.location = url;
+}
+
+function extSearch(engine) {
+  var engines = {
+    google: 'https://www.google.com/search?q=',
+    bing: 'https://cn.bing.com/search?q=',
+    baidu: 'https://www.baidu.com/s?ie=UTF-8&wd=',
+  };
+  var host = window.location.host;
+  var query = $('.search-input input').val().toLowerCase().trim();
+  var uri = engines[engine] + query + ' site:' + host;
+
+  if (query) {
+    safeOpenUrl(uri);
+  } else {
+    Stun.utils.popAlert('warning', 'Please enter characters');
+  }
+}
+
+var assistSearchList = window.CONFIG.assistSearch;
+
+if (Array.isArray(assistSearchList)) {
+  assistSearchList.forEach(function (name) {
+    document.querySelector('.search-btns-item--' + name).addEventListener('click', function () {
+      extSearch(name);
+    }, false);
+  });
+}</script><script src="/js/utils.js?v=2.6.2"></script><script src="/js/stun-boot.js?v=2.6.2"></script><script src="/js/scroll.js?v=2.6.2"></script><script src="/js/header.js?v=2.6.2"></script><script src="/js/sidebar.js?v=2.6.2"></script><script type="application/json" src="/search.json"></script><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"superSample":2,"width":150,"height":300,"position":"left","hOffset":0,"vOffset":-80},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body></html>

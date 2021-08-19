@@ -1,0 +1,448 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta name="description" content="一、前置环境： 先说明一下aarch64就是arm指令架构的64位版本，有相同，也有不同的地方。而Thumb指令集基本就相当于16位版本arm指令架构。 1.安装交叉编译环境： 1234#注释头sudo apt-get install gcc-arm-linux-gnueabisudo apt-get install gcc-aarch64-linux-gnu  然后就正常编译即可 1234#注释">
+<meta property="og:type" content="article">
+<meta property="og:title" content="堆前置知识总结">
+<meta property="og:url" content="http://pig-007.github.io/2021/08/19/ARM%E5%9F%BA%E7%A1%80/index.html">
+<meta property="og:site_name" content="PIG-007">
+<meta property="og:description" content="一、前置环境： 先说明一下aarch64就是arm指令架构的64位版本，有相同，也有不同的地方。而Thumb指令集基本就相当于16位版本arm指令架构。 1.安装交叉编译环境： 1234#注释头sudo apt-get install gcc-arm-linux-gnueabisudo apt-get install gcc-aarch64-linux-gnu  然后就正常编译即可 1234#注释">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs32.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs64.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsarm3.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsarm4.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191437383.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191437497.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191438678.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191438837.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191438918.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191438088.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191438694.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191439144.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191439928.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191439548.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191439293.png">
+<meta property="article:published_time" content="2021-08-19T05:08:42.000Z">
+<meta property="article:modified_time" content="2021-08-19T06:40:14.061Z">
+<meta property="article:author" content="PIG-007">
+<meta property="article:tag" content="ARM-Knowledge">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs32.png"><title>堆前置知识总结 | PIG-007</title><link ref="canonical" href="http://pig-007.github.io/2021/08/19/ARM%E5%9F%BA%E7%A1%80/"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.12.1/css/all.min.css" type="text/css"><link rel="stylesheet" href="/css/index.css?v=2.6.2"><script>var Stun = window.Stun || {};
+var CONFIG = {
+  root: '/',
+  algolia: undefined,
+  assistSearch: undefined,
+  fontIcon: {"prompt":{"success":"fas fa-check-circle","info":"fas fa-arrow-circle-right","warning":"fas fa-exclamation-circle","error":"fas fa-times-circle"},"copyBtn":"fas fa-copy"},
+  sidebar: {"offsetTop":"20px","tocMaxDepth":6},
+  header: {"enable":true,"showOnPost":true,"scrollDownIcon":false},
+  postWidget: {"endText":true},
+  nightMode: {"enable":true},
+  back2top: {"enable":true},
+  codeblock: {"style":"default","highlight":"light","wordWrap":true},
+  reward: false,
+  fancybox: false,
+  zoomImage: {"gapAside":"20px"},
+  galleryWaterfall: undefined,
+  lazyload: false,
+  pjax: undefined,
+  externalLink: {"icon":{"enable":true,"name":"fas fa-external-link-alt"}},
+  shortcuts: undefined,
+  prompt: {"copyButton":"Copy","copySuccess":"Copy Success","copyError":"Copy Error"},
+  sourcePath: {"js":"js","css":"css","images":"images"},
+};
+
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content" id="content"><!-- Just used to judge whether it is an article page--><div id="is-post"></div><div class="post"><header class="post-header"><h1 class="post-title">堆前置知识总结</h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><p>一、前置环境：</p>
+<p>先说明一下aarch64就是arm指令架构的64位版本，有相同，也有不同的地方。而Thumb指令集基本就相当于16位版本arm指令架构。</p>
+<p>1.安装交叉编译环境：</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#注释头</span></span><br><span class="line"></span><br><span class="line">sudo apt-get install gcc-arm-linux-gnueabi</span><br><span class="line">sudo apt-get install gcc-aarch64-linux-gnu</span><br></pre></td></tr></table></div></figure>
+
+<p>然后就正常编译即可</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#注释头</span></span><br><span class="line"></span><br><span class="line">arm-linux-gnueabi-gcc file.c -o file</span><br><span class="line">aarch64-linux-gnu-gcc file.c -o file</span><br></pre></td></tr></table></div></figure>
+
+<p>2.安装运行环境：</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#注释头</span></span><br><span class="line"></span><br><span class="line">sudo apt-get install g++-arm-linux-gnueabihf</span><br><span class="line">sudo apt-get install pkg-config-aarch64-linux-gnu</span><br></pre></td></tr></table></div></figure>
+
+<p>这样对于静态的arm架构文件可以用qemu直接运行了，当然需要qemu对应支持。</p>
+<p>3.调试文件：</p>
+<p>(1)qemu运行起来</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#注释头</span></span><br><span class="line"></span><br><span class="line">qemu-arm -g 12345 -L /usr/arm-linux-gnueabi/ ./file</span><br><span class="line">qemu-aarch64 -g 12345 -L /usr/aarch64-linux-gnu/ ./file</span><br></pre></td></tr></table></div></figure>
+
+<p>这里-g代表端口映射的意思，用来配合外面的gdb，这里用到端口12345。</p>
+<p>-L代表加载运行库，这里安装运行环境之后基本都在这个位置/usr/…../。</p>
+<p>(2)gdb远程附加调试：</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#注释头</span></span><br><span class="line"></span><br><span class="line">gdb-multiarch -q ./file</span><br><span class="line">target remote localhost:12345</span><br></pre></td></tr></table></div></figure>
+
+<p>这里不设置set architecture arm  set architecture aarch64也行的。</p>
+<p>之后就正常调试，不过中途断下来需要在qemu运行的终端地方ctrl+c，而不是gdb处。</p>
+<p>二、基础学习：</p>
+<p>1.寄存器：</p>
+<p>ARM中：(32位版本)</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs32.png" alt="32"></p>
+<p>AARCH64中：(64位版本)</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs64.png" alt="64"></p>
+<p>(1)R0<del>R3：函数调用参数，代表第0</del>4个参数，剩下的参数从右向左依次入栈，函数返回值保存在R0中。(对应在aarch64中为R0<del>R7，但是gdb调试或者IDA中一般显示X0</del>X30，同时还有低32位的W0~W30)</p>
+<p>(2)SP：类似rsp,esp，栈指针</p>
+<p>(3)FP：类似ebp，栈指针</p>
+<p>(4)LR：当发生函数调用时，会保存调用函数处的地址，退出函数时赋值给PC。</p>
+<p>(5)PC：类似eip,rip，存储下一条指令的地址。</p>
+<p>2.基础指令：</p>
+<p>(1)STM以及LDM是指令前缀，表示多寄存器寻址，来装载和存储多个字的数据到内存，后面加上不同的后缀代表不同的指令，类似的有STMFA,STMIB, LDMFA,LDMDA等等：</p>
+<p>常见的有FD，代表满栈转存，ED代表空栈转存。</p>
+<p>▲满栈和空栈：满栈操作时SP指向上次写的最后一个数据单元，而空栈的栈指针SP指向第一个空闲单元。</p>
+<p>类似有STMFD SP! { }和LDMFD SP! { }：</p>
+<p>即相当于push和pop，在gdb中显示push，pop，IDA中显示STMFD和LDMFD。</p>
+<p>STMFD  SP!, {R11,LR}：将R11和LR入栈，相当于push R11以及LR中保存的值入栈。</p>
+<p>同理LDMFD即相当于pop。</p>
+<p>(2).STR指令：将前操作数寄存器数据复制到后操作数地址对应的内存上，类似mov</p>
+<p>STR  r3, [fp, #-0xc]：将寄存器r3中的值赋给fp-0xc地址对应的内存。这里fp就是R11。</p>
+<p>STR  r3, place：这里是赋值给pc+place地址对应内存。</p>
+<p>等等….</p>
+<p>(数据复制方向：前-&gt;后)</p>
+<p>(3).LDR指令：也是指令前缀，后面也会跟上一些不同的后缀，常见有LDRB，LDRH等等。</p>
+<p>LDR R0，[R1,＃8]：将r1+8地址对应内存复制给r0。</p>
+<p>(数据复制方向：后-&gt;前)</p>
+<p>(4).B：跳转指令，同样也是类似一个前缀指令</p>
+<p>① B：直接跳转，目标地址是相对于当前PC值的偏移地址</p>
+<p>② BL：跳转之前会把PC值存到R14（LR）寄存器中，通常用于函数调用，从被调用函数返回时，通常需要用到BX LR;或者MOV PC,LR;等</p>
+<p>③BX：跳转到ARM指令或者Thumb指令</p>
+<p>④BLX：结合了BL和BX两个指令的功能。</p>
+<p>三、ARM(32位架构)函数分类：</p>
+<p>1.叶子函数：不做任何其他函数调用的函数</p>
+<p>调用时的栈状态分析：和正常的x86差不多，压入fp，sub sp开辟栈空间。最后通过Add sp,fp,#0和pop{fp}再加上BX LR来返回。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsarm3.png" alt="arm3"></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsarm4.png" alt="arm4"></p>
+<p>FP中的内容是上一个函数栈的FP指针，并且栈上不存在存放返回地址的地方，无法直接劫持返回地址。</p>
+<p>▲栈模型如下：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">+-------------+</span><br><span class="line">|             |</span><br><span class="line">|  padding    |</span><br><span class="line">+-------------+</span><br><span class="line">|  Last FP    | &lt;- frame pointer</span><br><span class="line">+-------------+</span><br></pre></td></tr></table></div></figure>
+
+<p>但是这样就不好利用，那么就尝试劫持栈迁移一段距离，使得上一个非叶子函数的剩下的汇编代码所用到的栈上数据是我们伪造的栈中的数据，这样就能完成劫持上一个非叶子函数的返回地址。需要对汇编有一定功力。</p>
+<p>2.非叶子函数：多了一点不同，即会压入FP时，将LR也压入，且LR先于FP压入，即函数栈中的FP指向的是保存的LR，而不是叶子函数中指向的是上一个函数栈的FP。最后通过sub sp,fp,#4加上pop {fp,pc}来返回。</p>
+<p>▲其实返回时add和sub没多大差别，只针对后两个操作数的，也就立即数的符号相反呗，后两个操作数计算完成后赋值给sp实现栈还原。</p>
+<p>▲栈模型如下：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">+-------------+</span><br><span class="line">|             |</span><br><span class="line">|  padding    |</span><br><span class="line">+-------------+</span><br><span class="line">| return_addr | &lt;- frame pointer</span><br><span class="line">+-------------+</span><br><span class="line">|  Last FP    |</span><br><span class="line">+-------------+</span><br></pre></td></tr></table></div></figure>
+
+<p>虽然FP中的内容实际上是LR的内容,但其实也差不多，反正最后返回时都会发生SP移动，先取FP，再取对应的PC，所以实际怎么样也无所谓了：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191437383.png" alt="img"></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191437497.png" alt="img"></p>
+<p>这样就相当于常规的32位栈模型ebp-eip了，只不过不涉及参数，一般需要用gadget来为对应参数赋值。</p>
+<p>在常规栈溢出时，这里发挥重要作用的就是gadgets_addr了，一般可以先ROPgadget –binary ./pwn –only “pop”，查找对应的pop gadget。例如这里可以有pop {r0, r4, pc}，那么完成利用的栈模型就如下：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">+-------------+</span><br><span class="line">|             |</span><br><span class="line">|  padding    |</span><br><span class="line">+-------------+</span><br><span class="line">|  padding    | &lt;- frame pointer</span><br><span class="line">+-------------+</span><br><span class="line">|gadgets_addr | &lt;- return address</span><br><span class="line">+-------------+</span><br><span class="line">|binsh_addr   |</span><br><span class="line">+-------------+</span><br><span class="line">|junk_data    |</span><br><span class="line">+-------------+</span><br><span class="line">|system_addr  |</span><br><span class="line">+-------------+</span><br></pre></td></tr></table></div></figure>
+
+<p>将binsh_addr赋值给r0，junk_data赋值给r4，system_addr赋值给pc，完成利用。</p>
+<p>★在栈溢出探索padding时，可以用pwndbg中的cyclic 200自动生成200个字符，然后输入，那么在arm(32位)架构下的非叶子函数中，一定会给pc赋值为我们的某个padding，这时候程序断下来，可以查看pc的值，用cyclic -l [PC值]来查找溢出点。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191438678.png" alt="img"></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191438837.png" alt="img"></p>
+<p>▲所以这里如果针对非叶子函数劫持了FP和FP+4，那么就相当于劫持栈并且控制程序流了，如果想调用函数还需要设置参数寄存器r0-r3才行。</p>
+<p>简单的可以直接查找pop r0,pc之类的：ROPgadget –binary ./pwn –only “pop”，这种方式一般只能调用一个参数的函数。</p>
+<p>泄露地址之类的一般还是需要用到ret2csu，arm(32位)下的ret2csu一般是用到：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">.text:0001049C                 LDR     R3, [R5],#4                 ②</span><br><span class="line">.text:000104A0                 MOV     R2, R9</span><br><span class="line">.text:000104A4                 MOV     R1, R8</span><br><span class="line">.text:000104A8                 MOV     R0, R7</span><br><span class="line">.text:000104AC                 BLX     R3                          ③</span><br><span class="line">.text:000104B0                 CMP     R6, R4</span><br><span class="line">.text:000104B4                 BNE     loc_10498</span><br><span class="line">.text:000104B8                 LDMFD   SP!, &#123;R4-R10,PC&#125;            ①</span><br></pre></td></tr></table></div></figure>
+
+<p>即通过①来为R4-R10赋值，以及控制PC跳转到②，再利用R5地址对应的值来赋值给R3对应跳转，期间也可通过R7-R8来控制R0-R2的参数。这里需要满足R5处保存的是got表地址，即将R5赋值为func_got_addr即可。</p>
+<p>四、aarch64架构的函数分类：其实就是ARM的64位版本，除了寄存器方面变化挺大，其他的调用方式什么的也差不了太多。</p>
+<p>1.叶子函数：不做任何其他函数调用的函数</p>
+<p>调用时的栈状态分析：和正常的arm差不多，FP入栈，sub sp开辟栈空间。最后通过Add sp,sp,#20和ret来返回。Ret相当于mov PC,LR。将LR中保存的地址给PC来执行。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191438918.png" alt="img"></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191438088.png" alt="img"></p>
+<p>也同样通过栈劫持来控制。</p>
+<p>2.非叶子函数：也差不多，但有些不同的是，进入函数后，会先开辟栈空间，先压入LR然后压入FP。stp  x29, x30, [sp, #-0x30]!即非叶子函数栈中的FP和LR都保存在栈顶，最后通过LDP X29, X30, [SP+0x30+var_30]加上RET来返回。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191438694.png" alt="img"></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191439144.png" alt="img"></p>
+<p>可以看到进入非叶子函数中之后，先开辟栈空间，然后压入LR，再压入FP，栈模型如下：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">+-------------+</span><br><span class="line">| Last FP     | &lt;- SP</span><br><span class="line">+-------------+</span><br><span class="line">| LR          |</span><br><span class="line">+-------------+</span><br><span class="line">|             |</span><br><span class="line">|  padding    |</span><br><span class="line">+-------------+</span><br><span class="line">|Last Last FP | &lt;- frame pointer</span><br><span class="line">+-------------+</span><br><span class="line">|Last LR      | &lt;- return address</span><br><span class="line">+-------------+</span><br><span class="line">|binsh_addr   |</span><br><span class="line">+-------------+</span><br><span class="line">|junk_data    |</span><br><span class="line">+-------------+</span><br><span class="line">|system_addr  |</span><br><span class="line">+-------------+</span><br></pre></td></tr></table></div></figure>
+
+<p>paddint以下的部分才是我们要劫持的。</p>
+<p>所以我们在该函数中的栈溢出劫持的其实不是该函数的返回地址，而是上一个函数的返回，所以这里同时也需要确保上一个函数中汇编代码剩下的操作不会对我们覆盖的栈上的值进行重要改写，不然栈上的数据就容易被破坏。</p>
+<p>其次需要注意的是aarch64下的gadget搜索，用到：</p>
+<p>ROPgadget –binary ./pwn –only “ldp|ret”</p>
+<p>其实是一样的，ldp就类似pop，反正gadget运用算是更加灵活了。</p>
+<p>▲通常也可以用ret2csu来搞定：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">.text:00000000004008AC             LDR             X3, [X21,X19,LSL#3]     ②</span><br><span class="line">.text:00000000004008B0             MOV             X2, X22</span><br><span class="line">.text:00000000004008B4             MOV             X1, X23</span><br><span class="line">.text:00000000004008B8             MOV             W0, W24</span><br><span class="line">.text:00000000004008BC             ADD             X19, X19, #1</span><br><span class="line">.text:00000000004008C0             BLR             X3                      ③</span><br><span class="line">.text:00000000004008C4             CMP             X19, X20</span><br><span class="line">.text:00000000004008C8             B.NE            loc_4008AC</span><br><span class="line">.text:00000000004008CC</span><br><span class="line">.text:00000000004008CC loc_4008CC   </span><br><span class="line">.text:00000000004008CC             LDP             X19, X20, [SP,#var_s10] ①</span><br><span class="line">.text:00000000004008D0             LDP             X21, X22, [SP,#var_s20]</span><br><span class="line">.text:00000000004008D4             LDP             X23, X24, [SP,#var_s30]</span><br><span class="line">.text:00000000004008D8             LDP             X29, X30, [SP+var_s0],#0x40</span><br><span class="line">.text:00000000004008DC             RET</span><br></pre></td></tr></table></div></figure>
+
+<p>▲例如该SP即为0x40007ffe40：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191439928.png" alt="img"></p>
+<p>一直到0x40007ffe90为FP，那么如下</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">0x616161…         &lt;-FP</span><br><span class="line">0x4008cc          &lt;-LR</span><br></pre></td></tr></table></div></figure>
+
+<p>跳转0x4008CC(u_gadget1)之后，SP为0x40007ffea0依次赋值：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191439548.png" alt="img"></p>
+<p>再通过LDP  X29, X30, [SP+var_s0],#0x40和ret跳转到0x4008ac(u_gadget2)最终实现X0~X3赋值：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191439293.png" alt="img"></p>
+<p>最终跳转函数真实地址0x400090f9c8，即需要给X21赋值为read_got_addr，参数依次为read(0,0x411010,0x8)。同时需要注意的是，在read完成之后，还是会回到当前的万能gadget处0x4008C4，再接着运行下去。然后一路运行下去，经过万能gadget中的RET返回到之前设置的0x40007ffee8处也就是0x400824，这个也是在最开始就设置好的，通常可以用来返回到read函数或者main函数处再执行栈溢出，之后就正常操控程序。</p>
+<p>▲脚本示例：</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">aarch64_csu</span>(<span class="params">call, x0, x1, x2,ret_addr</span>):</span></span><br><span class="line">    payload = p64(u_gadget1)</span><br><span class="line">    payload += <span class="string">&quot;A&quot;</span>*<span class="number">0x8</span></span><br><span class="line">    payload += p64(u_gadget2)</span><br><span class="line">    payload += p64(<span class="number">0x0</span>)</span><br><span class="line">    payload += p64(<span class="number">0x1</span>)</span><br><span class="line">    payload += p64(call)          <span class="comment">#got_addr</span></span><br><span class="line">    payload += p64(x2)</span><br><span class="line">    payload += p64(x1)</span><br><span class="line">    payload += p64(x0)</span><br><span class="line">    payload += <span class="string">&quot;B&quot;</span>*<span class="number">0x8</span></span><br><span class="line">    payload += p64(ret_addr)</span><br><span class="line">    <span class="keyword">return</span> payload</span><br><span class="line"></span><br><span class="line">payload = flat(cyclic(<span class="number">72</span>)</span><br><span class="line">payload += aarch64_csu(elf.got[<span class="string">&#x27;read&#x27;</span>], <span class="number">0</span>, bss_addr, <span class="number">8</span>,ret_addr))</span><br></pre></td></tr></table></div></figure>
+
+<p>这个是没有栈劫持的。Aarch64的csu也不怎么用到，因为aarch64的csu赋值不是pop，SP基本不会动，而且大多时候都是SP寻址。</p>
+<p>参考资料：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/199112#h3-23" >https://www.anquanke.com/post/id/199112#h3-23</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+</div><footer class="post-footer"><div class="post-ending ending"><div class="ending__text">------ END ------</div></div><div class="post-copyright copyright"><div class="copyright-author"><span class="copyright-author__name">Author: </span><span class="copyright-author__value"><a href="http://PIG-007.github.io">PIG-007</a></span></div><div class="copyright-link"><span class="copyright-link__name">Link: </span><span class="copyright-link__value"><a href="http://pig-007.github.io/2021/08/19/ARM%E5%9F%BA%E7%A1%80/">http://pig-007.github.io/2021/08/19/ARM%E5%9F%BA%E7%A1%80/</a></span></div><div class="copyright-notice"><span class="copyright-notice__name">Copyright: </span><span class="copyright-notice__value">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" rel="external nofollow" target="_blank">BY-NC-SA</a> unless stating additionally</span></div></div><div class="post-tags"><span class="post-tags-item"><span class="post-tags-item__icon"><i class="fas fa-tag"></i></span><a class="post-tags-item__link" href="http://pig-007.github.io/tags/ARM-Knowledge/">ARM-Knowledge</a></span></div><nav class="post-paginator paginator"><div class="paginator-prev"><a class="paginator-prev__link" href="/2021/08/19/32C3%20CTF-readme/"><span class="paginator-prev__icon"><i class="fas fa-angle-left"></i></span><span class="paginator-prev__text">32C3 CTF-readme</span></a></div><div class="paginator-next"><a class="paginator-next__link" href="/2021/08/19/CSAW%20Quals%20CTF%202017-scv/"><span class="paginator-prev__text">CSAW Quals CTF 2017-scv</span><span class="paginator-next__icon"><i class="fas fa-angle-right"></i></span></a></div></nav></footer></div></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><div class="sidebar-nav"><span class="sidebar-nav-toc current">Catalog</span><span class="sidebar-nav-ov">Overview</span></div><section class="sidebar-toc"></section><!-- ov = overview--><section class="sidebar-ov hide"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">hello world</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">93</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">40</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">43</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section><div class="sidebar-reading"><div class="sidebar-reading-info"><span class="sidebar-reading-info__text">You have read </span><span class="sidebar-reading-info__num">0</span><span class="sidebar-reading-info__perc">%</span></div><div class="sidebar-reading-line"></div></div></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2021</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
+  var isXML = true;
+  var search_path = 'search.json';
+
+  if (!search_path) {
+    search_path = 'search.xml';
+  } else if (/json$/i.test(search_path)) {
+    isXML = false;
+  }
+
+  var path = '/' + search_path;
+  $.ajax({
+    url: path,
+    dataType: isXML ? 'xml' : 'json',
+    async: true,
+    success: function (res) {
+      var datas = isXML ? $('entry', res).map(function () {
+        // 将 XML 转为 JSON
+        return {
+          title: $('title', this).text(),
+          content: $('content', this).text(),
+          url: $('url', this).text()
+        };
+      }).get() : res;
+      var $input = $('.search-input input');
+      var $result = $('.search-results');
+      // 搜索对象（标题、内容）的权重，影响显示顺序
+      var WEIGHT = { title: 100, content: 1 };
+      var searchPost = function () {
+        var searchText = $input.val().toLowerCase().trim();
+        // 根据空白字符分隔关键字
+        var keywords = searchText.split(/[\s]+/);
+        // 搜索结果
+        var matchPosts = [];
+
+        // 有多个关键字时，将原文字整个保存下来
+        if (keywords.length > 1) {
+          keywords.push(searchText);
+        }
+        // 防止未输入字符时搜索
+        if (searchText.length > 0) {
+          datas.forEach(function (data) {
+            var isMatch  = false;
+            // 没有标题的文章使用预设的 i18n 变量代替
+            var title = (data.title && data.title.trim()) || '[ Untitled ]';
+            var titleLower = title && title.toLowerCase();
+            // 删除 HTML 标签 和 所有空白字符
+            var content = data.content && data.content.replace(/<[^>]+>/g, '');
+            var contentLower = content && content.toLowerCase();
+            // 删除重复的 /
+            var postURL = data.url && decodeURI(data.url).replace(/\/{2,}/g, '/');
+            // 标题中匹配到的关键词
+            var titleHitSlice = [];
+            // 内容中匹配到的关键词
+            var contentHitSlice = [];
+
+            keywords.forEach(function (keyword) {
+              /**
+              * 获取匹配的关键词的索引
+              * @param {String} keyword 要匹配的关键字
+              * @param {String} text 原文字
+              * @param {Boolean} caseSensitive 是否区分大小写
+              * @param {Number} weight 匹配对象的权重。权重大的优先显示
+              * @return {Array}
+              */
+              function getIndexByword (word, text, caseSensitive, weight) {
+                if (!word || !text) {
+                  return [];
+                };
+
+                var startIndex = 0; // 每次匹配的开始索引
+                var index = -1;     // 匹配到的索引值
+                var result = [];    // 匹配结果
+
+                if (!caseSensitive) {
+                  word = word.toLowerCase();
+                  text = text.toLowerCase();
+                }
+
+                while((index = text.indexOf(word, startIndex)) !== -1) {
+                  var hasMatch = false;
+                  // 索引位置相同的关键词，保留长度较长的
+                  titleHitSlice.forEach(function (hit) {
+                    if (hit.index === index && hit.word.length < word.length) {
+                      hit.word = word;
+                      hasMatch = true;
+                    }
+                  });
+                  startIndex = index + word.length;
+                  !hasMatch && result.push({ index: index, word: word, weight: weight });
+                }
+                return result;
+              }
+              titleHitSlice = titleHitSlice.concat(getIndexByword(keyword, titleLower, false, WEIGHT.title));
+              contentHitSlice = contentHitSlice.concat(getIndexByword(keyword, contentLower, false, WEIGHT.content));
+            });
+
+            var hitTitle = titleHitSlice.length;
+            var hitContent = contentHitSlice.length;
+
+            if (hitTitle > 0 || hitContent > 0) {
+              isMatch = true;
+            }
+            if (isMatch) {
+              ;[titleHitSlice, contentHitSlice].forEach(function (hit) {
+                // 按照匹配文字的索引的递增顺序排序
+                hit.sort(function (left, right) {
+                  return left.index - right.index;
+                });
+              });
+              /**
+              * 给文本中匹配到的关键词添加标记，从而进行高亮显示
+              * @param {String} text 原文本
+              * @param {Array} hitSlice 匹配项的索引信息
+              * @param {Number} start 开始索引
+              * @param {Number} end 结束索引
+              * @return {String}
+              */
+              function highlightKeyword (text, hitSlice, start, end) {
+                if (!text || !hitSlice || !hitSlice.length) {
+                  return;
+                }
+
+                var result = '';
+                var startIndex = start;
+                var endIndex = end;
+                hitSlice.forEach(function (hit) {
+                  if (hit.index < startIndex) {
+                    return;
+                  }
+
+                  var hitWordEnd = hit.index + hit.word.length;
+                  result += text.slice(startIndex, hit.index);
+                  result += '<b>' + text.slice(hit.index, hitWordEnd) + '</b>';
+                  startIndex = hitWordEnd;
+                });
+                result += text.slice(startIndex, endIndex);
+                return result;
+              }
+
+              var postData = {};
+              // 文章总的搜索权重
+              var postWeight = titleHitSlice.length * WEIGHT.title + contentHitSlice.length * WEIGHT.content;
+              // 标记匹配关键词后的标题
+              var postTitle = highlightKeyword(title, titleHitSlice, 0, title.length) || title;
+              // 标记匹配关键词后的内容
+              var postContent;
+              // 显示内容的长度
+              var SHOW_WORD_LENGTH = 200;
+              // 命中关键词前的字符显示长度
+              var SHOW_WORD_FRONT_LENGTH = 20;
+              var SHOW_WORD_END_LENGTH = SHOW_WORD_LENGTH - SHOW_WORD_FRONT_LENGTH;
+
+              // 截取匹配的第一个字符，前后共 200 个字符来显示
+              if (contentHitSlice.length > 0) {
+                var firstIndex = contentHitSlice[0].index;
+                var start = firstIndex > SHOW_WORD_FRONT_LENGTH ? firstIndex - SHOW_WORD_FRONT_LENGTH : 0;
+                var end = firstIndex + SHOW_WORD_END_LENGTH;
+                postContent = highlightKeyword(content, contentHitSlice, start, end);
+              } else { // 未匹配到内容，直接截取前 200 个字符来显示
+                postContent = content.slice(0, SHOW_WORD_LENGTH);
+              }
+              postData.title = postTitle;
+              postData.content = postContent;
+              postData.url = postURL;
+              postData.weight = postWeight;
+              matchPosts.push(postData);
+            }
+          });
+        }
+
+        var resultInnerHtml = '';
+        if (matchPosts.length) {
+          // 按权重递增的顺序排序，使权重大的优先显示
+          matchPosts.sort(function (left, right) {
+            return right.weight - left.weight;
+          });
+          resultInnerHtml += '<ul>';
+          matchPosts.forEach(function (post) {
+            resultInnerHtml += '<li><a class="search-results-title" href="' + post.url + '">';
+            resultInnerHtml += post.title;
+            resultInnerHtml += '</a><div class="search-results-content">';
+            resultInnerHtml += post.content;
+            resultInnerHtml += '</div></li>';
+          });
+          resultInnerHtml += '</ul>';
+        } else {
+          resultInnerHtml += '<div class="search-results-none"><i class="far fa-meh"></i></div>';
+        }
+        $result.html(resultInnerHtml);
+      };
+      $input.on('input', searchPost);
+      $input.on('keyup', function (e) {
+        if (e.keyCode === Stun.utils.codeToKeyCode('Enter')) {
+          searchPost();
+        }
+      });
+    }
+  });
+}
+
+function closeSearch () {
+  $('body').css({ overflow: 'auto' });
+  $('.search-popup').css({ display: 'none' });
+  $('.search-mask').css({ display: 'none' });
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  Stun.utils.pjaxReloadLocalSearch = function () {
+    $('.header-nav-search').on('click', function (e) {
+      e.stopPropagation();
+      $('body').css('overflow', 'hidden');
+      $('.search-popup')
+        .velocity('stop')
+        .velocity('transition.expandIn', {
+          duration: 300,
+          complete: function () {
+            $('.search-popup input').focus();
+          }
+        });
+      $('.search-mask')
+        .velocity('stop')
+        .velocity('transition.fadeIn', {
+          duration: 300
+        });
+
+      initSearch();
+    });
+    $('.search-mask, .search-close').on('click', function () {
+      closeSearch();
+    });
+    $(document).on('keydown', function (e) {
+      // Escape <=> 27
+      if (e.keyCode === Stun.utils.codeToKeyCode('Escape')) {
+        closeSearch();
+      }
+    });
+  };
+
+  Stun.utils.pjaxReloadLocalSearch();
+}, false);
+
+function safeOpenUrl(url) {
+  var newTab = window.open();
+  newTab.opener = null;
+  newTab.location = url;
+}
+
+function extSearch(engine) {
+  var engines = {
+    google: 'https://www.google.com/search?q=',
+    bing: 'https://cn.bing.com/search?q=',
+    baidu: 'https://www.baidu.com/s?ie=UTF-8&wd=',
+  };
+  var host = window.location.host;
+  var query = $('.search-input input').val().toLowerCase().trim();
+  var uri = engines[engine] + query + ' site:' + host;
+
+  if (query) {
+    safeOpenUrl(uri);
+  } else {
+    Stun.utils.popAlert('warning', 'Please enter characters');
+  }
+}
+
+var assistSearchList = window.CONFIG.assistSearch;
+
+if (Array.isArray(assistSearchList)) {
+  assistSearchList.forEach(function (name) {
+    document.querySelector('.search-btns-item--' + name).addEventListener('click', function () {
+      extSearch(name);
+    }, false);
+  });
+}</script><script src="/js/utils.js?v=2.6.2"></script><script src="/js/stun-boot.js?v=2.6.2"></script><script src="/js/scroll.js?v=2.6.2"></script><script src="/js/header.js?v=2.6.2"></script><script src="/js/sidebar.js?v=2.6.2"></script><script type="application/json" src="/search.json"></script><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"superSample":2,"width":150,"height":300,"position":"left","hOffset":0,"vOffset":-80},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body></html>

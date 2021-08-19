@@ -1,0 +1,443 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta name="description" content="1.常见Seccomp： (1)库安装： 123#注释头apt install libseccomp-dev libseccomp2 seccomp  (2)正常的使用seccopm开启： ①先创建初始化scmp_filter_ctx结构体，并且给定初始规则： scmp_filter_ctx ctx &#x3D; seccomp_init(SCMP_ACT_ALLOW); 这里将初始规则设置为SCMP_AC">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Seccomp_Before">
+<meta property="og:url" content="http://pig-007.github.io/2021/08/19/Seccomp_Before/index.html">
+<meta property="og:site_name" content="PIG-007">
+<meta property="og:description" content="1.常见Seccomp： (1)库安装： 123#注释头apt install libseccomp-dev libseccomp2 seccomp  (2)正常的使用seccopm开启： ①先创建初始化scmp_filter_ctx结构体，并且给定初始规则： scmp_filter_ctx ctx &#x3D; seccomp_init(SCMP_ACT_ALLOW); 这里将初始规则设置为SCMP_AC">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-08-19T05:08:42.000Z">
+<meta property="article:modified_time" content="2021-08-19T06:43:21.108Z">
+<meta property="article:author" content="PIG-007">
+<meta property="article:tag" content="ORW-Skill">
+<meta name="twitter:card" content="summary"><title>Seccomp_Before | PIG-007</title><link ref="canonical" href="http://pig-007.github.io/2021/08/19/Seccomp_Before/"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.12.1/css/all.min.css" type="text/css"><link rel="stylesheet" href="/css/index.css?v=2.6.2"><script>var Stun = window.Stun || {};
+var CONFIG = {
+  root: '/',
+  algolia: undefined,
+  assistSearch: undefined,
+  fontIcon: {"prompt":{"success":"fas fa-check-circle","info":"fas fa-arrow-circle-right","warning":"fas fa-exclamation-circle","error":"fas fa-times-circle"},"copyBtn":"fas fa-copy"},
+  sidebar: {"offsetTop":"20px","tocMaxDepth":6},
+  header: {"enable":true,"showOnPost":true,"scrollDownIcon":false},
+  postWidget: {"endText":true},
+  nightMode: {"enable":true},
+  back2top: {"enable":true},
+  codeblock: {"style":"default","highlight":"light","wordWrap":true},
+  reward: false,
+  fancybox: false,
+  zoomImage: {"gapAside":"20px"},
+  galleryWaterfall: undefined,
+  lazyload: false,
+  pjax: undefined,
+  externalLink: {"icon":{"enable":true,"name":"fas fa-external-link-alt"}},
+  shortcuts: undefined,
+  prompt: {"copyButton":"Copy","copySuccess":"Copy Success","copyError":"Copy Error"},
+  sourcePath: {"js":"js","css":"css","images":"images"},
+};
+
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content" id="content"><!-- Just used to judge whether it is an article page--><div id="is-post"></div><div class="post"><header class="post-header"><h1 class="post-title">Seccomp_Before</h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><p>1.常见Seccomp：</p>
+<p>(1)库安装：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">apt install libseccomp-dev libseccomp2 seccomp</span><br></pre></td></tr></table></div></figure>
+
+<p>(2)正常的使用seccopm开启：</p>
+<p>①先创建初始化scmp_filter_ctx结构体，并且给定初始规则：</p>
+<p>scmp_filter_ctx ctx = seccomp_init(SCMP_ACT_ALLOW);</p>
+<p>这里将初始规则设置为SCMP_ACT_ALLOW，即允许所有的系统调用。另有规则如下：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line">* Kill the process</span><br><span class="line">*/</span><br><span class="line">#define SCMP_ACT_KILL_PROCESS 0x80000000U</span><br><span class="line">/**</span><br><span class="line">* Kill the thread</span><br><span class="line">*/</span><br><span class="line">#define SCMP_ACT_KILL_THREAD 0x00000000U</span><br><span class="line">/**</span><br><span class="line">* Kill the thread, defined for backward compatibility</span><br><span class="line">*/</span><br><span class="line">#define SCMP_ACT_KILL SCMP_ACT_KILL_THREAD</span><br><span class="line">/**</span><br><span class="line">* Throw a SIGSYS signal</span><br><span class="line">*/</span><br><span class="line">#define SCMP_ACT_TRAP 0x00030000U</span><br><span class="line">/**</span><br><span class="line">* Notifies userspace</span><br><span class="line">*/</span><br><span class="line">#define SCMP_ACT_NOTIFY 0x7fc00000U</span><br><span class="line">/**</span><br><span class="line">* Return the specified error code</span><br><span class="line">*/</span><br><span class="line">#define SCMP_ACT_ERRNO(x) (0x00050000U | ((x) &amp; 0x0000ffffU))</span><br><span class="line">/**</span><br><span class="line">* Notify a tracing process with the specified value</span><br><span class="line">*/</span><br><span class="line">#define SCMP_ACT_TRACE(x) (0x7ff00000U | ((x) &amp; 0x0000ffffU))</span><br><span class="line">/**</span><br><span class="line">* Allow the syscall to be executed after the action has been logged</span><br><span class="line">*/</span><br><span class="line">#define SCMP_ACT_LOG 0x7ffc0000U</span><br><span class="line">/**</span><br><span class="line">* Allow the syscall to be executed</span><br><span class="line">*/</span><br><span class="line">#define SCMP_ACT_ALLOW 0x7fff0000U</span><br><span class="line"></span><br><span class="line">/* SECCOMP_RET_USER_NOTIF was added in kernel v5.0. */</span><br><span class="line">#ifndef SECCOMP_RET_USER_NOTIF</span><br><span class="line">#define SECCOMP_RET_USER_NOTIF 0x7fc00000U</span><br></pre></td></tr></table></div></figure>
+
+<p>②添加规则，即添加白名单或者黑名单：</p>
+<p>seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(execve), 0);</p>
+<p>这里将系统调用execve给禁止了。函数原型：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line">* Add a new rule to the filter</span><br><span class="line">* @param ctx the filter context</span><br><span class="line">* @param action the filter action</span><br><span class="line">* @param syscall the syscall number</span><br><span class="line">* @param arg_cnt the number of argument filters in the argument filter chain</span><br><span class="line">* @param ... scmp_arg_cmp structs (use of SCMP_ARG_CMP() recommended)</span><br><span class="line">*</span><br><span class="line">* This function adds a series of new argument/value checks to the seccomp</span><br><span class="line">* filter for the given syscall; multiple argument/value checks can be</span><br><span class="line">* specified and they will be chained together (AND&#x27;d together) in the filter.</span><br><span class="line">* If the specified rule needs to be adjusted due to architecture specifics it</span><br><span class="line">* will be adjusted without notification. Returns zero on success, negative</span><br><span class="line">* values on failure.</span><br><span class="line">*</span><br><span class="line">*/</span><br><span class="line">int seccomp_rule_add(scmp_filter_ctx ctx,</span><br><span class="line">uint32_t action, int syscall, unsigned int arg_cnt, ...);</span><br></pre></td></tr></table></div></figure>
+
+<p>即(结构体，规则，规则生效的系统调用，arg_cnt，scmp_arg_cmp)。</p>
+<p>A.其中arg_cnt表示函数seccomp_rule_add后面传入参数的个数，如果为0，则直接禁止execve，后面的scmp_arg_cmp都不用赋值，赋值了也没用。</p>
+<p>B.如果不为0，则再看之后seccomp_rule_add函数之后传入的参数，赋值为1，则只允许一条规则。赋值为2，则需同时满足之后的两条规则才会生效。例如：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">//从0开始计算参数个数</span><br><span class="line">seccomp_rule_add(ctx,SCMP_ACT_KILL,SCMP_SYS(write),1,</span><br><span class="line">        SCMP_A2(SCMP_CMP_EQ,0x10));</span><br><span class="line">write(1,&quot;1234567812345678&quot;,0x10);//被拦截</span><br><span class="line"></span><br><span class="line">seccomp_rule_add(ctx,SCMP_ACT_KILL,SCMP_SYS(write),2,</span><br><span class="line">        SCMP_A2(SCMP_CMP_EQ,0x10));</span><br><span class="line">write(1,&quot;1234567812345678&quot;,0x10);//不被拦截</span><br><span class="line">//seccomp_rule_add参数个数设置为2，但是后续没有添加规则，则默认不满足，则不会生效</span><br><span class="line"></span><br><span class="line">seccomp_rule_add(ctx,SCMP_ACT_KILL,SCMP_SYS(write),2,</span><br><span class="line">        SCMP_A2(SCMP_CMP_EQ,0x10),SCMP_A0(SCMP_CMP_EQ,1));</span><br><span class="line">write(1,&quot;1234567812345678&quot;,0x10);//被拦截</span><br><span class="line"></span><br><span class="line">seccomp_rule_add(ctx,SCMP_ACT_KILL,SCMP_SYS(write),2,</span><br><span class="line">        SCMP_A2(SCMP_CMP_EQ,0x10),SCMP_A0(SCMP_CMP_EQ,1));</span><br><span class="line">write(1,&quot;1234567812345678&quot;,0x10);//不被拦截</span><br></pre></td></tr></table></div></figure>
+
+<p>但是使用seccomp，一旦被拦截，则程序直接打印错误信息并中断，无法执行之后的代码，规则如下：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line">* Specify an argument comparison struct for use in declaring rules</span><br><span class="line">* @param arg the argument number, starting at 0</span><br><span class="line">* @param op the comparison operator, e.g. SCMP_CMP_*</span><br><span class="line">* @param datum_a dependent on comparison</span><br><span class="line">* @param datum_b dependent on comparison, optional</span><br><span class="line">*/</span><br><span class="line">#define SCMP_CMP(...) ((struct scmp_arg_cmp)&#123;__VA_ARGS__&#125;)</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line">* Specify an argument comparison struct for argument 0</span><br><span class="line">*/</span><br><span class="line">#define SCMP_A0(...) SCMP_CMP(0, __VA_ARGS__)</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line">* Specify an argument comparison struct for argument 1</span><br><span class="line">*/</span><br><span class="line">#define SCMP_A1(...) SCMP_CMP(1, __VA_ARGS__)</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line">* Specify an argument comparison struct for argument 2</span><br><span class="line">*/</span><br><span class="line">#define SCMP_A2(...) SCMP_CMP(2, __VA_ARGS__)</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line">* Specify an argument comparison struct for argument 3</span><br><span class="line">*/</span><br><span class="line">#define SCMP_A3(...) SCMP_CMP(3, __VA_ARGS__)</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line">* Specify an argument comparison struct for argument 4</span><br><span class="line">*/</span><br><span class="line">#define SCMP_A4(...) SCMP_CMP(4, __VA_ARGS__)</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line">* Specify an argument comparison struct for argument 5</span><br><span class="line">*/</span><br><span class="line">#define SCMP_A5(...) SCMP_CMP(5, __VA_ARGS__)</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line">* Comparison operators</span><br><span class="line">*/</span><br><span class="line">enum scmp_compare &#123;</span><br><span class="line">_SCMP_CMP_MIN = 0,</span><br><span class="line">SCMP_CMP_NE = 1, /**&lt; not equal */</span><br><span class="line">SCMP_CMP_LT = 2, /**&lt; less than */</span><br><span class="line">SCMP_CMP_LE = 3, /**&lt; less than or equal */</span><br><span class="line">SCMP_CMP_EQ = 4, /**&lt; equal */</span><br><span class="line">SCMP_CMP_GE = 5, /**&lt; greater than or equal */</span><br><span class="line">SCMP_CMP_GT = 6, /**&lt; greater than */</span><br><span class="line">SCMP_CMP_MASKED_EQ = 7, /**&lt; masked equality */</span><br><span class="line">_SCMP_CMP_MAX,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line">* Argument datum</span><br><span class="line">*/</span><br><span class="line">typedef uint64_t scmp_datum_t;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line">* Argument / Value comparison definition</span><br><span class="line">*/</span><br><span class="line">struct scmp_arg_cmp &#123;</span><br><span class="line">unsigned int arg; /**&lt; argument number, starting at 0 */</span><br><span class="line">enum scmp_compare op; /**&lt; the comparison op, e.g. SCMP_CMP_* */</span><br><span class="line">scmp_datum_t datum_a;</span><br><span class="line">scmp_datum_t datum_b;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></div></figure>
+
+<p>③启用seccomp保护：</p>
+<p>seccomp_load(ctx);</p>
+<p>利用seccomp_load函数加载启用保护。函数原型：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line">* Return the notification fd from a filter that has already been loaded</span><br><span class="line">* @param ctx the filter context</span><br><span class="line">*</span><br><span class="line">* This returns the listener fd that was generated when the seccomp policy was</span><br><span class="line">* loaded. This is only valid after seccomp_load() with a filter that makes</span><br><span class="line">* use of SCMP_ACT_NOTIFY.</span><br><span class="line">*</span><br><span class="line">*/</span><br><span class="line">int seccomp_notify_fd(const scmp_filter_ctx ctx);</span><br></pre></td></tr></table></div></figure>
+
+<p>这里传入scmp_filter结构体即可，如果不传入</p>
+<p>以上的均可在seccomp.h中查看。</p>
+<p>▲总的调用就是：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">scmp_filter_ctx ctx;</span><br><span class="line">ctx = seccomp_init(SCMP_ACT_ALLOW);</span><br><span class="line">seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(execve), 0);</span><br><span class="line">seccomp_load(ctx);</span><br></pre></td></tr></table></div></figure>
+
+<p>记得引用库：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">#include &lt;seccomp.h&gt;</span><br><span class="line">#include &lt;linux/seccomp.h&gt;</span><br></pre></td></tr></table></div></figure>
+
+<p>2.Prtctl函数(/usr/includ/linux/prctl.h)：</p>
+<p>原型：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">int prctl(int option, unsigned long arg2, unsigned long arg3, unsigned long arg4, unsigned long arg5);</span><br></pre></td></tr></table></div></figure>
+
+<p>这里的参数可以不需要全部设置上，其中option比较关键，在PWN中大致分以下情况：</p>
+<p>(1)若option为PR_SET_NO_NEW_PRIVS(38)：</p>
+<p>此时将第二个参数arg2设置为1，那么程序的子线程就无法通过execve来提权，就是pwn kernel中即使改掉了cred结构体，使其特权为0，再执行system(“/bin/sh”)依然无法提权。即prctl(38, 1,0,0,0)表示禁用系统调用，也就是system和onegadget都没了，同时子进程也无法这样来获得shell。</p>
+<p>(2)若option为PR_SET_SECCOMP(22)：</p>
+<p>此时可以通过参数来设置规则，道理和seccomp一样的，规则如下：</p>
+<p>①如果arg2为SECCOMP_MODE_STRICT(1),则只允许调用read,write,_exit(这个exit不是退出程序的意思),sigreturn这几个syscall。即prctl(22,1,0,0,0)。</p>
+<p>②如果arg2为SECCOMP_MODE_FILTER(2),则为过滤模式,其中对syscall的限制通过参数3的结构体，来自定义过滤规则，函数会重定向到另一个同名函数，该函数的原型如下：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">int prctl(int PR_SET_SECCOMP,const struct* sock_filter SECCOMP_MODE_FILTER,const sock_fprog prog);</span><br></pre></td></tr></table></div></figure>
+
+<p>但调用之前还是需要禁用execve，即调用形式为：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">prctl(PR_SET_NO_NEW_PRIVS,1,0,0,0);   //这里是需要这么写的</span><br><span class="line">prctl(PR_SET_SECCOMP,SECCOMP_MODE_FILTER,&amp;sfp);</span><br></pre></td></tr></table></div></figure>
+
+<p>A.参数SECCOMP_MODE_FILTER是一个结构体数组，该sock_filter结构体为：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">struct sock_filter &#123; /* Filter block */</span><br><span class="line">__u16 code; /* Actual filter code */</span><br><span class="line">__u8 jt; /* Jump true */</span><br><span class="line">__u8 jf; /* Jump false */</span><br><span class="line">__u32 k; /* Generic multiuse field */</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></div></figure>
+
+<p>a.code:一个字节，详细定义操作的类型，假设code为0x15</p>
+<p>先看前四位：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">#define BPF_CLASS(code)</span><br><span class="line">#define BPF_LD 0x00 </span><br><span class="line">#define BPF_LDX 0x01</span><br><span class="line">#define BPF_ST 0x02</span><br><span class="line">#define BPF_STX 0x03</span><br><span class="line">#define BPF_ALU 0x04</span><br><span class="line">#define BPF_JMP 0x05</span><br><span class="line">#define BPF_RET 0x06</span><br><span class="line">#define BPF_MISC 0x07</span><br></pre></td></tr></table></div></figure>
+
+<p>这里前四位就是0x5，所以对应到之后的四位定义域中去：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">/*jmp fields */</span><br><span class="line">#define BPF_JA 0x00 </span><br><span class="line">#define BPF_JEQ 0x10</span><br><span class="line">#define BPF_JGT 0x20</span><br><span class="line">#define BPF_JGE 0x30</span><br><span class="line">#define BPF_JSET 0x40</span><br><span class="line">#define BPF_SRC(code) ((code) &amp; 0x08)</span><br></pre></td></tr></table></div></figure>
+
+<p>那么这个0x15的操作就是BPF_JMP+BPF_JEQ。</p>
+<p>▲同理，ld、ldx、ALU都有对应的定义域：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">/*ld fields */</span><br><span class="line">#define BPF_W 0x00</span><br><span class="line">#define BPF_H 0x08</span><br><span class="line">#define BPF_B 0x10</span><br><span class="line"></span><br><span class="line">/*ldx fields */  </span><br><span class="line">#define BPF_IMM 0x00</span><br><span class="line">#define BPF_ABS 0x20</span><br><span class="line">#define BPF_IND 0x40</span><br><span class="line">#define BPF_MEM 0x60</span><br><span class="line">#define BPF_LEN 0x80</span><br><span class="line">#define BPF_MSH 0xa0</span><br><span class="line"></span><br><span class="line">/*alu fields */</span><br><span class="line">#define BPF_ADD 0x00</span><br><span class="line">#define BPF_SUB 0x10</span><br><span class="line">#define BPF_MUL 0x20</span><br><span class="line">#define BPF_DIV 0x30</span><br><span class="line">#define BPF_OR 0x40</span><br><span class="line">#define BPF_AND 0x50</span><br><span class="line">#define BPF_LSH 0x60</span><br><span class="line">#define BPF_RSH 0x70</span><br><span class="line">#define BPF_NEG 0x80</span><br><span class="line">#define BPF_MOD 0x90</span><br><span class="line">#define BPF_XOR 0xa0</span><br><span class="line"></span><br><span class="line">/*常数*/</span><br><span class="line">#define BPF_K 0x00</span><br><span class="line">#define BPF_X 0x08</span><br></pre></td></tr></table></div></figure>
+
+<p>而RET一般对应BPF_K，然后在之后参数上写SECCOMP_RET_KILL或者SECCOMP_RET_ALLOW。MISC倒是没见过。</p>
+<p>b.JT和JF：是相对于当前语句的偏移。例如(1,0)，假设当前语句为0003，则代表之前语句为真，则跳转到0005，为假则跳转到0004。所以如果都是0，相当于是个无跳转语句，如果都是1，相当于是跳过下一条语句。</p>
+<p>c.K：可以当作一个参数。如果操作语句是比较，那么就相当于比较的右值A&gt;=K？。以此类推。这个参数的值是从seccomp_data中：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">(&lt;linux/audit.h&gt; ) </span><br><span class="line">struct seccomp_data &#123;</span><br><span class="line">int nr; /* System call number */</span><br><span class="line">__u32 arch; /* AUDIT_ARCH_* value*/</span><br><span class="line">__u64 instruction_pointer; /* CPU instruction pointer */</span><br><span class="line">__u64 args[6]; /* Up to 6 system call arguments */</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></div></figure>
+
+<p>值即代表偏移，偏移字长为一个字节：</p>
+<p>K==0，代表nr；K==4，代表arch；K==8，代表args[0]。而args六个值相当于传参寄存器的值：ebx,ecx,edx,esi,edi,ebp(32位)，rdi,rsi,rdx,r10,r8,r9(64位)</p>
+<p>▲所以(0x15,0x00,0x01,0x0000003b)就代表if (A!= execve) goto offset_1。这里也可以用一个简单的操作来替代：BPF_JUMP(BPF_JMP+BPF_JEQ,59,0,1)。定义规则就可以如下：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">struct sock_filter sfi[] = &#123;</span><br><span class="line">&#123;0x20,0x00,0x00,0x00000000&#125;,</span><br><span class="line">&#123;0x15,0x00,0x01,0xc000003b&#125;,</span><br><span class="line">&#123;0x06,0x00,0x00,0x00000000&#125;,   //KILL</span><br><span class="line">&#123;0x06,0x00,0x00,0x7fff0000&#125;   //ALLOW</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></div></figure>
+
+<p>或者</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">struct sock_filter filter[] = &#123;</span><br><span class="line">BPF_STMT(BPF_LD+BPF_W+BPF_ABS,0), </span><br><span class="line">BPF_JUMP(BPF_JMP+BPF_JEQ,59,0,1), </span><br><span class="line">BPF_STMT(BPF_RET+BPF_K,SECCOMP_RET_KILL), </span><br><span class="line">BPF_STMT(BPF_RET+BPF_K,SECCOMP_RET_ALLOW), </span><br><span class="line">&#125;;</span><br></pre></td></tr></table></div></figure>
+
+<p>由于在/usr/include/linux/bpf_common.h有宏定义，所以第二种情况也是可以的。</p>
+<p>B.sfp也是一个结构体：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">struct sock_fprog &#123; /* Required for SO_ATTACH_FILTER. */</span><br><span class="line">unsigned short len; /* Number of filter blocks */</span><br><span class="line">struct sock_filter *filter;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></div></figure>
+
+<p>a.len即代表语句条数，比如上面的就是4;</p>
+<p>b.filter就是指向上面SECCOMP_MODE_FILTER这个结构体的指针。</p>
+<p>▲所以完整的就是：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">struct sock_filter sfi[] = &#123;</span><br><span class="line">BPF_STMT(BPF_LD+BPF_W+BPF_ABS,0),</span><br><span class="line">BPF_JUMP(BPF_JMP+BPF_JEQ,59,0,1),</span><br><span class="line">BPF_STMT(BPF_RET+BPF_K,SECCOMP_RET_KILL),</span><br><span class="line">BPF_STMT(BPF_RET+BPF_K,SECCOMP_RET_ALLOW),</span><br><span class="line">&#125;;</span><br><span class="line">struct sock_fprog sfp = &#123;</span><br><span class="line">(unsigned short)(sizeof(filter)/sizeof(filter[0])),</span><br><span class="line">sfi,</span><br><span class="line">&#125;;</span><br><span class="line">prctl(PR_SET_NO_NEW_PRIVS,1,0,0,0); </span><br><span class="line">prctl(PR_SET_SECCOMP,SECCOMP_MODE_FILTER,&amp;prog);</span><br></pre></td></tr></table></div></figure>
+
+<p>这样设置后，出来的效果如下：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">root@241adce81c0a:/ctf/seccomp# seccomp-tools dump ./prctl_test2</span><br><span class="line">line  CODE JT   JF   K</span><br><span class="line">=================================</span><br><span class="line">0000: 0x20 0x00 0x00 0x00000000 A = sys_number</span><br><span class="line">0001: 0x15 0x00 0x01 0x0000003b if (A != execve) goto 0003</span><br><span class="line">0002: 0x06 0x00 0x00 0x00000000 return KILL</span><br><span class="line">0003: 0x06 0x00 0x00 0x7fff0000 return ALLOW</span><br></pre></td></tr></table></div></figure>
+
+<p>3.简单的seccomp规则写：</p>
+<p>(1)依据简单语法写规则：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">A = sys_number</span><br><span class="line">A == 257? e0:next</span><br><span class="line">A == 1? ok:next</span><br><span class="line">return ALLOW</span><br><span class="line">e0:</span><br><span class="line">return ERRNO(0)</span><br><span class="line">ok:</span><br><span class="line">return ALLOW</span><br></pre></td></tr></table></div></figure>
+
+<p>保存为seccomp_asm</p>
+<p>(2)利用seccomp-tools来生成：</p>
+<p>seccomp-tools asm seccomp_asm -f raw|seccomp-tools disasm -</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">line  CODE JT   JF   K</span><br><span class="line">=================================</span><br><span class="line">0000: 0x20 0x00 0x00 0x00000000 A = sys_number</span><br><span class="line">0001: 0x15 0x02 0x00 0x00000101 if (A == openat) goto 0004</span><br><span class="line">0002: 0x15 0x02 0x00 0x00000001 if (A == write) goto 0005</span><br><span class="line">0003: 0x06 0x00 0x00 0x7fff0000 return ALLOW</span><br><span class="line">0004: 0x06 0x00 0x00 0x00050000 return ERRNO(0)</span><br><span class="line">0005: 0x06 0x00 0x00 0x7fff0000 return ALLOW</span><br></pre></td></tr></table></div></figure>
+
+<p>这样就可以方便写规则了，同样有个seccomp_bpf.h的东西，比较简单：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/ahupowerdns/secfilter/blob/master/seccomp-bpf.h" >secfilter/seccomp-bpf.h at master · ahupowerdns/secfilter · GitHub</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>4.常见种类及绕过方式：</p>
+<p>(1)禁用execve函数时，但是需要getshell才行，此时存在满足一定条件可以使用shellcode：</p>
+<p>①未检查arch：</p>
+<p>尝试使用shellcode将处理器转换，如果是x64则转为i386，同理类似。这样系统调用号11就不会被解析为64位中的__x64_sys_munmap，而是32位中的sys_execve，绕过检查。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">to32:</span><br><span class="line">mov DWORD [rsp+4],0x23;</span><br><span class="line">retf;</span><br><span class="line"></span><br><span class="line">to64:</span><br><span class="line">mov DWORD [esp+4],0x33; </span><br><span class="line">retf;</span><br></pre></td></tr></table></div></figure>
+
+<p>由于retf的指令实际效果为：POP CS:EIP，这里CS为0x23即为64位，0x33即为32位，所以如果能找到控制栈的gadget那其实也可以直接用retf，毕竟retf其实也挺常见的。同时还有其他的好用ret指令：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">RETQ：POP RIP</span><br><span class="line">RETN: POP EIP</span><br><span class="line">RETF: POP CS:EIP</span><br></pre></td></tr></table></div></figure>
+
+<p>参考SCTF2020里面的CoolCode</p>
+<p>②存在检查漏洞：if (A &lt; 0x40000000)，如果对A &gt;= 0x40000000没有限制，那么可以利用64位下的x32漏洞，使用 64位的存器地址和 32位的地址：</p>
+<p>具体原理不太懂，应该是传参原因吧，可能syscall的系统调用号寄存器为eax，导致系统调用号0x40000003b绕过if (A &lt; 0x40000000)检查，然后以eax传入系统调用号为0x0000003b，仍然执行了execve。</p>
+<p>这样的话在原来的系统调用号加上0x400000000即可绕过检查：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">mov rax,59+0x40000000;</span><br><span class="line">syscall;</span><br></pre></td></tr></table></div></figure>
+
+<p>(2)禁用evecve等函数，告诉了flag位置，或者将flag位置什么的放在了栈上(可以用peda插件：find flag)，又或者需要自己调试爆破flag的位置，不能getshell的，利用open,write,read等没有被禁用的函数进行读取：</p>
+<p>①shellcode模式：这里就根据各种规则限制来绕过，自己编写shellcode。(这个需要汇编基础，遇到题目慢慢学吧)</p>
+<p>②ROP模式：一般需要劫持栈再来ROP，其实和shellcode差不多的。这种情况一般是禁用了mprotect，所以没办法直接使用shellcode了，那么就利用ROP来搞，借助libc上的syscall。但是这里的open不知道为什么有时候执行不了，所以可以用借助syscall加上open的系统调用号来执行open。</p>
+<p>如果没有禁止mprotect，那么通常可以配合SigreturnFrame()，free_hook，setcontext来将堆上内存权限改为可执行，然后再在堆上使用shellcode也可以。</p>
+<p>▲有些禁用了open,write,read，那么其实这种情况下可以调用对应的openat，readv，和writev，其实效果一样的，因为前面三个函数其实都对应调用后面的三个函数。如果实在没办法打印，可以利用题目中的错误信息输出，修改IO_FILE来打印，读取。还有更强的用ptrace修改系统调用号，zer0pts CTF2020的sycall kit。实在找不到，后面再补坑吧。</p>
+<p>(3)控制了open,write,read的参数：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">0000: 0x20 0x00 0x00 0x00000004 A = arch</span><br><span class="line">0001: 0x15 0x00 0x0b 0xc000003e if (A != ARCH_X86_64) goto 0013</span><br><span class="line">0002: 0x20 0x00 0x00 0x00000000 A = sys_number</span><br><span class="line">0003: 0x35 0x00 0x01 0x40000000 if (A &lt; 0x40000000) goto 0005</span><br><span class="line">0004: 0x15 0x00 0x08 0xffffffff if (A != 0xffffffff) goto 0013</span><br><span class="line">0005: 0x15 0x06 0x00 0x00000002 if (A == open) goto 0012</span><br><span class="line">0006: 0x15 0x00 0x06 0x00000000 if (A != read) goto 0013</span><br><span class="line">0007: 0x20 0x00 0x00 0x00000014 A = fd &gt;&gt; 32 # read(fd, buf, count)</span><br><span class="line">0008: 0x25 0x03 0x00 0x00000000 if (A &gt; 0x0) goto 0012</span><br><span class="line">0009: 0x15 0x00 0x03 0x00000000 if (A != 0x0) goto 0013</span><br><span class="line">0010: 0x20 0x00 0x00 0x00000010 A = fd # read(fd, buf, count)</span><br><span class="line">0011: 0x35 0x00 0x01 0x00000004 if (A &lt; 0x4) goto 0013</span><br><span class="line">0012: 0x06 0x00 0x00 0x7fff0000 return ALLOW</span><br><span class="line">0013: 0x06 0x00 0x00 0x00000000 return KILL</span><br></pre></td></tr></table></div></figure>
+
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">0000: 0x20 0x00 0x00 0x00000004 A = arch</span><br><span class="line">0001: 0x15 0x00 0x12 0xc000003e if (A != ARCH_X86_64) goto 0020</span><br><span class="line">0002: 0x20 0x00 0x00 0x00000000 A = sys_number</span><br><span class="line">0003: 0x35 0x00 0x01 0x40000000 if (A &lt; 0x40000000) goto 0005</span><br><span class="line">0004: 0x15 0x00 0x0f 0xffffffff if (A != 0xffffffff) goto 0020</span><br><span class="line">0005: 0x15 0x0d 0x00 0x00000002 if (A == open) goto 0019</span><br><span class="line">0006: 0x15 0x0c 0x00 0x00000003 if (A == close) goto 0019</span><br><span class="line">0007: 0x15 0x0b 0x00 0x0000000a if (A == mprotect) goto 0019</span><br><span class="line">0008: 0x15 0x0a 0x00 0x000000e7 if (A == exit_group) goto 0019</span><br><span class="line">0009: 0x15 0x00 0x04 0x00000000 if (A != read) goto 0014</span><br><span class="line">0010: 0x20 0x00 0x00 0x00000014 A = fd &gt;&gt; 32 # read(fd, buf, count)</span><br><span class="line">0011: 0x15 0x00 0x08 0x00000000 if (A != 0x0) goto 0020</span><br><span class="line">0012: 0x20 0x00 0x00 0x00000010 A = fd # read(fd, buf, count)</span><br><span class="line">0013: 0x15 0x05 0x06 0x00000000 if (A == 0x0) goto 0019 else goto 0020</span><br><span class="line">0014: 0x15 0x00 0x05 0x00000001 if (A != write) goto 0020</span><br><span class="line">0015: 0x20 0x00 0x00 0x00000014 A = fd &gt;&gt; 32 # write(fd, buf, count)</span><br><span class="line">0016: 0x15 0x00 0x03 0x00000000 if (A != 0x0) goto 0020</span><br><span class="line">0017: 0x20 0x00 0x00 0x00000010 A = fd # write(fd, buf, count)</span><br><span class="line">0018: 0x15 0x00 0x01 0x00000001 if (A != 0x1) goto 0020</span><br><span class="line">0019: 0x06 0x00 0x00 0x7fff0000 return ALLOW</span><br><span class="line">0020: 0x06 0x00 0x00 0x00000000 return KILL</span><br></pre></td></tr></table></div></figure>
+
+<p>类似这种限制fd的，可以先close再open，改变fd，同样对应参数也可以适当做一些修改来绕过。</p>
+<p>参考资料：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.cnblogs.com/p0lar1s/p/14697070.html#%E5%9F%BA%E4%BA%8Ebpf%E4%BC%AF%E5%85%8B%E5%88%A9%E5%88%86%E7%BB%84%E8%BF%87%E6%BB%A4%E5%99%A8%E7%9A%84seccomp%E5%BA%93%E5%87%BD%E6%95%B0" >seccomp沙盒逃逸基础——沙盒的规则编写 - p0lar1s - 博客园 (cnblogs.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p><a target="_blank" rel="noopener" href="https://a1ex.online/2020/09/27/seccomp%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">(<em>´∇｀</em>) 被你发现啦~ seccomp学习笔记 | A1ex’s Blog</a></p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/219077#h2-0" >PWN题中常见的seccomp绕过方法 - 安全客，安全资讯平台 (anquanke.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/208364#h2-10" >Seccomp从0到1 - 安全客，安全资讯平台 (anquanke.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>等等，贴不过来了。</p>
+</div><footer class="post-footer"><div class="post-ending ending"><div class="ending__text">------ END ------</div></div><div class="post-copyright copyright"><div class="copyright-author"><span class="copyright-author__name">Author: </span><span class="copyright-author__value"><a href="http://PIG-007.github.io">PIG-007</a></span></div><div class="copyright-link"><span class="copyright-link__name">Link: </span><span class="copyright-link__value"><a href="http://pig-007.github.io/2021/08/19/Seccomp_Before/">http://pig-007.github.io/2021/08/19/Seccomp_Before/</a></span></div><div class="copyright-notice"><span class="copyright-notice__name">Copyright: </span><span class="copyright-notice__value">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" rel="external nofollow" target="_blank">BY-NC-SA</a> unless stating additionally</span></div></div><div class="post-tags"><span class="post-tags-item"><span class="post-tags-item__icon"><i class="fas fa-tag"></i></span><a class="post-tags-item__link" href="http://pig-007.github.io/tags/ORW-Skill/">ORW-Skill</a></span></div><nav class="post-paginator paginator"><div class="paginator-prev"><a class="paginator-prev__link" href="/2021/08/19/%E5%88%A9%E7%94%A8IO_FILE%E6%B3%84%E9%9C%B2%E5%9C%B0%E5%9D%80/"><span class="paginator-prev__icon"><i class="fas fa-angle-left"></i></span><span class="paginator-prev__text">利用IO_FILE泄露地址</span></a></div><div class="paginator-next"><a class="paginator-next__link" href="/2021/08/19/%E5%A0%86%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/"><span class="paginator-prev__text">堆前置知识总结</span><span class="paginator-next__icon"><i class="fas fa-angle-right"></i></span></a></div></nav></footer></div></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><div class="sidebar-nav"><span class="sidebar-nav-toc current">Catalog</span><span class="sidebar-nav-ov">Overview</span></div><section class="sidebar-toc"></section><!-- ov = overview--><section class="sidebar-ov hide"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">hello world</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">93</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">40</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">43</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section><div class="sidebar-reading"><div class="sidebar-reading-info"><span class="sidebar-reading-info__text">You have read </span><span class="sidebar-reading-info__num">0</span><span class="sidebar-reading-info__perc">%</span></div><div class="sidebar-reading-line"></div></div></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2021</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
+  var isXML = true;
+  var search_path = 'search.json';
+
+  if (!search_path) {
+    search_path = 'search.xml';
+  } else if (/json$/i.test(search_path)) {
+    isXML = false;
+  }
+
+  var path = '/' + search_path;
+  $.ajax({
+    url: path,
+    dataType: isXML ? 'xml' : 'json',
+    async: true,
+    success: function (res) {
+      var datas = isXML ? $('entry', res).map(function () {
+        // 将 XML 转为 JSON
+        return {
+          title: $('title', this).text(),
+          content: $('content', this).text(),
+          url: $('url', this).text()
+        };
+      }).get() : res;
+      var $input = $('.search-input input');
+      var $result = $('.search-results');
+      // 搜索对象（标题、内容）的权重，影响显示顺序
+      var WEIGHT = { title: 100, content: 1 };
+      var searchPost = function () {
+        var searchText = $input.val().toLowerCase().trim();
+        // 根据空白字符分隔关键字
+        var keywords = searchText.split(/[\s]+/);
+        // 搜索结果
+        var matchPosts = [];
+
+        // 有多个关键字时，将原文字整个保存下来
+        if (keywords.length > 1) {
+          keywords.push(searchText);
+        }
+        // 防止未输入字符时搜索
+        if (searchText.length > 0) {
+          datas.forEach(function (data) {
+            var isMatch  = false;
+            // 没有标题的文章使用预设的 i18n 变量代替
+            var title = (data.title && data.title.trim()) || '[ Untitled ]';
+            var titleLower = title && title.toLowerCase();
+            // 删除 HTML 标签 和 所有空白字符
+            var content = data.content && data.content.replace(/<[^>]+>/g, '');
+            var contentLower = content && content.toLowerCase();
+            // 删除重复的 /
+            var postURL = data.url && decodeURI(data.url).replace(/\/{2,}/g, '/');
+            // 标题中匹配到的关键词
+            var titleHitSlice = [];
+            // 内容中匹配到的关键词
+            var contentHitSlice = [];
+
+            keywords.forEach(function (keyword) {
+              /**
+              * 获取匹配的关键词的索引
+              * @param {String} keyword 要匹配的关键字
+              * @param {String} text 原文字
+              * @param {Boolean} caseSensitive 是否区分大小写
+              * @param {Number} weight 匹配对象的权重。权重大的优先显示
+              * @return {Array}
+              */
+              function getIndexByword (word, text, caseSensitive, weight) {
+                if (!word || !text) {
+                  return [];
+                };
+
+                var startIndex = 0; // 每次匹配的开始索引
+                var index = -1;     // 匹配到的索引值
+                var result = [];    // 匹配结果
+
+                if (!caseSensitive) {
+                  word = word.toLowerCase();
+                  text = text.toLowerCase();
+                }
+
+                while((index = text.indexOf(word, startIndex)) !== -1) {
+                  var hasMatch = false;
+                  // 索引位置相同的关键词，保留长度较长的
+                  titleHitSlice.forEach(function (hit) {
+                    if (hit.index === index && hit.word.length < word.length) {
+                      hit.word = word;
+                      hasMatch = true;
+                    }
+                  });
+                  startIndex = index + word.length;
+                  !hasMatch && result.push({ index: index, word: word, weight: weight });
+                }
+                return result;
+              }
+              titleHitSlice = titleHitSlice.concat(getIndexByword(keyword, titleLower, false, WEIGHT.title));
+              contentHitSlice = contentHitSlice.concat(getIndexByword(keyword, contentLower, false, WEIGHT.content));
+            });
+
+            var hitTitle = titleHitSlice.length;
+            var hitContent = contentHitSlice.length;
+
+            if (hitTitle > 0 || hitContent > 0) {
+              isMatch = true;
+            }
+            if (isMatch) {
+              ;[titleHitSlice, contentHitSlice].forEach(function (hit) {
+                // 按照匹配文字的索引的递增顺序排序
+                hit.sort(function (left, right) {
+                  return left.index - right.index;
+                });
+              });
+              /**
+              * 给文本中匹配到的关键词添加标记，从而进行高亮显示
+              * @param {String} text 原文本
+              * @param {Array} hitSlice 匹配项的索引信息
+              * @param {Number} start 开始索引
+              * @param {Number} end 结束索引
+              * @return {String}
+              */
+              function highlightKeyword (text, hitSlice, start, end) {
+                if (!text || !hitSlice || !hitSlice.length) {
+                  return;
+                }
+
+                var result = '';
+                var startIndex = start;
+                var endIndex = end;
+                hitSlice.forEach(function (hit) {
+                  if (hit.index < startIndex) {
+                    return;
+                  }
+
+                  var hitWordEnd = hit.index + hit.word.length;
+                  result += text.slice(startIndex, hit.index);
+                  result += '<b>' + text.slice(hit.index, hitWordEnd) + '</b>';
+                  startIndex = hitWordEnd;
+                });
+                result += text.slice(startIndex, endIndex);
+                return result;
+              }
+
+              var postData = {};
+              // 文章总的搜索权重
+              var postWeight = titleHitSlice.length * WEIGHT.title + contentHitSlice.length * WEIGHT.content;
+              // 标记匹配关键词后的标题
+              var postTitle = highlightKeyword(title, titleHitSlice, 0, title.length) || title;
+              // 标记匹配关键词后的内容
+              var postContent;
+              // 显示内容的长度
+              var SHOW_WORD_LENGTH = 200;
+              // 命中关键词前的字符显示长度
+              var SHOW_WORD_FRONT_LENGTH = 20;
+              var SHOW_WORD_END_LENGTH = SHOW_WORD_LENGTH - SHOW_WORD_FRONT_LENGTH;
+
+              // 截取匹配的第一个字符，前后共 200 个字符来显示
+              if (contentHitSlice.length > 0) {
+                var firstIndex = contentHitSlice[0].index;
+                var start = firstIndex > SHOW_WORD_FRONT_LENGTH ? firstIndex - SHOW_WORD_FRONT_LENGTH : 0;
+                var end = firstIndex + SHOW_WORD_END_LENGTH;
+                postContent = highlightKeyword(content, contentHitSlice, start, end);
+              } else { // 未匹配到内容，直接截取前 200 个字符来显示
+                postContent = content.slice(0, SHOW_WORD_LENGTH);
+              }
+              postData.title = postTitle;
+              postData.content = postContent;
+              postData.url = postURL;
+              postData.weight = postWeight;
+              matchPosts.push(postData);
+            }
+          });
+        }
+
+        var resultInnerHtml = '';
+        if (matchPosts.length) {
+          // 按权重递增的顺序排序，使权重大的优先显示
+          matchPosts.sort(function (left, right) {
+            return right.weight - left.weight;
+          });
+          resultInnerHtml += '<ul>';
+          matchPosts.forEach(function (post) {
+            resultInnerHtml += '<li><a class="search-results-title" href="' + post.url + '">';
+            resultInnerHtml += post.title;
+            resultInnerHtml += '</a><div class="search-results-content">';
+            resultInnerHtml += post.content;
+            resultInnerHtml += '</div></li>';
+          });
+          resultInnerHtml += '</ul>';
+        } else {
+          resultInnerHtml += '<div class="search-results-none"><i class="far fa-meh"></i></div>';
+        }
+        $result.html(resultInnerHtml);
+      };
+      $input.on('input', searchPost);
+      $input.on('keyup', function (e) {
+        if (e.keyCode === Stun.utils.codeToKeyCode('Enter')) {
+          searchPost();
+        }
+      });
+    }
+  });
+}
+
+function closeSearch () {
+  $('body').css({ overflow: 'auto' });
+  $('.search-popup').css({ display: 'none' });
+  $('.search-mask').css({ display: 'none' });
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  Stun.utils.pjaxReloadLocalSearch = function () {
+    $('.header-nav-search').on('click', function (e) {
+      e.stopPropagation();
+      $('body').css('overflow', 'hidden');
+      $('.search-popup')
+        .velocity('stop')
+        .velocity('transition.expandIn', {
+          duration: 300,
+          complete: function () {
+            $('.search-popup input').focus();
+          }
+        });
+      $('.search-mask')
+        .velocity('stop')
+        .velocity('transition.fadeIn', {
+          duration: 300
+        });
+
+      initSearch();
+    });
+    $('.search-mask, .search-close').on('click', function () {
+      closeSearch();
+    });
+    $(document).on('keydown', function (e) {
+      // Escape <=> 27
+      if (e.keyCode === Stun.utils.codeToKeyCode('Escape')) {
+        closeSearch();
+      }
+    });
+  };
+
+  Stun.utils.pjaxReloadLocalSearch();
+}, false);
+
+function safeOpenUrl(url) {
+  var newTab = window.open();
+  newTab.opener = null;
+  newTab.location = url;
+}
+
+function extSearch(engine) {
+  var engines = {
+    google: 'https://www.google.com/search?q=',
+    bing: 'https://cn.bing.com/search?q=',
+    baidu: 'https://www.baidu.com/s?ie=UTF-8&wd=',
+  };
+  var host = window.location.host;
+  var query = $('.search-input input').val().toLowerCase().trim();
+  var uri = engines[engine] + query + ' site:' + host;
+
+  if (query) {
+    safeOpenUrl(uri);
+  } else {
+    Stun.utils.popAlert('warning', 'Please enter characters');
+  }
+}
+
+var assistSearchList = window.CONFIG.assistSearch;
+
+if (Array.isArray(assistSearchList)) {
+  assistSearchList.forEach(function (name) {
+    document.querySelector('.search-btns-item--' + name).addEventListener('click', function () {
+      extSearch(name);
+    }, false);
+  });
+}</script><script src="/js/utils.js?v=2.6.2"></script><script src="/js/stun-boot.js?v=2.6.2"></script><script src="/js/scroll.js?v=2.6.2"></script><script src="/js/header.js?v=2.6.2"></script><script src="/js/sidebar.js?v=2.6.2"></script><script type="application/json" src="/search.json"></script><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"superSample":2,"width":150,"height":300,"position":"left","hOffset":0,"vOffset":-80},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body></html>

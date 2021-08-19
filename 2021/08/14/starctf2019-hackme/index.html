@@ -1,0 +1,385 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta name="description" content="1.首先解包，看init，空的。 2.然后看启动脚本： 123456789101112#注释头qemu-system-x86_64 \-m 256M \-nographic \-kernel bzImage \-append &amp;#x27;console&#x3D;ttyS0 loglevel&#x3D;3 oops&#x3D;panic panic&#x3D;1 kaslr&amp;#x27; \-monitor &#x2F;dev&#x2F;null \-ini">
+<meta property="og:type" content="article">
+<meta property="og:title" content="starctf2019-hackme">
+<meta property="og:url" content="http://pig-007.github.io/2021/08/14/starctf2019-hackme/index.html">
+<meta property="og:site_name" content="PIG-007">
+<meta property="og:description" content="1.首先解包，看init，空的。 2.然后看启动脚本： 123456789101112#注释头qemu-system-x86_64 \-m 256M \-nographic \-kernel bzImage \-append &amp;#x27;console&#x3D;ttyS0 loglevel&#x3D;3 oops&#x3D;panic panic&#x3D;1 kaslr&amp;#x27; \-monitor &#x2F;dev&#x2F;null \-ini">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_16-31-32.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_16-36-01.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_16-42-06.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_16-45-07.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_16-46-46.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_17-45-28.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_17-51-59.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_17-59-38.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_18-12-56.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_21-03-16.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_21-03-24.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_21-46-53.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_21-47-02.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_21-50-56.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_21-59-15.png">
+<meta property="article:published_time" content="2021-08-14T05:40:30.000Z">
+<meta property="article:modified_time" content="2021-08-19T05:35:48.947Z">
+<meta property="article:author" content="PIG-007">
+<meta property="article:tag" content="modprobe">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_16-31-32.png"><title>starctf2019-hackme | PIG-007</title><link ref="canonical" href="http://pig-007.github.io/2021/08/14/starctf2019-hackme/"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.12.1/css/all.min.css" type="text/css"><link rel="stylesheet" href="/css/index.css?v=2.6.2"><script>var Stun = window.Stun || {};
+var CONFIG = {
+  root: '/',
+  algolia: undefined,
+  assistSearch: undefined,
+  fontIcon: {"prompt":{"success":"fas fa-check-circle","info":"fas fa-arrow-circle-right","warning":"fas fa-exclamation-circle","error":"fas fa-times-circle"},"copyBtn":"fas fa-copy"},
+  sidebar: {"offsetTop":"20px","tocMaxDepth":6},
+  header: {"enable":true,"showOnPost":true,"scrollDownIcon":false},
+  postWidget: {"endText":true},
+  nightMode: {"enable":true},
+  back2top: {"enable":true},
+  codeblock: {"style":"default","highlight":"light","wordWrap":true},
+  reward: false,
+  fancybox: false,
+  zoomImage: {"gapAside":"20px"},
+  galleryWaterfall: undefined,
+  lazyload: false,
+  pjax: undefined,
+  externalLink: {"icon":{"enable":true,"name":"fas fa-external-link-alt"}},
+  shortcuts: undefined,
+  prompt: {"copyButton":"Copy","copySuccess":"Copy Success","copyError":"Copy Error"},
+  sourcePath: {"js":"js","css":"css","images":"images"},
+};
+
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content" id="content"><!-- Just used to judge whether it is an article page--><div id="is-post"></div><div class="post"><header class="post-header"><h1 class="post-title">starctf2019-hackme</h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><p>1.首先解包，看init，空的。</p>
+<p>2.然后看启动脚本：</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#注释头</span></span><br><span class="line"></span><br><span class="line">qemu-system-x86_64 \</span><br><span class="line">-m 256M \</span><br><span class="line">-nographic \</span><br><span class="line">-kernel bzImage \</span><br><span class="line">-append <span class="string">&#x27;console=ttyS0 loglevel=3 oops=panic panic=1 kaslr&#x27;</span> \</span><br><span class="line">-monitor /dev/null \</span><br><span class="line">-initrd initramfs.cpio \</span><br><span class="line">-smp cores=4,threads=2 \</span><br><span class="line">-gdb tcp::1234 \</span><br><span class="line">-cpu qemu64,smep,smap 2&gt;/dev/null</span><br></pre></td></tr></table></div></figure>
+
+<p>比较正常，开了smep和smap，并且4内核，2线程，这里就可能会是条件竞争的考点。</p>
+<p>3.然后拖入IDA分析：程序比较检查，类似菜单题，但是IDA中F5看伪代码中多了很多的奇怪的参数，最好以add-&gt;delete-&gt;edit-&gt;read的顺序来看比较舒服，一般的堆体分析结构也差不多怎么看。</p>
+<p>首先判断下结构体：</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#注释头</span></span><br><span class="line"></span><br><span class="line">dataStruct:</span><br><span class="line">idx       4byte</span><br><span class="line">padding   4byte</span><br><span class="line">data_ptr  8byte</span><br><span class="line">data_size 8byte</span><br><span class="line">offset    8byte</span><br><span class="line"></span><br><span class="line">struct chunkNote:</span><br><span class="line">chunk_addr 8byte</span><br><span class="line">chunk_size 8byte</span><br></pre></td></tr></table></div></figure>
+
+<p>其中pool中存储多个chunkNote结构体，不是指针，而是结构体。</p>
+<p>(1)add：没什么特别的，创建堆块，拷贝数据，存储chunk到pool中</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_16-31-32.png" alt="img"></p>
+<p>(2)delete：也没啥问题，释放内存，指针置空。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_16-36-01.png" alt="img"></p>
+<p>(3)edit：有点问题，这里判断了chunk指针是否存在，并且offset+size要小于等于之前保存的size。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_16-42-06.png" alt="img"></p>
+<p>本来没啥，但是这里offset和size是int类型，可以为负数，那么就可以依据chunk_addr来向上修改数据了，相当于越界写。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_16-45-07.png" alt="img"></p>
+<p>(4)read：同样的，也相当于越界读：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_16-46-46.png" alt="img"></p>
+<p>▲虽说是越界写和越界读，但是由于copy系列函数，如果我们想往高地址读写的话，(内核系列函数都在高地址)offset一定需要很大，然后又要满足小于size，那么userDataSize势必要设置为负数，负数转换成unsigned long就会变得很大，基本就会导致一半的空间被覆盖，那么程序指定崩盘，所以这里还是申请pool全局变量处来进行任意读写比较好。</p>
+<p>另外也由于slub的特性，简单修改fd的话，虽然能够任意申请，但是如果fd的内存处保存的内容是个非法的，再次申请该大小的chunk程序就会崩，所以有全局变量pool就用pool。</p>
+<p>4.思考一下漏洞怎么利用。</p>
+<p>(1)首先需要地址</p>
+<p>①堆地址：释放chunkA，从chunkB向上偏移读取chunkA的fd，即可得到指向的chunkC的地址，即chunkA.fd = chunkA_addr+size*2。</p>
+<p>②内核基地址：依据任意读，从第一个chunk往上的地方读取chunk中的内容，从中筛选出vmlinux中的地址，读取之后减去偏移，即可得到内核基地址。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_17-45-28.png" alt="img"></p>
+<p>例如这里就可以读取图中的0xffffffff81849ae0，然后减去0x849ae0即可得到基地址。当然这没有用kalsr的效果。开了之后如下，偏移也是一样的。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_17-51-59.png" alt="img"></p>
+<p>得到这次打开的基地址：0xffffffff9de00000，用命令检查一下：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_17-59-38.png" alt="img"></p>
+<p>可以看到最前面的就是内核基地址。</p>
+<p>③函数基地址：</p>
+<p>cat /proc/kallsyms|grep commit_creds</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_18-12-56.png" alt="img"></p>
+<p>从kallsyms中可以查看到所有函数，减去原始基地址0xFFFFFFFF81000000再加上随机化的内核基地址就是随机化之后的函数地址了。比如上例为：</p>
+<p>0xffffffff8104d220-0xFFFFFFFF81000000+0xffffffff9de00000=0xffffffff9de4d220</p>
+<p>得到运行了kaslr的函数地址。</p>
+<p>④模块基地址：由于需要pool变量地址，所以模块的基地址肯定也需要，这里利用mod_tree来获取。mod_tree包含了所有装载的Mod的基地址。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_21-03-16.png" alt="img"></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_21-03-24.png" alt="img"></p>
+<p>可以看到hackme模块的基地址也包含在里面，开了kaslr之后也是一样的。所以我们利用内核基地址得到mod_tree的地址，申请下来就可以从里面读出hackme模块的基地址。</p>
+<p>(2)然后方法就很多了，虽然开了smep,smap,kaslr：</p>
+<p>①修改modprobe_path：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_21-46-53.png" alt="img"></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_21-47-02.png" alt="img"></p>
+<p>可以看到modprobe_path指向一个二进制文件</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_21-50-56.png" alt="img"></p>
+<p>而当某个特定错误发生时，就会运行该二进制文件，且是以root权限运行的，(我尝试过，运行/bin/sh不能提权)所以如果我们把路径改成我们的二进制文件，将flag复制一下，改下权限就能打开了。(直接cat flag也不行，很奇怪)</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_21-59-15.png" alt="img"></p>
+<p>我们的二进制文件下只能类似是如下命令才行的：</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#注释头</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#!/bin/sh</span></span><br><span class="line">/bin/cp /flag /home/pwn/flag</span><br><span class="line">/bin/chmod 777 /home/pwn/flag</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">#或者</span></span><br><span class="line"><span class="comment">#!/bin/sh</span></span><br><span class="line">/bin/cat /flag &gt; /home/pwn/flag.txt</span><br></pre></td></tr></table></div></figure>
+
+<p>注意要使用绝对路径。</p>
+<p>▲然后触发这个特定类型的错误需要一个错误格式的二进制文件：</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">system(<span class="string">&quot;echo -ne &#x27;\\xff\\xff\\xff\\xff&#x27; &gt; /home/pwn/dummy&quot;</span>);</span><br><span class="line">system(<span class="string">&quot;chmod +x /home/pwn/dummy&quot;</span>);</span><br></pre></td></tr></table></div></figure>
+
+<p>这个elf的错误格式就是\xff\xff\xff\xff，或者其他错误格式也行。</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line"><span class="built_in">strncpy</span>(mem,<span class="string">&quot;/home/pwn/copy.sh\0&quot;</span>,<span class="number">18</span>);</span><br><span class="line">write_to_kernel(fd,<span class="number">0xc</span>,mem,<span class="number">18</span>,<span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">system(<span class="string">&quot;echo -ne &#x27;#!/bin/sh\n/bin/cp /flag /home/pwn/flag\n/bin/chmod 777 /home/pwn/flag&#x27; &gt; /home/pwn/copy.sh&quot;</span>);</span><br><span class="line">system(<span class="string">&quot;chmod +x /home/pwn/copy.sh&quot;</span>);</span><br><span class="line">system(<span class="string">&quot;echo -ne &#x27;\\xff\\xff\\xff\\xff&#x27; &gt; /home/pwn/dummy&quot;</span>);</span><br><span class="line">system(<span class="string">&quot;chmod +x /home/pwn/dummy&quot;</span>);</span><br><span class="line"></span><br><span class="line">system(<span class="string">&quot;/home/pwn/dummy&quot;</span>);</span><br><span class="line">system(<span class="string">&quot;cat flag&quot;</span>);</span><br></pre></td></tr></table></div></figure>
+
+</div><footer class="post-footer"><div class="post-ending ending"><div class="ending__text">------ END ------</div></div><div class="post-copyright copyright"><div class="copyright-author"><span class="copyright-author__name">Author: </span><span class="copyright-author__value"><a href="http://PIG-007.github.io">PIG-007</a></span></div><div class="copyright-link"><span class="copyright-link__name">Link: </span><span class="copyright-link__value"><a href="http://pig-007.github.io/2021/08/14/starctf2019-hackme/">http://pig-007.github.io/2021/08/14/starctf2019-hackme/</a></span></div><div class="copyright-notice"><span class="copyright-notice__name">Copyright: </span><span class="copyright-notice__value">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" rel="external nofollow" target="_blank">BY-NC-SA</a> unless stating additionally</span></div></div><div class="post-tags"><span class="post-tags-item"><span class="post-tags-item__icon"><i class="fas fa-tag"></i></span><a class="post-tags-item__link" href="http://pig-007.github.io/tags/modprobe/">modprobe</a></span></div><nav class="post-paginator paginator"><div class="paginator-prev"><a class="paginator-prev__link" href="/2021/08/14/qemu%E9%80%83%E9%80%B8-pwn%E8%A7%A3%E9%A2%98/"><span class="paginator-prev__icon"><i class="fas fa-angle-left"></i></span><span class="paginator-prev__text">qemu逃逸-pwn解题</span></a></div><div class="paginator-next"><a class="paginator-next__link" href="/2021/08/14/vsdo%E5%92%8Cvsyscall%E7%9A%84%E5%89%8D%E4%B8%96%E4%BB%8A%E7%94%9F/"><span class="paginator-prev__text">vsdo和vsyscall的前世今生</span><span class="paginator-next__icon"><i class="fas fa-angle-right"></i></span></a></div></nav></footer></div></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><div class="sidebar-nav"><span class="sidebar-nav-toc current">Catalog</span><span class="sidebar-nav-ov">Overview</span></div><section class="sidebar-toc"></section><!-- ov = overview--><section class="sidebar-ov hide"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">hello world</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">93</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">40</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">43</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section><div class="sidebar-reading"><div class="sidebar-reading-info"><span class="sidebar-reading-info__text">You have read </span><span class="sidebar-reading-info__num">0</span><span class="sidebar-reading-info__perc">%</span></div><div class="sidebar-reading-line"></div></div></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2021</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
+  var isXML = true;
+  var search_path = 'search.json';
+
+  if (!search_path) {
+    search_path = 'search.xml';
+  } else if (/json$/i.test(search_path)) {
+    isXML = false;
+  }
+
+  var path = '/' + search_path;
+  $.ajax({
+    url: path,
+    dataType: isXML ? 'xml' : 'json',
+    async: true,
+    success: function (res) {
+      var datas = isXML ? $('entry', res).map(function () {
+        // 将 XML 转为 JSON
+        return {
+          title: $('title', this).text(),
+          content: $('content', this).text(),
+          url: $('url', this).text()
+        };
+      }).get() : res;
+      var $input = $('.search-input input');
+      var $result = $('.search-results');
+      // 搜索对象（标题、内容）的权重，影响显示顺序
+      var WEIGHT = { title: 100, content: 1 };
+      var searchPost = function () {
+        var searchText = $input.val().toLowerCase().trim();
+        // 根据空白字符分隔关键字
+        var keywords = searchText.split(/[\s]+/);
+        // 搜索结果
+        var matchPosts = [];
+
+        // 有多个关键字时，将原文字整个保存下来
+        if (keywords.length > 1) {
+          keywords.push(searchText);
+        }
+        // 防止未输入字符时搜索
+        if (searchText.length > 0) {
+          datas.forEach(function (data) {
+            var isMatch  = false;
+            // 没有标题的文章使用预设的 i18n 变量代替
+            var title = (data.title && data.title.trim()) || '[ Untitled ]';
+            var titleLower = title && title.toLowerCase();
+            // 删除 HTML 标签 和 所有空白字符
+            var content = data.content && data.content.replace(/<[^>]+>/g, '');
+            var contentLower = content && content.toLowerCase();
+            // 删除重复的 /
+            var postURL = data.url && decodeURI(data.url).replace(/\/{2,}/g, '/');
+            // 标题中匹配到的关键词
+            var titleHitSlice = [];
+            // 内容中匹配到的关键词
+            var contentHitSlice = [];
+
+            keywords.forEach(function (keyword) {
+              /**
+              * 获取匹配的关键词的索引
+              * @param {String} keyword 要匹配的关键字
+              * @param {String} text 原文字
+              * @param {Boolean} caseSensitive 是否区分大小写
+              * @param {Number} weight 匹配对象的权重。权重大的优先显示
+              * @return {Array}
+              */
+              function getIndexByword (word, text, caseSensitive, weight) {
+                if (!word || !text) {
+                  return [];
+                };
+
+                var startIndex = 0; // 每次匹配的开始索引
+                var index = -1;     // 匹配到的索引值
+                var result = [];    // 匹配结果
+
+                if (!caseSensitive) {
+                  word = word.toLowerCase();
+                  text = text.toLowerCase();
+                }
+
+                while((index = text.indexOf(word, startIndex)) !== -1) {
+                  var hasMatch = false;
+                  // 索引位置相同的关键词，保留长度较长的
+                  titleHitSlice.forEach(function (hit) {
+                    if (hit.index === index && hit.word.length < word.length) {
+                      hit.word = word;
+                      hasMatch = true;
+                    }
+                  });
+                  startIndex = index + word.length;
+                  !hasMatch && result.push({ index: index, word: word, weight: weight });
+                }
+                return result;
+              }
+              titleHitSlice = titleHitSlice.concat(getIndexByword(keyword, titleLower, false, WEIGHT.title));
+              contentHitSlice = contentHitSlice.concat(getIndexByword(keyword, contentLower, false, WEIGHT.content));
+            });
+
+            var hitTitle = titleHitSlice.length;
+            var hitContent = contentHitSlice.length;
+
+            if (hitTitle > 0 || hitContent > 0) {
+              isMatch = true;
+            }
+            if (isMatch) {
+              ;[titleHitSlice, contentHitSlice].forEach(function (hit) {
+                // 按照匹配文字的索引的递增顺序排序
+                hit.sort(function (left, right) {
+                  return left.index - right.index;
+                });
+              });
+              /**
+              * 给文本中匹配到的关键词添加标记，从而进行高亮显示
+              * @param {String} text 原文本
+              * @param {Array} hitSlice 匹配项的索引信息
+              * @param {Number} start 开始索引
+              * @param {Number} end 结束索引
+              * @return {String}
+              */
+              function highlightKeyword (text, hitSlice, start, end) {
+                if (!text || !hitSlice || !hitSlice.length) {
+                  return;
+                }
+
+                var result = '';
+                var startIndex = start;
+                var endIndex = end;
+                hitSlice.forEach(function (hit) {
+                  if (hit.index < startIndex) {
+                    return;
+                  }
+
+                  var hitWordEnd = hit.index + hit.word.length;
+                  result += text.slice(startIndex, hit.index);
+                  result += '<b>' + text.slice(hit.index, hitWordEnd) + '</b>';
+                  startIndex = hitWordEnd;
+                });
+                result += text.slice(startIndex, endIndex);
+                return result;
+              }
+
+              var postData = {};
+              // 文章总的搜索权重
+              var postWeight = titleHitSlice.length * WEIGHT.title + contentHitSlice.length * WEIGHT.content;
+              // 标记匹配关键词后的标题
+              var postTitle = highlightKeyword(title, titleHitSlice, 0, title.length) || title;
+              // 标记匹配关键词后的内容
+              var postContent;
+              // 显示内容的长度
+              var SHOW_WORD_LENGTH = 200;
+              // 命中关键词前的字符显示长度
+              var SHOW_WORD_FRONT_LENGTH = 20;
+              var SHOW_WORD_END_LENGTH = SHOW_WORD_LENGTH - SHOW_WORD_FRONT_LENGTH;
+
+              // 截取匹配的第一个字符，前后共 200 个字符来显示
+              if (contentHitSlice.length > 0) {
+                var firstIndex = contentHitSlice[0].index;
+                var start = firstIndex > SHOW_WORD_FRONT_LENGTH ? firstIndex - SHOW_WORD_FRONT_LENGTH : 0;
+                var end = firstIndex + SHOW_WORD_END_LENGTH;
+                postContent = highlightKeyword(content, contentHitSlice, start, end);
+              } else { // 未匹配到内容，直接截取前 200 个字符来显示
+                postContent = content.slice(0, SHOW_WORD_LENGTH);
+              }
+              postData.title = postTitle;
+              postData.content = postContent;
+              postData.url = postURL;
+              postData.weight = postWeight;
+              matchPosts.push(postData);
+            }
+          });
+        }
+
+        var resultInnerHtml = '';
+        if (matchPosts.length) {
+          // 按权重递增的顺序排序，使权重大的优先显示
+          matchPosts.sort(function (left, right) {
+            return right.weight - left.weight;
+          });
+          resultInnerHtml += '<ul>';
+          matchPosts.forEach(function (post) {
+            resultInnerHtml += '<li><a class="search-results-title" href="' + post.url + '">';
+            resultInnerHtml += post.title;
+            resultInnerHtml += '</a><div class="search-results-content">';
+            resultInnerHtml += post.content;
+            resultInnerHtml += '</div></li>';
+          });
+          resultInnerHtml += '</ul>';
+        } else {
+          resultInnerHtml += '<div class="search-results-none"><i class="far fa-meh"></i></div>';
+        }
+        $result.html(resultInnerHtml);
+      };
+      $input.on('input', searchPost);
+      $input.on('keyup', function (e) {
+        if (e.keyCode === Stun.utils.codeToKeyCode('Enter')) {
+          searchPost();
+        }
+      });
+    }
+  });
+}
+
+function closeSearch () {
+  $('body').css({ overflow: 'auto' });
+  $('.search-popup').css({ display: 'none' });
+  $('.search-mask').css({ display: 'none' });
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  Stun.utils.pjaxReloadLocalSearch = function () {
+    $('.header-nav-search').on('click', function (e) {
+      e.stopPropagation();
+      $('body').css('overflow', 'hidden');
+      $('.search-popup')
+        .velocity('stop')
+        .velocity('transition.expandIn', {
+          duration: 300,
+          complete: function () {
+            $('.search-popup input').focus();
+          }
+        });
+      $('.search-mask')
+        .velocity('stop')
+        .velocity('transition.fadeIn', {
+          duration: 300
+        });
+
+      initSearch();
+    });
+    $('.search-mask, .search-close').on('click', function () {
+      closeSearch();
+    });
+    $(document).on('keydown', function (e) {
+      // Escape <=> 27
+      if (e.keyCode === Stun.utils.codeToKeyCode('Escape')) {
+        closeSearch();
+      }
+    });
+  };
+
+  Stun.utils.pjaxReloadLocalSearch();
+}, false);
+
+function safeOpenUrl(url) {
+  var newTab = window.open();
+  newTab.opener = null;
+  newTab.location = url;
+}
+
+function extSearch(engine) {
+  var engines = {
+    google: 'https://www.google.com/search?q=',
+    bing: 'https://cn.bing.com/search?q=',
+    baidu: 'https://www.baidu.com/s?ie=UTF-8&wd=',
+  };
+  var host = window.location.host;
+  var query = $('.search-input input').val().toLowerCase().trim();
+  var uri = engines[engine] + query + ' site:' + host;
+
+  if (query) {
+    safeOpenUrl(uri);
+  } else {
+    Stun.utils.popAlert('warning', 'Please enter characters');
+  }
+}
+
+var assistSearchList = window.CONFIG.assistSearch;
+
+if (Array.isArray(assistSearchList)) {
+  assistSearchList.forEach(function (name) {
+    document.querySelector('.search-btns-item--' + name).addEventListener('click', function () {
+      extSearch(name);
+    }, false);
+  });
+}</script><script src="/js/utils.js?v=2.6.2"></script><script src="/js/stun-boot.js?v=2.6.2"></script><script src="/js/scroll.js?v=2.6.2"></script><script src="/js/header.js?v=2.6.2"></script><script src="/js/sidebar.js?v=2.6.2"></script><script type="application/json" src="/search.json"></script><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"superSample":2,"width":150,"height":300,"position":"left","hOffset":0,"vOffset":-80},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body></html>

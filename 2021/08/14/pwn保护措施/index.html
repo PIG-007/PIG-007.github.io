@@ -1,0 +1,384 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta name="description" content="一、RELRO: (ReLocation Read-Only) 1.功能：解决延迟绑定问题，将符号重定向表设置为只读，或者在程序启动时就解析并绑定所有动态符号，防止got表被篡改。 2.表现形式： pwn checksec检查为RELRO: Full RELRO，Partial RELRO保护 3.保护等级： (1)Partial RELRO: ①一些段(.dynamic、.got等)在初始化后会">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pwn保护措施">
+<meta property="og:url" content="http://pig-007.github.io/2021/08/14/pwn%E4%BF%9D%E6%8A%A4%E6%8E%AA%E6%96%BD/index.html">
+<meta property="og:site_name" content="PIG-007">
+<meta property="og:description" content="一、RELRO: (ReLocation Read-Only) 1.功能：解决延迟绑定问题，将符号重定向表设置为只读，或者在程序启动时就解析并绑定所有动态符号，防止got表被篡改。 2.表现形式： pwn checksec检查为RELRO: Full RELRO，Partial RELRO保护 3.保护等级： (1)Partial RELRO: ①一些段(.dynamic、.got等)在初始化后会">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191519177.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191519553.png">
+<meta property="article:published_time" content="2021-08-14T05:40:30.000Z">
+<meta property="article:modified_time" content="2021-08-19T07:19:55.989Z">
+<meta property="article:author" content="PIG-007">
+<meta property="article:tag" content="pwn-Knowledge">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191519177.png"><title>pwn保护措施 | PIG-007</title><link ref="canonical" href="http://pig-007.github.io/2021/08/14/pwn%E4%BF%9D%E6%8A%A4%E6%8E%AA%E6%96%BD/"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.12.1/css/all.min.css" type="text/css"><link rel="stylesheet" href="/css/index.css?v=2.6.2"><script>var Stun = window.Stun || {};
+var CONFIG = {
+  root: '/',
+  algolia: undefined,
+  assistSearch: undefined,
+  fontIcon: {"prompt":{"success":"fas fa-check-circle","info":"fas fa-arrow-circle-right","warning":"fas fa-exclamation-circle","error":"fas fa-times-circle"},"copyBtn":"fas fa-copy"},
+  sidebar: {"offsetTop":"20px","tocMaxDepth":6},
+  header: {"enable":true,"showOnPost":true,"scrollDownIcon":false},
+  postWidget: {"endText":true},
+  nightMode: {"enable":true},
+  back2top: {"enable":true},
+  codeblock: {"style":"default","highlight":"light","wordWrap":true},
+  reward: false,
+  fancybox: false,
+  zoomImage: {"gapAside":"20px"},
+  galleryWaterfall: undefined,
+  lazyload: false,
+  pjax: undefined,
+  externalLink: {"icon":{"enable":true,"name":"fas fa-external-link-alt"}},
+  shortcuts: undefined,
+  prompt: {"copyButton":"Copy","copySuccess":"Copy Success","copyError":"Copy Error"},
+  sourcePath: {"js":"js","css":"css","images":"images"},
+};
+
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content" id="content"><!-- Just used to judge whether it is an article page--><div id="is-post"></div><div class="post"><header class="post-header"><h1 class="post-title">pwn保护措施</h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><p>一、RELRO: (ReLocation Read-Only)</p>
+<p>1.功能：解决延迟绑定问题，将符号重定向表设置为只读，或者在程序启动时就解析并绑定所有动态符号，防止got表被篡改。</p>
+<p>2.表现形式：</p>
+<p>pwn checksec检查为RELRO: Full RELRO，Partial RELRO保护</p>
+<p>3.保护等级：</p>
+<p>(1)Partial RELRO:</p>
+<p>①一些段(.dynamic、.got等)在初始化后会被标记只读，.got段代表无plt指向的got表，也就是没有发生延迟绑定，没有被外部extern导入的函数被标记为只读。</p>
+<p>②但是有被外部extern导入的函数，发生延迟绑定的函数，在.got.plt段，仍然可以篡改got表，这里的got表是.got.plt段。</p>
+<p>(2)Full RELRO:直接禁止延迟绑定，无.got.plt段，只有.got段，且被标记为只读，无法修改，无法篡改got表。</p>
+<p>4.绕过方法：有啥绕过方法，不改got表不就完了。</p>
+<p>二、FORTIFY_SOURCE:</p>
+<p>1.功能：将敏感函数如read, fgets, memcpy, printf等等添加保护，替换为__read_chk, __fgets_chk, __memcpy_chk, __printf_chk等函数。这些带了chk的函数会检查读取/复制的字节长度是否超过缓冲区长度，检查诸如%n之类的字符串位置是否位于可能被用户修改的可写地址，避免了格式化字符串漏洞的出现。（如直接%7$x）</p>
+<p>2.表现形式：带有chk的函数，checksec可以检测到</p>
+<p>3.保护等级：</p>
+<p>(1)-Ol -D_FORTIFY_SOURCE=0：关闭</p>
+<p>(2)-Ol -D_FORTIFY_SOURCE=1：替换get，memecpy等，格式化字符串仍然可用</p>
+<p>(3)-Ol -D_FORTIFY_SOURCE=2：格式化字符串也受到限制：</p>
+<p>%n，%3$x不可用(跳过了1，2不可用)</p>
+<p>%n$只能从1开始才可以：%1$x%2$x可用</p>
+<p>4.绕过方法：</p>
+<p>(1)利用整数溢出漏洞，篡改_IO_FILE结构中的_IO_FLAGS2_FORTIFY为0，从而关闭FORTIFY_SOURCE对%n的检查。之后再利用任意地址写，将nargs篡改为0，从而关闭对%n$的检查。</p>
+<p>具体论文：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="http://phrack.org/issues/67/9.html(%E8%A6%81%E6%8C%82" >http://phrack.org/issues/67/9.html</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://jackgrence.github.io/phrack-67-9/" >https://jackgrence.github.io/phrack-67-9/</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.vnsecurity.net/research/2012/02/16/exploiting-sudo-format-string-vunerability.html" >https://www.vnsecurity.net/research/2012/02/16/exploiting-sudo-format-string-vunerability.html</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>都得挂vpn才能看</p>
+<p>三、NX:NX enabled (No execute bit)</p>
+<p>1.功能：将内存页以数据和指令两种方式进行了分类。被标记为数据页的内存页（如栈和堆）上的数据无法被当成指令执行，即没有X属性，这样就会导致shellcode失效。除了.text之外，其余段，数据(stack、heap等)都不可执行。</p>
+<p>2.表现形式：pwn checksec检查</p>
+<p>3.绕过方法：ROP、Onegadget、ret2libc等等</p>
+<p>四、ASLR(Address Space Layout Randomization)和PIE(Position Independent Executable)</p>
+<p>1.功能：该技术是一个针对堆、栈、libc地址、代码段（.text）、数据段（.data）、未初始化全局变量段（.bss）等固定地址的一个防护技术，每次加载程序都会随机化这些地址。</p>
+<p>2.表现形式：checksec检查，gdb-peda中输入aslr。</p>
+<p>3.不同：</p>
+<p>(1)ASLR是系统层面的地址随机，针对栈(stack)，libc加载地址，堆(heap)，没办法在编译时选择是否开启ASLR，不同系统设置下都不一样，只有在程序跑起来，远程调试才能看到随机化。可以在终端输入：</p>
+<p>cat /proc/sys/kernel/randomize_va_space</p>
+<p>查看当前系统的随机化等级，也可以打开这个文件进行修改等级。共分为3个等级：</p>
+<p>A.0：即关闭ASLR</p>
+<p>B.1：部分开启，随机化stack和libc加载地址，不随机化heap</p>
+<p>C.2：完全开启，随机化stack、libc加载地址、heap</p>
+<p>▲注：</p>
+<p>由于是系统层面的，做pwn题时肯定是不知道远程的系统环境到底有没有开启ASLR，一般都是默认开启，且都是2等级。做题做到现在没见过哪个题目告诉不开启ASLR的。另外在gdb-peda中查看aslr都是默认为off，因为gdb默认关闭ASLR，可以在gdb-peda中输入aslr on来打开ASLR。</p>
+<p>(2)PIE是gcc编译功能时的选项，针对代码段(.text)、初始化数据段(.data)、未初始化数据段(.bss)的防护技术。开启之后，以上提到的都会随机化，同样也是远程调试跑起来才能看到效果。需要注意的是，只有开启了ASLR之后，PIE才能被正常使用。</p>
+<p>4.绕过方法：</p>
+<p>(1)利用vsyscall或者vdso来滑过一段栈空间，从而将eip挪移到栈底下方我们想要的地址处。</p>
+<p>(2)利用栈溢出和打印函数的参数，修改劫持rbp使得利用rbp寻址的打印函数的参数指向栈上其它位置，通过爆破来寻求泄露Libc地址。</p>
+<p>(3)利用PIE机制，爆破倒数第四位可以跳转到同一个内存页中的任意函数。</p>
+<p>五、Stack Canary/Stack cookies</p>
+<p>1.功能：函数退出时，将保存在栈rbp-0x08处的canary和tcbhead_t结构体中的stack_guard来xor操作，若检查到改变则代表执行了栈溢出漏洞，程序调用__stack_chk_fail，打印错误信息，并崩溃。</p>
+<p>2.表现形式：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">mov rax,fs:28h</span><br><span class="line">mov [rsp+28h+var_20], rax</span><br><span class="line">------------------------------------------------------</span><br><span class="line">mov rax, [rsp+28h+var_20]</span><br><span class="line">xor rax, fs:28h</span><br><span class="line">call __stack_chk_fail</span><br><span class="line">------------------------------------------------------</span><br><span class="line">v_canary = __readfsqword(0x28u);</span><br><span class="line">return __readfsqword(0x28u) ^ v_canary;</span><br></pre></td></tr></table></div></figure>
+
+<p>3.不同类型的canary:</p>
+<p>(1)Terminator canaries:</p>
+<p>最常见的canary，末尾为\x00，保存在rpb - 0x08的位置。</p>
+<p>(2).Random canaries:</p>
+<p>在程序初始化时随机生成，保存在一个相对安全的位置。通常由/dev/urandom来生成，有时也使用当前时间的哈希值。</p>
+<p>(3).Random XOR canaries:</p>
+<p>通过一个随机数和函数栈中所有控制信息，返回地址等异或运算得到的，这样当函数栈中的随机数或与之相关的控制信息，返回地址被修改了，都可以检测到。</p>
+<p>2.绕过方法：</p>
+<p>(1)有循环时，32或者64位程序下都可以逐字节爆破绕过。</p>
+<p>(2)可通过printf字符串漏洞来泄露(%p.%p.%p….)。</p>
+<p>(3)通过打印栈上数据的打印函数栈溢出连上canary泄露出来。</p>
+<p>(4)当程序读入flag进入内存时，利用函数__stack_chk_fail，加上足够长度的栈溢出覆盖argv[0]为程序中保存flag的地址。这样当__stack_chk_fail运行时就会打印出argv[0]中地址上对应的内容，也就是flag。</p>
+<p>(5)由pthread创建出来的线程函数中如果有足够长度的栈溢出，可以直接覆盖canary来源tcbhead_t结构体中的canary和栈中的canary为同一数值，这样检查仍旧通过。</p>
+<p>(64位中为fs:[28h]，32位中为gs:[14h])</p>
+<p>▲长度一般为rbp+2000左右，不同的Libc版本都不太一样，需要调试才能知道。原因是通过pthread出来的线程函数栈会被安置到与TLS相差约2000字节的距离处：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191519177.png" alt="img">    <img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191519553.png" alt="img"></p>
+<p>这里可以看到，第一个是main函数栈，第二个是在main函数中通过pthread进程创建并且调用的函数栈，两者相差将近0x700000000这么远，完全不是正常的函数调用相差的栈距离。同时在该函数中rbp指向的始终是0000(全是)，该函数结束后会先跳转到libc中的libpthread来恢复栈。</p>
+<p>▲64位的tcbhead_t结构体：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">typedef struct</span><br><span class="line">&#123;</span><br><span class="line">  void *tcb;        /* Pointer to the TCB.  Not necessarily the</span><br><span class="line">               thread descriptor used by libpthread.  */</span><br><span class="line">  dtv_t *dtv;</span><br><span class="line">  void *self;       /* Pointer to the thread descriptor.  */</span><br><span class="line">  int multiple_threads;</span><br><span class="line">  int gscope_flag;</span><br><span class="line">  uintptr_t sysinfo;</span><br><span class="line">  uintptr_t stack_guard;//即为canary，fs:28h处</span><br><span class="line">  uintptr_t pointer_guard;</span><br><span class="line">  ...</span><br><span class="line">&#125; tcbhead_t;</span><br></pre></td></tr></table></div></figure>
+
+</div><footer class="post-footer"><div class="post-ending ending"><div class="ending__text">------ END ------</div></div><div class="post-copyright copyright"><div class="copyright-author"><span class="copyright-author__name">Author: </span><span class="copyright-author__value"><a href="http://PIG-007.github.io">PIG-007</a></span></div><div class="copyright-link"><span class="copyright-link__name">Link: </span><span class="copyright-link__value"><a href="http://pig-007.github.io/2021/08/14/pwn%E4%BF%9D%E6%8A%A4%E6%8E%AA%E6%96%BD/">http://pig-007.github.io/2021/08/14/pwn%E4%BF%9D%E6%8A%A4%E6%8E%AA%E6%96%BD/</a></span></div><div class="copyright-notice"><span class="copyright-notice__name">Copyright: </span><span class="copyright-notice__value">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" rel="external nofollow" target="_blank">BY-NC-SA</a> unless stating additionally</span></div></div><div class="post-tags"><span class="post-tags-item"><span class="post-tags-item__icon"><i class="fas fa-tag"></i></span><a class="post-tags-item__link" href="http://pig-007.github.io/tags/pwn-Knowledge/">pwn-Knowledge</a></span></div><nav class="post-paginator paginator"><div class="paginator-prev"><a class="paginator-prev__link" href="/2021/08/14/pwn%E5%A0%86-IDA-0x01/"><span class="paginator-prev__icon"><i class="fas fa-angle-left"></i></span><span class="paginator-prev__text">pwn堆-IDA-0x01</span></a></div><div class="paginator-next"><a class="paginator-next__link" href="/2021/08/14/shadow-IntergerOverflow-Nice/"><span class="paginator-prev__text">shadow-IntergerOverflow-Nice</span><span class="paginator-next__icon"><i class="fas fa-angle-right"></i></span></a></div></nav></footer></div></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><div class="sidebar-nav"><span class="sidebar-nav-toc current">Catalog</span><span class="sidebar-nav-ov">Overview</span></div><section class="sidebar-toc"></section><!-- ov = overview--><section class="sidebar-ov hide"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">hello world</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">93</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">40</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">43</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section><div class="sidebar-reading"><div class="sidebar-reading-info"><span class="sidebar-reading-info__text">You have read </span><span class="sidebar-reading-info__num">0</span><span class="sidebar-reading-info__perc">%</span></div><div class="sidebar-reading-line"></div></div></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2021</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
+  var isXML = true;
+  var search_path = 'search.json';
+
+  if (!search_path) {
+    search_path = 'search.xml';
+  } else if (/json$/i.test(search_path)) {
+    isXML = false;
+  }
+
+  var path = '/' + search_path;
+  $.ajax({
+    url: path,
+    dataType: isXML ? 'xml' : 'json',
+    async: true,
+    success: function (res) {
+      var datas = isXML ? $('entry', res).map(function () {
+        // 将 XML 转为 JSON
+        return {
+          title: $('title', this).text(),
+          content: $('content', this).text(),
+          url: $('url', this).text()
+        };
+      }).get() : res;
+      var $input = $('.search-input input');
+      var $result = $('.search-results');
+      // 搜索对象（标题、内容）的权重，影响显示顺序
+      var WEIGHT = { title: 100, content: 1 };
+      var searchPost = function () {
+        var searchText = $input.val().toLowerCase().trim();
+        // 根据空白字符分隔关键字
+        var keywords = searchText.split(/[\s]+/);
+        // 搜索结果
+        var matchPosts = [];
+
+        // 有多个关键字时，将原文字整个保存下来
+        if (keywords.length > 1) {
+          keywords.push(searchText);
+        }
+        // 防止未输入字符时搜索
+        if (searchText.length > 0) {
+          datas.forEach(function (data) {
+            var isMatch  = false;
+            // 没有标题的文章使用预设的 i18n 变量代替
+            var title = (data.title && data.title.trim()) || '[ Untitled ]';
+            var titleLower = title && title.toLowerCase();
+            // 删除 HTML 标签 和 所有空白字符
+            var content = data.content && data.content.replace(/<[^>]+>/g, '');
+            var contentLower = content && content.toLowerCase();
+            // 删除重复的 /
+            var postURL = data.url && decodeURI(data.url).replace(/\/{2,}/g, '/');
+            // 标题中匹配到的关键词
+            var titleHitSlice = [];
+            // 内容中匹配到的关键词
+            var contentHitSlice = [];
+
+            keywords.forEach(function (keyword) {
+              /**
+              * 获取匹配的关键词的索引
+              * @param {String} keyword 要匹配的关键字
+              * @param {String} text 原文字
+              * @param {Boolean} caseSensitive 是否区分大小写
+              * @param {Number} weight 匹配对象的权重。权重大的优先显示
+              * @return {Array}
+              */
+              function getIndexByword (word, text, caseSensitive, weight) {
+                if (!word || !text) {
+                  return [];
+                };
+
+                var startIndex = 0; // 每次匹配的开始索引
+                var index = -1;     // 匹配到的索引值
+                var result = [];    // 匹配结果
+
+                if (!caseSensitive) {
+                  word = word.toLowerCase();
+                  text = text.toLowerCase();
+                }
+
+                while((index = text.indexOf(word, startIndex)) !== -1) {
+                  var hasMatch = false;
+                  // 索引位置相同的关键词，保留长度较长的
+                  titleHitSlice.forEach(function (hit) {
+                    if (hit.index === index && hit.word.length < word.length) {
+                      hit.word = word;
+                      hasMatch = true;
+                    }
+                  });
+                  startIndex = index + word.length;
+                  !hasMatch && result.push({ index: index, word: word, weight: weight });
+                }
+                return result;
+              }
+              titleHitSlice = titleHitSlice.concat(getIndexByword(keyword, titleLower, false, WEIGHT.title));
+              contentHitSlice = contentHitSlice.concat(getIndexByword(keyword, contentLower, false, WEIGHT.content));
+            });
+
+            var hitTitle = titleHitSlice.length;
+            var hitContent = contentHitSlice.length;
+
+            if (hitTitle > 0 || hitContent > 0) {
+              isMatch = true;
+            }
+            if (isMatch) {
+              ;[titleHitSlice, contentHitSlice].forEach(function (hit) {
+                // 按照匹配文字的索引的递增顺序排序
+                hit.sort(function (left, right) {
+                  return left.index - right.index;
+                });
+              });
+              /**
+              * 给文本中匹配到的关键词添加标记，从而进行高亮显示
+              * @param {String} text 原文本
+              * @param {Array} hitSlice 匹配项的索引信息
+              * @param {Number} start 开始索引
+              * @param {Number} end 结束索引
+              * @return {String}
+              */
+              function highlightKeyword (text, hitSlice, start, end) {
+                if (!text || !hitSlice || !hitSlice.length) {
+                  return;
+                }
+
+                var result = '';
+                var startIndex = start;
+                var endIndex = end;
+                hitSlice.forEach(function (hit) {
+                  if (hit.index < startIndex) {
+                    return;
+                  }
+
+                  var hitWordEnd = hit.index + hit.word.length;
+                  result += text.slice(startIndex, hit.index);
+                  result += '<b>' + text.slice(hit.index, hitWordEnd) + '</b>';
+                  startIndex = hitWordEnd;
+                });
+                result += text.slice(startIndex, endIndex);
+                return result;
+              }
+
+              var postData = {};
+              // 文章总的搜索权重
+              var postWeight = titleHitSlice.length * WEIGHT.title + contentHitSlice.length * WEIGHT.content;
+              // 标记匹配关键词后的标题
+              var postTitle = highlightKeyword(title, titleHitSlice, 0, title.length) || title;
+              // 标记匹配关键词后的内容
+              var postContent;
+              // 显示内容的长度
+              var SHOW_WORD_LENGTH = 200;
+              // 命中关键词前的字符显示长度
+              var SHOW_WORD_FRONT_LENGTH = 20;
+              var SHOW_WORD_END_LENGTH = SHOW_WORD_LENGTH - SHOW_WORD_FRONT_LENGTH;
+
+              // 截取匹配的第一个字符，前后共 200 个字符来显示
+              if (contentHitSlice.length > 0) {
+                var firstIndex = contentHitSlice[0].index;
+                var start = firstIndex > SHOW_WORD_FRONT_LENGTH ? firstIndex - SHOW_WORD_FRONT_LENGTH : 0;
+                var end = firstIndex + SHOW_WORD_END_LENGTH;
+                postContent = highlightKeyword(content, contentHitSlice, start, end);
+              } else { // 未匹配到内容，直接截取前 200 个字符来显示
+                postContent = content.slice(0, SHOW_WORD_LENGTH);
+              }
+              postData.title = postTitle;
+              postData.content = postContent;
+              postData.url = postURL;
+              postData.weight = postWeight;
+              matchPosts.push(postData);
+            }
+          });
+        }
+
+        var resultInnerHtml = '';
+        if (matchPosts.length) {
+          // 按权重递增的顺序排序，使权重大的优先显示
+          matchPosts.sort(function (left, right) {
+            return right.weight - left.weight;
+          });
+          resultInnerHtml += '<ul>';
+          matchPosts.forEach(function (post) {
+            resultInnerHtml += '<li><a class="search-results-title" href="' + post.url + '">';
+            resultInnerHtml += post.title;
+            resultInnerHtml += '</a><div class="search-results-content">';
+            resultInnerHtml += post.content;
+            resultInnerHtml += '</div></li>';
+          });
+          resultInnerHtml += '</ul>';
+        } else {
+          resultInnerHtml += '<div class="search-results-none"><i class="far fa-meh"></i></div>';
+        }
+        $result.html(resultInnerHtml);
+      };
+      $input.on('input', searchPost);
+      $input.on('keyup', function (e) {
+        if (e.keyCode === Stun.utils.codeToKeyCode('Enter')) {
+          searchPost();
+        }
+      });
+    }
+  });
+}
+
+function closeSearch () {
+  $('body').css({ overflow: 'auto' });
+  $('.search-popup').css({ display: 'none' });
+  $('.search-mask').css({ display: 'none' });
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  Stun.utils.pjaxReloadLocalSearch = function () {
+    $('.header-nav-search').on('click', function (e) {
+      e.stopPropagation();
+      $('body').css('overflow', 'hidden');
+      $('.search-popup')
+        .velocity('stop')
+        .velocity('transition.expandIn', {
+          duration: 300,
+          complete: function () {
+            $('.search-popup input').focus();
+          }
+        });
+      $('.search-mask')
+        .velocity('stop')
+        .velocity('transition.fadeIn', {
+          duration: 300
+        });
+
+      initSearch();
+    });
+    $('.search-mask, .search-close').on('click', function () {
+      closeSearch();
+    });
+    $(document).on('keydown', function (e) {
+      // Escape <=> 27
+      if (e.keyCode === Stun.utils.codeToKeyCode('Escape')) {
+        closeSearch();
+      }
+    });
+  };
+
+  Stun.utils.pjaxReloadLocalSearch();
+}, false);
+
+function safeOpenUrl(url) {
+  var newTab = window.open();
+  newTab.opener = null;
+  newTab.location = url;
+}
+
+function extSearch(engine) {
+  var engines = {
+    google: 'https://www.google.com/search?q=',
+    bing: 'https://cn.bing.com/search?q=',
+    baidu: 'https://www.baidu.com/s?ie=UTF-8&wd=',
+  };
+  var host = window.location.host;
+  var query = $('.search-input input').val().toLowerCase().trim();
+  var uri = engines[engine] + query + ' site:' + host;
+
+  if (query) {
+    safeOpenUrl(uri);
+  } else {
+    Stun.utils.popAlert('warning', 'Please enter characters');
+  }
+}
+
+var assistSearchList = window.CONFIG.assistSearch;
+
+if (Array.isArray(assistSearchList)) {
+  assistSearchList.forEach(function (name) {
+    document.querySelector('.search-btns-item--' + name).addEventListener('click', function () {
+      extSearch(name);
+    }, false);
+  });
+}</script><script src="/js/utils.js?v=2.6.2"></script><script src="/js/stun-boot.js?v=2.6.2"></script><script src="/js/scroll.js?v=2.6.2"></script><script src="/js/header.js?v=2.6.2"></script><script src="/js/sidebar.js?v=2.6.2"></script><script type="application/json" src="/search.json"></script><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"superSample":2,"width":150,"height":300,"position":"left","hOffset":0,"vOffset":-80},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body></html>

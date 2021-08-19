@@ -1,0 +1,343 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta name="description" content="\1. fastbin_dup:填满Tcache后free(a),free(b),free(a)之后即可。 \2. fastbin_reverse_into_tcache:(1)申请14个chunk，都释放掉0-6进入tcache，7-13进入fastbin中。(这14个chunk大小需相等)(2)此时mallco掉7个chunk，就可以将tcache中的7个chunk都申请出来。(3)再利用漏洞">
+<meta property="og:type" content="article">
+<meta property="og:title" content="how2heap_libc2.27_summary">
+<meta property="og:url" content="http://pig-007.github.io/2021/08/14/how2heap_libc2.27_summary/index.html">
+<meta property="og:site_name" content="PIG-007">
+<meta property="og:description" content="\1. fastbin_dup:填满Tcache后free(a),free(b),free(a)之后即可。 \2. fastbin_reverse_into_tcache:(1)申请14个chunk，都释放掉0-6进入tcache，7-13进入fastbin中。(这14个chunk大小需相等)(2)此时mallco掉7个chunk，就可以将tcache中的7个chunk都申请出来。(3)再利用漏洞">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191449078.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191449154.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191449159.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191449163.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191449165.png">
+<meta property="article:published_time" content="2021-08-14T05:40:30.000Z">
+<meta property="article:modified_time" content="2021-08-19T06:49:39.775Z">
+<meta property="article:author" content="PIG-007">
+<meta property="article:tag" content="how2heap">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191449078.png"><title>how2heap_libc2.27_summary | PIG-007</title><link ref="canonical" href="http://pig-007.github.io/2021/08/14/how2heap_libc2.27_summary/"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.12.1/css/all.min.css" type="text/css"><link rel="stylesheet" href="/css/index.css?v=2.6.2"><script>var Stun = window.Stun || {};
+var CONFIG = {
+  root: '/',
+  algolia: undefined,
+  assistSearch: undefined,
+  fontIcon: {"prompt":{"success":"fas fa-check-circle","info":"fas fa-arrow-circle-right","warning":"fas fa-exclamation-circle","error":"fas fa-times-circle"},"copyBtn":"fas fa-copy"},
+  sidebar: {"offsetTop":"20px","tocMaxDepth":6},
+  header: {"enable":true,"showOnPost":true,"scrollDownIcon":false},
+  postWidget: {"endText":true},
+  nightMode: {"enable":true},
+  back2top: {"enable":true},
+  codeblock: {"style":"default","highlight":"light","wordWrap":true},
+  reward: false,
+  fancybox: false,
+  zoomImage: {"gapAside":"20px"},
+  galleryWaterfall: undefined,
+  lazyload: false,
+  pjax: undefined,
+  externalLink: {"icon":{"enable":true,"name":"fas fa-external-link-alt"}},
+  shortcuts: undefined,
+  prompt: {"copyButton":"Copy","copySuccess":"Copy Success","copyError":"Copy Error"},
+  sourcePath: {"js":"js","css":"css","images":"images"},
+};
+
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content" id="content"><!-- Just used to judge whether it is an article page--><div id="is-post"></div><div class="post"><header class="post-header"><h1 class="post-title">how2heap_libc2.27_summary</h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><p>\1. fastbin_dup:<br>填满Tcache后free(a),free(b),free(a)之后即可。</p>
+<p>\2. fastbin_reverse_into_tcache:<br>(1)申请14个chunk，都释放掉0-6进入tcache，7-13进入fastbin中。(这14个chunk大小需相等)<br>(2)此时mallco掉7个chunk，就可以将tcache中的7个chunk都申请出来。<br>(3)再利用漏洞修改chunk7的fd为栈上的地址(任意地址)，这时再malloc一次，就会从fastbin中申请chunk，由于fastbin先进后出的关系，会将chunk13申请出来。同时由于tcache机制，当fastbin中对应大小的bin中还存在chunk，就会将这些Chunk都拿出来放进对应大小的tcache中。<br>(4)由于先进后出的关系不变，拿出顺序为chunk12,chunk11…chunk7。进入tcache后的顺序为chunk7,chunk8….chunk12。<br>(5)这样又由于chunk7的fd被我们改掉了，所以实际的顺序为chunk7-&gt;chunk7.fd-&gt;chunk8…</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191449078.png" alt="img"><br>(6)同时释放可以向栈上写入堆地址，之后再连续申请就可以将从栈上申请chunk。</p>
+<p>\3. house_of_botcake(只能在double free前提下使用)：<br>(1)申请chunk0-chunk6用于填充tcache，然后申请chunk7,chunk8,chunk9，其中chunk9用于防止和topchunk合并<br>(2)释放chunk0-chunk6填充tcache，释放chunk7，chunk8，发生合并进入unsortedbin中，称为chunk_U。<br>(3)malloc一次，将chunk6从tcache中申请出来，然后再释放chunk8(double free)，这样chunk8就会进入tcache中。现在chunk8就会既在tcache中，又被包含在unsortedbin的chunk_C中。<br>(4)再申请一次大小大于以上chunk_size的chunk_C，这个chunk_C就会将chunk_U切割，同时使得chunk_C包含chunk8，这样就可以从chunk_C修改chunk8的fd指针。<br>(5)由于chunk8同时还在tcache中，那么再连续两次chunk8大小的size就可以将chunk8和chunk8.fd申请出来，实现任意地址申请堆块。</p>
+<p>\4. house_of_einherjar(需要泄露堆地址)：<br>(1)申请3个chunk，chunka,chunkb,chunkc，c的真实size大于0x100；<br>(2)然后通过chunkb的堆溢出(off by one/null)，修改chunkc的in_use位为0，并且在chunkc的prev_size处伪造fake_prev_size=chunkb+chunka-0x10；<br>(3)在chunka中伪造chunk，满足要求：<br>&amp;Fake_chunk = chunka+0x10<br>Fake_chunk-&gt;size = sizeof(chunka) -0x10+sizeof(chunkb)<br>Fake_chunk-&gt;fd = Fake_chunk<br>Fake_chunk-&gt;bk = Fake_chunk<br>用以绕过unlink的检查。<br>(4)随后申请7个与chunkc同大小的chunk，释放填充tcache；<br>(5)释放chunkc，因为chunkc的prev_inuse位被置为0，所以会向上合并，通过fake_prev_size找到前一个堆块，即fake_chunk，并比较fake_prev_size与fake_chunk的size是否相等，如果相等则发生堆合并，进入unlink脱链。<br>(6)此时合并的堆块，会被放入unsortedbin中，而此时的chunkb还处于使用状态，释放chunkb（因为其大小与前面tcache大小不同，会被放入新的tcachebin中）。<br>(7)再申请一个大于chunkc大小的chunk，会直接从unsortedbin中去寻找划分，该chunk就是fakechunk+chunkb，且合理配置chunka和chunkc的大小使得能够覆盖到chunkb的数据，随后通过申请回来的该chunk改写chunkb的fd指针，将chunkb申请回来，再次申请就能够实现tcache poisoning攻击。<br>这里和2.23有点不太一样，这里利用的是再释放chunkb从而使得其进入tcache，修改fd制造tcache poisoning，因为tcache不会检查size，只要fd就可以任意申请。</p>
+<p>\5. house_of_force:一样的，没多大差别</p>
+<p>6.house_of_lore:和2.23差不多，没多大差别</p>
+<p>7.large_bin_attack:和2.23基本一样。</p>
+<p>\8. overlapping_chunks(能够溢出修改size位)：<br>只有free之后修改size的了.</p>
+<p>\9. poison_null_byte:<br>与2.23差不多，不过需要考虑到tcache的影响，有时候需要先填满tcache。一般情况是4个chunk，最后一个chunk防止合并，前三个chunk用来制造堆块重叠，但是中间其实可以插入较多的堆块，制造多个堆块重叠，方便利用。</p>
+<p>\10. tcache_dup:基本没啥用，现在2.27也基本都修复了这个问题，不过做题的时候可以尝试一下看行不行。2.28就已经增加了key字段检查</p>
+<p>11.tcache_ house_of_spirit:<br>与house_of_spirit一样，修改栈上的的chunk指针为栈上的地址，在栈上伪造chunk，只需要伪造size即可，注意in_use位的设置。同时由于tcache在free的时候不会依据chunk的size来对下一个chunk做检查，所以这里不需要伪造下一个chunk的size。</p>
+<p>\12. tcache_poisoning：<br>已经在tcache链表中的chunk，如果修改了fd，那么直接两次malloc即可获得fd对应地址的chunk，不需要构造字节错位，而且malloc之后得到的chunk其pre_size和size都是0。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191449154.png" alt="img"></p>
+<p>\13. Tcache Stashing Unlink Attack(需要calloc申请chunk，能够控制smallbin的bk指针)：<br>(1)申请9个chunk，chunk1-chunk9，释放chunk4-chunk9进入tcache中，释放chunk2进入tcache，再顺序释放chunk1和Chunk3进入unsortedbin中。<br>(2)申请一个largebin大小的chunk，使得chunk1和chunk3被整理到smallbin中。<br>(3)申请两个chunk，将chunk2和chunk9从Tcache中申请出来，使得tcache中存在两个空位。<br>(4)利用UAF之类的漏洞修改chunk3的bk指向fake_chunk，这里的chunk3是smallbin中的第一个chunk：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191449159.png" alt="img"></p>
+<p>即为图中的0x602390的bk指针，指向一个fake_chunk，栈上的地址。<br>(5)同时由于smallbin按照FIFO的顺序，所以依据bk指针进行寻找，那么如果从smallbin中申请chunk，申请顺序应该是0x602250 —▸ 0x602390 —▸ 0x7fffffffdd10。<br>(6)调用calloc，使得chunk不从tcache中申请，从smallbin中申请，那么就会触发下列在使用smallbin时，只在use tcache的宏定义中的代码：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">while ( tcache-&gt;counts[tc_idx] &lt; mp_.tcache_count</span><br><span class="line">&amp;&amp; (tc_victim = last (bin) ) != bin)</span><br><span class="line">&#123;</span><br><span class="line">    //如果成功获取了Chunk</span><br><span class="line">    if (tc_victim != 0)</span><br><span class="line">    &#123;</span><br><span class="line">         // 获取 small bin 中倒数第二个 chunk 。</span><br><span class="line">        bck = tc_victim-&gt;bk;</span><br><span class="line">        //设置标志位</span><br><span class="line">        set_inuse_bit_at_offset (tc_victim, nb);</span><br><span class="line">        // 如果不是 main_arena，设置对应的标志</span><br><span class="line">        if (av != &amp;main_arena)</span><br><span class="line">            set_non_main_arena (tc_victim);</span><br><span class="line">        //取出最后一个Chunk</span><br><span class="line">        bin-&gt;bk = bck;</span><br><span class="line">        bck-&gt;fd = bin;</span><br><span class="line">        //将其放入到Tcache中</span><br><span class="line">        tcache_put (tc_victim, tc_idx);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>这样就会将tc_victim，也就是这里的0x602390，通过tcache_put放入到tcache中，同时tcache_put这个函数中没有任何的安全检查，所以可以直接放入。那么由于tcache的FILO关系，依据fd来申请，0x602390的fd为0x7fffffffdd10(fakechunk)，所以会将fakechunk提到tcache的头部。同时又由于tcache中的指针指向的是chunk头部+0x10，那么在tcache中的顺序就是</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191449163.png" alt="img"></p>
+<p>这里的0x7fffffffdd20就是fakechunk，再次申请0xa0大小的chunk就可以将fakechunk给申请出来。同时又由于从smallbin链表中的unlink中的bck-&gt;fd = bin的赋值操作，会导致0x7fffffffdd20+0x10处会被赋值上smallbin的libc地址：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191449165.png" alt="img"></p>
+<p>这样Tcache Stashing Unlink Attack修改bk为target_addr，malloc后会控制target_addr-0x10，会在target_addr+0x10处写入main_arena_addr。</p>
+<p>14.unsafe_unlink:和2.23差不多，就只是申请的chunk使之大于0x410，从而不使用tcache。</p>
+<p>15.unsorted_bin_attack:申请较大的chunk使得从unsortedbin中重新申请chunk时不会将该大小的chunk放入对应的tcache中。或者修改tcache结构体的counts域，使得系统认为该tcache已经满了，那么就不会放入了。</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/firmianay/CTF-All-In-One/blob/master/doc/3.1.8_heap_exploit_3.md#unsorted_bin_attack" >https://github.com/firmianay/CTF-All-In-One/blob/master/doc/3.1.8_heap_exploit_3.md#unsorted_bin_attack</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>\16. unsorted_bin_into_stack_attack：和2.23差不多，只要满足chunk的大小大于0x408从而不使用tcache即可，或者能够修改tcache结构体的count域。</p>
+</div><footer class="post-footer"><div class="post-ending ending"><div class="ending__text">------ END ------</div></div><div class="post-copyright copyright"><div class="copyright-author"><span class="copyright-author__name">Author: </span><span class="copyright-author__value"><a href="http://PIG-007.github.io">PIG-007</a></span></div><div class="copyright-link"><span class="copyright-link__name">Link: </span><span class="copyright-link__value"><a href="http://pig-007.github.io/2021/08/14/how2heap_libc2.27_summary/">http://pig-007.github.io/2021/08/14/how2heap_libc2.27_summary/</a></span></div><div class="copyright-notice"><span class="copyright-notice__name">Copyright: </span><span class="copyright-notice__value">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" rel="external nofollow" target="_blank">BY-NC-SA</a> unless stating additionally</span></div></div><div class="post-tags"><span class="post-tags-item"><span class="post-tags-item__icon"><i class="fas fa-tag"></i></span><a class="post-tags-item__link" href="http://pig-007.github.io/tags/how2heap/">how2heap</a></span></div><nav class="post-paginator paginator"><div class="paginator-prev"><a class="paginator-prev__link" href="/2021/08/14/hitb2018_gundam/"><span class="paginator-prev__icon"><i class="fas fa-angle-left"></i></span><span class="paginator-prev__text">hitb2018_gundam</span></a></div><div class="paginator-next"><a class="paginator-next__link" href="/2021/08/14/note-UAF/"><span class="paginator-prev__text">note-UAF</span><span class="paginator-next__icon"><i class="fas fa-angle-right"></i></span></a></div></nav></footer></div></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><div class="sidebar-nav"><span class="sidebar-nav-toc current">Catalog</span><span class="sidebar-nav-ov">Overview</span></div><section class="sidebar-toc"></section><!-- ov = overview--><section class="sidebar-ov hide"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">hello world</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">93</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">40</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">43</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section><div class="sidebar-reading"><div class="sidebar-reading-info"><span class="sidebar-reading-info__text">You have read </span><span class="sidebar-reading-info__num">0</span><span class="sidebar-reading-info__perc">%</span></div><div class="sidebar-reading-line"></div></div></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2021</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
+  var isXML = true;
+  var search_path = 'search.json';
+
+  if (!search_path) {
+    search_path = 'search.xml';
+  } else if (/json$/i.test(search_path)) {
+    isXML = false;
+  }
+
+  var path = '/' + search_path;
+  $.ajax({
+    url: path,
+    dataType: isXML ? 'xml' : 'json',
+    async: true,
+    success: function (res) {
+      var datas = isXML ? $('entry', res).map(function () {
+        // 将 XML 转为 JSON
+        return {
+          title: $('title', this).text(),
+          content: $('content', this).text(),
+          url: $('url', this).text()
+        };
+      }).get() : res;
+      var $input = $('.search-input input');
+      var $result = $('.search-results');
+      // 搜索对象（标题、内容）的权重，影响显示顺序
+      var WEIGHT = { title: 100, content: 1 };
+      var searchPost = function () {
+        var searchText = $input.val().toLowerCase().trim();
+        // 根据空白字符分隔关键字
+        var keywords = searchText.split(/[\s]+/);
+        // 搜索结果
+        var matchPosts = [];
+
+        // 有多个关键字时，将原文字整个保存下来
+        if (keywords.length > 1) {
+          keywords.push(searchText);
+        }
+        // 防止未输入字符时搜索
+        if (searchText.length > 0) {
+          datas.forEach(function (data) {
+            var isMatch  = false;
+            // 没有标题的文章使用预设的 i18n 变量代替
+            var title = (data.title && data.title.trim()) || '[ Untitled ]';
+            var titleLower = title && title.toLowerCase();
+            // 删除 HTML 标签 和 所有空白字符
+            var content = data.content && data.content.replace(/<[^>]+>/g, '');
+            var contentLower = content && content.toLowerCase();
+            // 删除重复的 /
+            var postURL = data.url && decodeURI(data.url).replace(/\/{2,}/g, '/');
+            // 标题中匹配到的关键词
+            var titleHitSlice = [];
+            // 内容中匹配到的关键词
+            var contentHitSlice = [];
+
+            keywords.forEach(function (keyword) {
+              /**
+              * 获取匹配的关键词的索引
+              * @param {String} keyword 要匹配的关键字
+              * @param {String} text 原文字
+              * @param {Boolean} caseSensitive 是否区分大小写
+              * @param {Number} weight 匹配对象的权重。权重大的优先显示
+              * @return {Array}
+              */
+              function getIndexByword (word, text, caseSensitive, weight) {
+                if (!word || !text) {
+                  return [];
+                };
+
+                var startIndex = 0; // 每次匹配的开始索引
+                var index = -1;     // 匹配到的索引值
+                var result = [];    // 匹配结果
+
+                if (!caseSensitive) {
+                  word = word.toLowerCase();
+                  text = text.toLowerCase();
+                }
+
+                while((index = text.indexOf(word, startIndex)) !== -1) {
+                  var hasMatch = false;
+                  // 索引位置相同的关键词，保留长度较长的
+                  titleHitSlice.forEach(function (hit) {
+                    if (hit.index === index && hit.word.length < word.length) {
+                      hit.word = word;
+                      hasMatch = true;
+                    }
+                  });
+                  startIndex = index + word.length;
+                  !hasMatch && result.push({ index: index, word: word, weight: weight });
+                }
+                return result;
+              }
+              titleHitSlice = titleHitSlice.concat(getIndexByword(keyword, titleLower, false, WEIGHT.title));
+              contentHitSlice = contentHitSlice.concat(getIndexByword(keyword, contentLower, false, WEIGHT.content));
+            });
+
+            var hitTitle = titleHitSlice.length;
+            var hitContent = contentHitSlice.length;
+
+            if (hitTitle > 0 || hitContent > 0) {
+              isMatch = true;
+            }
+            if (isMatch) {
+              ;[titleHitSlice, contentHitSlice].forEach(function (hit) {
+                // 按照匹配文字的索引的递增顺序排序
+                hit.sort(function (left, right) {
+                  return left.index - right.index;
+                });
+              });
+              /**
+              * 给文本中匹配到的关键词添加标记，从而进行高亮显示
+              * @param {String} text 原文本
+              * @param {Array} hitSlice 匹配项的索引信息
+              * @param {Number} start 开始索引
+              * @param {Number} end 结束索引
+              * @return {String}
+              */
+              function highlightKeyword (text, hitSlice, start, end) {
+                if (!text || !hitSlice || !hitSlice.length) {
+                  return;
+                }
+
+                var result = '';
+                var startIndex = start;
+                var endIndex = end;
+                hitSlice.forEach(function (hit) {
+                  if (hit.index < startIndex) {
+                    return;
+                  }
+
+                  var hitWordEnd = hit.index + hit.word.length;
+                  result += text.slice(startIndex, hit.index);
+                  result += '<b>' + text.slice(hit.index, hitWordEnd) + '</b>';
+                  startIndex = hitWordEnd;
+                });
+                result += text.slice(startIndex, endIndex);
+                return result;
+              }
+
+              var postData = {};
+              // 文章总的搜索权重
+              var postWeight = titleHitSlice.length * WEIGHT.title + contentHitSlice.length * WEIGHT.content;
+              // 标记匹配关键词后的标题
+              var postTitle = highlightKeyword(title, titleHitSlice, 0, title.length) || title;
+              // 标记匹配关键词后的内容
+              var postContent;
+              // 显示内容的长度
+              var SHOW_WORD_LENGTH = 200;
+              // 命中关键词前的字符显示长度
+              var SHOW_WORD_FRONT_LENGTH = 20;
+              var SHOW_WORD_END_LENGTH = SHOW_WORD_LENGTH - SHOW_WORD_FRONT_LENGTH;
+
+              // 截取匹配的第一个字符，前后共 200 个字符来显示
+              if (contentHitSlice.length > 0) {
+                var firstIndex = contentHitSlice[0].index;
+                var start = firstIndex > SHOW_WORD_FRONT_LENGTH ? firstIndex - SHOW_WORD_FRONT_LENGTH : 0;
+                var end = firstIndex + SHOW_WORD_END_LENGTH;
+                postContent = highlightKeyword(content, contentHitSlice, start, end);
+              } else { // 未匹配到内容，直接截取前 200 个字符来显示
+                postContent = content.slice(0, SHOW_WORD_LENGTH);
+              }
+              postData.title = postTitle;
+              postData.content = postContent;
+              postData.url = postURL;
+              postData.weight = postWeight;
+              matchPosts.push(postData);
+            }
+          });
+        }
+
+        var resultInnerHtml = '';
+        if (matchPosts.length) {
+          // 按权重递增的顺序排序，使权重大的优先显示
+          matchPosts.sort(function (left, right) {
+            return right.weight - left.weight;
+          });
+          resultInnerHtml += '<ul>';
+          matchPosts.forEach(function (post) {
+            resultInnerHtml += '<li><a class="search-results-title" href="' + post.url + '">';
+            resultInnerHtml += post.title;
+            resultInnerHtml += '</a><div class="search-results-content">';
+            resultInnerHtml += post.content;
+            resultInnerHtml += '</div></li>';
+          });
+          resultInnerHtml += '</ul>';
+        } else {
+          resultInnerHtml += '<div class="search-results-none"><i class="far fa-meh"></i></div>';
+        }
+        $result.html(resultInnerHtml);
+      };
+      $input.on('input', searchPost);
+      $input.on('keyup', function (e) {
+        if (e.keyCode === Stun.utils.codeToKeyCode('Enter')) {
+          searchPost();
+        }
+      });
+    }
+  });
+}
+
+function closeSearch () {
+  $('body').css({ overflow: 'auto' });
+  $('.search-popup').css({ display: 'none' });
+  $('.search-mask').css({ display: 'none' });
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  Stun.utils.pjaxReloadLocalSearch = function () {
+    $('.header-nav-search').on('click', function (e) {
+      e.stopPropagation();
+      $('body').css('overflow', 'hidden');
+      $('.search-popup')
+        .velocity('stop')
+        .velocity('transition.expandIn', {
+          duration: 300,
+          complete: function () {
+            $('.search-popup input').focus();
+          }
+        });
+      $('.search-mask')
+        .velocity('stop')
+        .velocity('transition.fadeIn', {
+          duration: 300
+        });
+
+      initSearch();
+    });
+    $('.search-mask, .search-close').on('click', function () {
+      closeSearch();
+    });
+    $(document).on('keydown', function (e) {
+      // Escape <=> 27
+      if (e.keyCode === Stun.utils.codeToKeyCode('Escape')) {
+        closeSearch();
+      }
+    });
+  };
+
+  Stun.utils.pjaxReloadLocalSearch();
+}, false);
+
+function safeOpenUrl(url) {
+  var newTab = window.open();
+  newTab.opener = null;
+  newTab.location = url;
+}
+
+function extSearch(engine) {
+  var engines = {
+    google: 'https://www.google.com/search?q=',
+    bing: 'https://cn.bing.com/search?q=',
+    baidu: 'https://www.baidu.com/s?ie=UTF-8&wd=',
+  };
+  var host = window.location.host;
+  var query = $('.search-input input').val().toLowerCase().trim();
+  var uri = engines[engine] + query + ' site:' + host;
+
+  if (query) {
+    safeOpenUrl(uri);
+  } else {
+    Stun.utils.popAlert('warning', 'Please enter characters');
+  }
+}
+
+var assistSearchList = window.CONFIG.assistSearch;
+
+if (Array.isArray(assistSearchList)) {
+  assistSearchList.forEach(function (name) {
+    document.querySelector('.search-btns-item--' + name).addEventListener('click', function () {
+      extSearch(name);
+    }, false);
+  });
+}</script><script src="/js/utils.js?v=2.6.2"></script><script src="/js/stun-boot.js?v=2.6.2"></script><script src="/js/scroll.js?v=2.6.2"></script><script src="/js/header.js?v=2.6.2"></script><script src="/js/sidebar.js?v=2.6.2"></script><script type="application/json" src="/search.json"></script><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"superSample":2,"width":150,"height":300,"position":"left","hOffset":0,"vOffset":-80},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body></html>

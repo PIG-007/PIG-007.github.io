@@ -1,0 +1,353 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta name="description" content="1.常规checksec，开启了NX和PIE，不能shellcode和简单rop。之后IDA打开找漏洞，E43函数中存在栈溢出漏洞： 12345#注释头__int64 buf; &#x2F;&#x2F; [rsp+10h] [rbp-30h]--------------------------------------------------read(0, &amp;buf, 0x400uLL);  有栈溢出那么首先想">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BCTF 2017-100levels">
+<meta property="og:url" content="http://pig-007.github.io/2021/08/14/BCTF%202017-100levels/index.html">
+<meta property="og:site_name" content="PIG-007">
+<meta property="og:description" content="1.常规checksec，开启了NX和PIE，不能shellcode和简单rop。之后IDA打开找漏洞，E43函数中存在栈溢出漏洞： 12345#注释头__int64 buf; &#x2F;&#x2F; [rsp+10h] [rbp-30h]--------------------------------------------------read(0, &amp;buf, 0x400uLL);  有栈溢出那么首先想">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191532908.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191532014.jpeg">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191532743.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191532872.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191532846.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191532270.png">
+<meta property="article:published_time" content="2021-08-14T05:40:30.000Z">
+<meta property="article:modified_time" content="2021-08-19T08:10:45.338Z">
+<meta property="article:author" content="PIG-007">
+<meta property="article:tag" content="PIE">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191532908.png"><title>BCTF 2017-100levels | PIG-007</title><link ref="canonical" href="http://pig-007.github.io/2021/08/14/BCTF%202017-100levels/"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.12.1/css/all.min.css" type="text/css"><link rel="stylesheet" href="/css/index.css?v=2.6.2"><script>var Stun = window.Stun || {};
+var CONFIG = {
+  root: '/',
+  algolia: undefined,
+  assistSearch: undefined,
+  fontIcon: {"prompt":{"success":"fas fa-check-circle","info":"fas fa-arrow-circle-right","warning":"fas fa-exclamation-circle","error":"fas fa-times-circle"},"copyBtn":"fas fa-copy"},
+  sidebar: {"offsetTop":"20px","tocMaxDepth":6},
+  header: {"enable":true,"showOnPost":true,"scrollDownIcon":false},
+  postWidget: {"endText":true},
+  nightMode: {"enable":true},
+  back2top: {"enable":true},
+  codeblock: {"style":"default","highlight":"light","wordWrap":true},
+  reward: false,
+  fancybox: false,
+  zoomImage: {"gapAside":"20px"},
+  galleryWaterfall: undefined,
+  lazyload: false,
+  pjax: undefined,
+  externalLink: {"icon":{"enable":true,"name":"fas fa-external-link-alt"}},
+  shortcuts: undefined,
+  prompt: {"copyButton":"Copy","copySuccess":"Copy Success","copyError":"Copy Error"},
+  sourcePath: {"js":"js","css":"css","images":"images"},
+};
+
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content" id="content"><!-- Just used to judge whether it is an article page--><div id="is-post"></div><div class="post"><header class="post-header"><h1 class="post-title">BCTF 2017-100levels</h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><p>1.常规checksec，开启了NX和PIE，不能shellcode和简单rop。之后IDA打开找漏洞，E43函数中存在栈溢出漏洞：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">__int64 buf; // [rsp+10h] [rbp-30h]</span><br><span class="line">--------------------------------------------------</span><br><span class="line">read(0, &amp;buf, 0x400uLL);</span><br></pre></td></tr></table></div></figure>
+
+<p>有栈溢出那么首先想到是应该查看有没有后门，但是这个程序虽然外部引用了system函数，但是本身里并没有导入到.got.plt表中，没办法直接通过.got.plt来寻址。而且开了PIE，就算导入到.got.plt表中，也需要覆盖返回地址并且爆破倒数第四位才能跳转到system函数。虽然有栈溢出，但是没有后门函数，同样也没办法泄露Libc地址。</p>
+<p>2.想getshell，又只有一个栈溢出，没有其它漏洞，还开了PIE和NX，那么一定得泄露出地址才能做，而printf地址也因为PIE没办法直接跳转。陷入卡顿，但是这里可以查看E43函数中的printf的汇编代码：</p>
+<p>只能通过栈溢出形式来为下一次的printf赋参数来泄露。又由于PIE，也不知道任意一个函数的代码地址，那也没办法泄露被加载进入Libc中的内存地址。</p>
+<p>3.通过调试可以看到，进入E43函数中，抵达printf函数时，栈顶的上方有大量的指向libc的地址：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191532908.png" alt="img"></p>
+<p>并且观察E43函数中的汇编代码，可以看到Printf是通过rbp取值的，那么我们可以通过栈溢出修改rbp来使得[rbp+var_34]落在其它地方，而如果这个其它地方有libc地址，那么就相当于泄露出了Libc地址。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191532014.jpeg" alt="img"></p>
+<p>4.这个关卡数是由我们设置的，而且通过递归调用E43函数，形成多个E43的栈，那么进行调试，第二次进入E43的栈之后，仍然在运行到printf函数时，栈顶上方仍旧有大量的Libc地址。由于我们需要修改rbp来使得下一次的printf打印出libc地址，那么关卡最低需要设置两关，第一关用来栈溢出，修改rbp，使得第二关中的printf函数指向栈顶上方从而打印出Libc地址。</p>
+<p>5.由于栈的随机化，我们如果随意修改rbp那么就会打印出奇怪的东西，所以修改rbp的最后一个字节，使得[rbp+var_34]能够移动一定范围，以一定几率命中栈顶上方。而又由于是递归调用，第一关的栈在第二关的栈的上方，模型大致如下：</p>
+<p>(1)第一次rbp和rsp以及第二次的如图：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191532743.png" alt="img">  <img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191532872.png" alt="img"></p>
+<p>(2)第一次栈以及第二次栈如图：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191532846.png" alt="img"></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191532270.png" alt="img"></p>
+<p>▲这里用的是Libc-2.32的，用其他的Libc就不太一样，具体情况具体分析。</p>
+<p>6.这里的模型是假设第一次的rsp栈顶后两位为00，但是由于栈地址随机化，所以rsp其实可以从0x00-0xFF之间变化，对应的地址也就是从0-31之间变化。</p>
+<p>7.这里先考虑第一个问题，rbp-var34如何落到libc空间中，也就是当0往下移动，变化为大约是4或者5时，即可落到libc空间。同样的，从5-16变化，都可以使得rbp-var34落在libc空间。但是如果0变化成16以上，对应的第二次栈空间rbp就会变成32以上，换算成16进制为0x100，这时修改最后两位，就会变成0x15c，使得它不但不往上走，更会往下走，从而没办法落到libc空间。总而言之，慢慢研究下，然后计算概率大约为12/32=3/8，可以使得落在Libc空间。这里的5c可以改变成其它值x，但是需要x-0x34为8的倍数才行，不然取到的地址会是截断的，但是修改后成功概率会发生改变，因为0x5c扫到的地址范围大概就是libc的栈空间。</p>
+<p>8.落在libc空间不代表一定就会落在指向Libc地址上，前面可以看到，在16个地址范围内大概为7个，也就是1/2的概率成功。然后由于有v2%a1这个运算，也就对应汇编代码idiv   [rbp+var_34]，这就导致如果rbp+var_34的数据为0那么就会产生除零操作，这里没办法去掉。需要进行try操作来去除这个错误，使程序重新运行，进行自动化爆破。同时泄露出来的地址会发现有时候是正数有时候是负数。这是因为我们只能泄露出地址的低32位，低8个十六进制数。而这个数的最高位可能是0或者1，转换成有符号整数就可能是正负两种情况。这里进行处理可避免成功率下降：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">if addr_l8 &lt; 0:</span><br><span class="line">addr_l8 = addr_l8 + 0x100000000</span><br></pre></td></tr></table></div></figure>
+
+<p>9.但是泄露出来的地址由于printf的参数是%d，所以打印出来的是32位地址，还需要猜剩下32位。但是这里有个技巧，貌似所有64程序加载后的代码段地址都在0x000055XXXXXXXXXX-0x000056XXXXXXXXXX之间徘徊，对应的libc加载段在0x00007EXXXXXXXXXX-0x00007FXXXXXXXXXX范围，以下是测试数据：</p>
+<p>程序开头段.load首地址和debug段首地址：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">00007F1301D2A000  </span><br><span class="line">000056238FCAB000</span><br><span class="line">差值为28EF 7207 F000</span><br><span class="line"></span><br><span class="line">00007FCB31061000</span><br><span class="line">000055D513E06000</span><br><span class="line">差值为29F6 1D25 B000</span><br><span class="line"></span><br><span class="line">00007F58EFF09000</span><br><span class="line">000055F7C1BEC000</span><br><span class="line">差值为2983 DC10 3000</span><br></pre></td></tr></table></div></figure>
+
+<p>具体原理好像是PIE源代码随机的关系，但具体不太清楚，能用就行。所以高32位就可以假设地址为0x00007fxx，所以这里需要爆破0x1ff大小，也就是511，相当于512次，但是其实可以知道，大概率是落在0x7f里，看数据分析也可以知道，所以实际爆破次数基本在500次以内。所以将泄露出来的地址加上一个在0x7f里的值，也就是addr = addr_l8 + 0x7f8b00000000，之后再根据Libc空间中指向libc地址的后两位来区分地址：并减去在libc中查到的偏移量即可得到Libc基地址。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">if hex(addr)[-2:] == &#x27;0b&#x27;: #__IO_file_overflow+EB</span><br><span class="line">libc_base = addr - 0x7c90b</span><br><span class="line"></span><br><span class="line">elif hex(addr)[-2:] == &#x27;d2&#x27;: #puts+1B2</span><br><span class="line">libc_base = addr - 0x70ad2</span><br><span class="line"></span><br><span class="line">elif hex(addr)[-3:] == &#x27;600&#x27;:#_IO_2_1_stdout_</span><br><span class="line">libc_base = addr - 0x3c2600</span><br><span class="line"></span><br><span class="line">elif hex(addr)[-3:] == &#x27;400&#x27;:#_IO_file_jumps</span><br><span class="line">libc_base = addr - 0x3be400</span><br><span class="line"></span><br><span class="line">elif hex(addr)[-2:] == &#x27;83&#x27;: #_IO_2_1_stdout_+83</span><br><span class="line">libc_base = addr - 0x3c2683</span><br><span class="line"></span><br><span class="line">elif hex(addr)[-2:] == &#x27;32&#x27;: #_IO_do_write+C2</span><br><span class="line">libc_base = addr - 0x7c370 - 0xc2</span><br><span class="line"></span><br><span class="line">elif hex(addr)[-2:] == &#x27;e7&#x27;: #_IO_do_write+37</span><br><span class="line">libc_base = addr - 0x7c370 - 0x37</span><br></pre></td></tr></table></div></figure>
+
+<p>所以算上命中概率，其实调试的时候可以看到，第一关的栈空间中由于程序运行结果也会有几个指向Libc地址，加上这几个也可以提高成功率，因为修改的rbp也是有可能落在第一关的栈空间。总的爆破次数应该就是500/((1/2)*(3/8))，约为2500次，还能接受。</p>
+<p>10.泄露出Libc地址之后一般就有两种方法，一种是利用栈溢出，调用万能gadget用system函数进行binsh字符串赋值，从而getshell。还有一种就是，利用one_gadget来getshell，通过查看E43返回时的汇编代码有一个move eax,0；满足libc-2.23.so的其中一个one_gadget的条件，那么直接用就行。</p>
+<p>11.最后libc基地址加上one_gadget的偏移地址就可以得到one_gadget的实际地址。</p>
+<p>one_gadget = libc_base + 0x45526</p>
+<p>之后在第二关中再次进行栈溢出覆盖rip来跳转到one_gadget即可getshell。</p>
+<p>参考资料：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157" >https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+</div><footer class="post-footer"><div class="post-ending ending"><div class="ending__text">------ END ------</div></div><div class="post-copyright copyright"><div class="copyright-author"><span class="copyright-author__name">Author: </span><span class="copyright-author__value"><a href="http://PIG-007.github.io">PIG-007</a></span></div><div class="copyright-link"><span class="copyright-link__name">Link: </span><span class="copyright-link__value"><a href="http://pig-007.github.io/2021/08/14/BCTF%202017-100levels/">http://pig-007.github.io/2021/08/14/BCTF%202017-100levels/</a></span></div><div class="copyright-notice"><span class="copyright-notice__name">Copyright: </span><span class="copyright-notice__value">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" rel="external nofollow" target="_blank">BY-NC-SA</a> unless stating additionally</span></div></div><div class="post-tags"><span class="post-tags-item"><span class="post-tags-item__icon"><i class="fas fa-tag"></i></span><a class="post-tags-item__link" href="http://pig-007.github.io/tags/PIE/">PIE</a></span></div><nav class="post-paginator paginator"><div class="paginator-prev"><a class="paginator-prev__link" href="/2021/08/14/Alictf%202016-vss/"><span class="paginator-prev__icon"><i class="fas fa-angle-left"></i></span><span class="paginator-prev__text">pwnable.kr-login</span></a></div><div class="paginator-next"><a class="paginator-next__link" href="/2021/08/14/BSides%20San%20Francisco%20CTF%202017-b_64_b_tuff/"><span class="paginator-prev__text">BSides San Francisco CTF 2017-b_64_b_tuff</span><span class="paginator-next__icon"><i class="fas fa-angle-right"></i></span></a></div></nav></footer></div></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><div class="sidebar-nav"><span class="sidebar-nav-toc current">Catalog</span><span class="sidebar-nav-ov">Overview</span></div><section class="sidebar-toc"></section><!-- ov = overview--><section class="sidebar-ov hide"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">hello world</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">93</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">40</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">43</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section><div class="sidebar-reading"><div class="sidebar-reading-info"><span class="sidebar-reading-info__text">You have read </span><span class="sidebar-reading-info__num">0</span><span class="sidebar-reading-info__perc">%</span></div><div class="sidebar-reading-line"></div></div></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2021</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
+  var isXML = true;
+  var search_path = 'search.json';
+
+  if (!search_path) {
+    search_path = 'search.xml';
+  } else if (/json$/i.test(search_path)) {
+    isXML = false;
+  }
+
+  var path = '/' + search_path;
+  $.ajax({
+    url: path,
+    dataType: isXML ? 'xml' : 'json',
+    async: true,
+    success: function (res) {
+      var datas = isXML ? $('entry', res).map(function () {
+        // 将 XML 转为 JSON
+        return {
+          title: $('title', this).text(),
+          content: $('content', this).text(),
+          url: $('url', this).text()
+        };
+      }).get() : res;
+      var $input = $('.search-input input');
+      var $result = $('.search-results');
+      // 搜索对象（标题、内容）的权重，影响显示顺序
+      var WEIGHT = { title: 100, content: 1 };
+      var searchPost = function () {
+        var searchText = $input.val().toLowerCase().trim();
+        // 根据空白字符分隔关键字
+        var keywords = searchText.split(/[\s]+/);
+        // 搜索结果
+        var matchPosts = [];
+
+        // 有多个关键字时，将原文字整个保存下来
+        if (keywords.length > 1) {
+          keywords.push(searchText);
+        }
+        // 防止未输入字符时搜索
+        if (searchText.length > 0) {
+          datas.forEach(function (data) {
+            var isMatch  = false;
+            // 没有标题的文章使用预设的 i18n 变量代替
+            var title = (data.title && data.title.trim()) || '[ Untitled ]';
+            var titleLower = title && title.toLowerCase();
+            // 删除 HTML 标签 和 所有空白字符
+            var content = data.content && data.content.replace(/<[^>]+>/g, '');
+            var contentLower = content && content.toLowerCase();
+            // 删除重复的 /
+            var postURL = data.url && decodeURI(data.url).replace(/\/{2,}/g, '/');
+            // 标题中匹配到的关键词
+            var titleHitSlice = [];
+            // 内容中匹配到的关键词
+            var contentHitSlice = [];
+
+            keywords.forEach(function (keyword) {
+              /**
+              * 获取匹配的关键词的索引
+              * @param {String} keyword 要匹配的关键字
+              * @param {String} text 原文字
+              * @param {Boolean} caseSensitive 是否区分大小写
+              * @param {Number} weight 匹配对象的权重。权重大的优先显示
+              * @return {Array}
+              */
+              function getIndexByword (word, text, caseSensitive, weight) {
+                if (!word || !text) {
+                  return [];
+                };
+
+                var startIndex = 0; // 每次匹配的开始索引
+                var index = -1;     // 匹配到的索引值
+                var result = [];    // 匹配结果
+
+                if (!caseSensitive) {
+                  word = word.toLowerCase();
+                  text = text.toLowerCase();
+                }
+
+                while((index = text.indexOf(word, startIndex)) !== -1) {
+                  var hasMatch = false;
+                  // 索引位置相同的关键词，保留长度较长的
+                  titleHitSlice.forEach(function (hit) {
+                    if (hit.index === index && hit.word.length < word.length) {
+                      hit.word = word;
+                      hasMatch = true;
+                    }
+                  });
+                  startIndex = index + word.length;
+                  !hasMatch && result.push({ index: index, word: word, weight: weight });
+                }
+                return result;
+              }
+              titleHitSlice = titleHitSlice.concat(getIndexByword(keyword, titleLower, false, WEIGHT.title));
+              contentHitSlice = contentHitSlice.concat(getIndexByword(keyword, contentLower, false, WEIGHT.content));
+            });
+
+            var hitTitle = titleHitSlice.length;
+            var hitContent = contentHitSlice.length;
+
+            if (hitTitle > 0 || hitContent > 0) {
+              isMatch = true;
+            }
+            if (isMatch) {
+              ;[titleHitSlice, contentHitSlice].forEach(function (hit) {
+                // 按照匹配文字的索引的递增顺序排序
+                hit.sort(function (left, right) {
+                  return left.index - right.index;
+                });
+              });
+              /**
+              * 给文本中匹配到的关键词添加标记，从而进行高亮显示
+              * @param {String} text 原文本
+              * @param {Array} hitSlice 匹配项的索引信息
+              * @param {Number} start 开始索引
+              * @param {Number} end 结束索引
+              * @return {String}
+              */
+              function highlightKeyword (text, hitSlice, start, end) {
+                if (!text || !hitSlice || !hitSlice.length) {
+                  return;
+                }
+
+                var result = '';
+                var startIndex = start;
+                var endIndex = end;
+                hitSlice.forEach(function (hit) {
+                  if (hit.index < startIndex) {
+                    return;
+                  }
+
+                  var hitWordEnd = hit.index + hit.word.length;
+                  result += text.slice(startIndex, hit.index);
+                  result += '<b>' + text.slice(hit.index, hitWordEnd) + '</b>';
+                  startIndex = hitWordEnd;
+                });
+                result += text.slice(startIndex, endIndex);
+                return result;
+              }
+
+              var postData = {};
+              // 文章总的搜索权重
+              var postWeight = titleHitSlice.length * WEIGHT.title + contentHitSlice.length * WEIGHT.content;
+              // 标记匹配关键词后的标题
+              var postTitle = highlightKeyword(title, titleHitSlice, 0, title.length) || title;
+              // 标记匹配关键词后的内容
+              var postContent;
+              // 显示内容的长度
+              var SHOW_WORD_LENGTH = 200;
+              // 命中关键词前的字符显示长度
+              var SHOW_WORD_FRONT_LENGTH = 20;
+              var SHOW_WORD_END_LENGTH = SHOW_WORD_LENGTH - SHOW_WORD_FRONT_LENGTH;
+
+              // 截取匹配的第一个字符，前后共 200 个字符来显示
+              if (contentHitSlice.length > 0) {
+                var firstIndex = contentHitSlice[0].index;
+                var start = firstIndex > SHOW_WORD_FRONT_LENGTH ? firstIndex - SHOW_WORD_FRONT_LENGTH : 0;
+                var end = firstIndex + SHOW_WORD_END_LENGTH;
+                postContent = highlightKeyword(content, contentHitSlice, start, end);
+              } else { // 未匹配到内容，直接截取前 200 个字符来显示
+                postContent = content.slice(0, SHOW_WORD_LENGTH);
+              }
+              postData.title = postTitle;
+              postData.content = postContent;
+              postData.url = postURL;
+              postData.weight = postWeight;
+              matchPosts.push(postData);
+            }
+          });
+        }
+
+        var resultInnerHtml = '';
+        if (matchPosts.length) {
+          // 按权重递增的顺序排序，使权重大的优先显示
+          matchPosts.sort(function (left, right) {
+            return right.weight - left.weight;
+          });
+          resultInnerHtml += '<ul>';
+          matchPosts.forEach(function (post) {
+            resultInnerHtml += '<li><a class="search-results-title" href="' + post.url + '">';
+            resultInnerHtml += post.title;
+            resultInnerHtml += '</a><div class="search-results-content">';
+            resultInnerHtml += post.content;
+            resultInnerHtml += '</div></li>';
+          });
+          resultInnerHtml += '</ul>';
+        } else {
+          resultInnerHtml += '<div class="search-results-none"><i class="far fa-meh"></i></div>';
+        }
+        $result.html(resultInnerHtml);
+      };
+      $input.on('input', searchPost);
+      $input.on('keyup', function (e) {
+        if (e.keyCode === Stun.utils.codeToKeyCode('Enter')) {
+          searchPost();
+        }
+      });
+    }
+  });
+}
+
+function closeSearch () {
+  $('body').css({ overflow: 'auto' });
+  $('.search-popup').css({ display: 'none' });
+  $('.search-mask').css({ display: 'none' });
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  Stun.utils.pjaxReloadLocalSearch = function () {
+    $('.header-nav-search').on('click', function (e) {
+      e.stopPropagation();
+      $('body').css('overflow', 'hidden');
+      $('.search-popup')
+        .velocity('stop')
+        .velocity('transition.expandIn', {
+          duration: 300,
+          complete: function () {
+            $('.search-popup input').focus();
+          }
+        });
+      $('.search-mask')
+        .velocity('stop')
+        .velocity('transition.fadeIn', {
+          duration: 300
+        });
+
+      initSearch();
+    });
+    $('.search-mask, .search-close').on('click', function () {
+      closeSearch();
+    });
+    $(document).on('keydown', function (e) {
+      // Escape <=> 27
+      if (e.keyCode === Stun.utils.codeToKeyCode('Escape')) {
+        closeSearch();
+      }
+    });
+  };
+
+  Stun.utils.pjaxReloadLocalSearch();
+}, false);
+
+function safeOpenUrl(url) {
+  var newTab = window.open();
+  newTab.opener = null;
+  newTab.location = url;
+}
+
+function extSearch(engine) {
+  var engines = {
+    google: 'https://www.google.com/search?q=',
+    bing: 'https://cn.bing.com/search?q=',
+    baidu: 'https://www.baidu.com/s?ie=UTF-8&wd=',
+  };
+  var host = window.location.host;
+  var query = $('.search-input input').val().toLowerCase().trim();
+  var uri = engines[engine] + query + ' site:' + host;
+
+  if (query) {
+    safeOpenUrl(uri);
+  } else {
+    Stun.utils.popAlert('warning', 'Please enter characters');
+  }
+}
+
+var assistSearchList = window.CONFIG.assistSearch;
+
+if (Array.isArray(assistSearchList)) {
+  assistSearchList.forEach(function (name) {
+    document.querySelector('.search-btns-item--' + name).addEventListener('click', function () {
+      extSearch(name);
+    }, false);
+  });
+}</script><script src="/js/utils.js?v=2.6.2"></script><script src="/js/stun-boot.js?v=2.6.2"></script><script src="/js/scroll.js?v=2.6.2"></script><script src="/js/header.js?v=2.6.2"></script><script src="/js/sidebar.js?v=2.6.2"></script><script type="application/json" src="/search.json"></script><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"superSample":2,"width":150,"height":300,"position":"left","hOffset":0,"vOffset":-80},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body></html>
