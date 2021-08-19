@@ -129,41 +129,6 @@ window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></he
 <p>③show options看一下需要设置什么信息，设置ip，用户名，密码字典，端口，爆破线程数量等信息，然后直接run即可。</p>
 <p>set RHOST/USERNAME/PASS_FILE/RPORT/THREADS等等</p>
 <p>3.Burp(burpsuite)爆破后台密码：(还没学)</p>
-</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/19/6.ARP%E6%AC%BA%E9%AA%97/">arp欺骗</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.首先查看和自己同属一个网段下的ip：</p>
-<p>nbtscan -r 192.168.80.167/24</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191503723.png" alt="img"></p>
-<p>这里157即为目标ip，167即为本机攻击ip</p>
-<p>(这个需要apt-get install nbtscan)</p>
-<p>2.然后使用工具arpspoof进行欺骗，kalilinux自带：</p>
-<p>(1)arpspoof -i eth0 -t 192.168.80.157 192.168.80.2</p>
-<p>(eth0是网卡接口，-t后是目标ip，之后的ip是该网段下的默认路由ip，可以通过route -n查询，或者其它方式)</p>
-<p>▲这个原理就是修改己方的Mac地址为默认路由的Mac地址，那么目标主机发出的MAC帧就会被己方接收。</p>
-<p>(2)如果攻击机开启了Ipv4的路由转发功能，那么arp欺骗不会成功，因为到达攻击机的包被转发出去了。</p>
-<p>①查看己方的路由转发功能是否开启：</p>
-<p>cat /proc/sys/net/ipv4/ip_forward</p>
-<p>为0则关闭，为1则开启了。</p>
-<p>②修改路由转发功能：</p>
-<p>echo “0” &gt; /proc/sys/net/ipv4/ip_forward</p>
-<p>这行命令是往该文件中写入0，关闭路由转发功能</p>
-<p>sysctl -p(让服务即可生效)</p>
-<p>▲另外永久开启服务的相关命令可以上网再查</p>
-<p>3.查看自己是否被ARP欺骗攻击：arp -a</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191503844.png" alt="img"></p>
-<p>可以看到在目标机器上在没有被攻击之前，默认路由ip对应的mac地址和攻击机ip对应的mac地址是不一样的，但是被攻击之后却变成一样的了。</p>
-<p>▲解决办法：</p>
-<p>(1)将dns服务器ip和mac静态绑定:</p>
-<p>arp -s [dns_ip] [dns_mac]</p>
-<p>(2)如果不知道原来的dns服务器的mac地址，那么可以先arp -d清空一下arp缓存，然后arp -a查看，这时候原本的dns服务器就会发过来包，其MAC就能被看到。</p>
-<p>(3)如果攻击者一直执行欺骗程序，开启系统防火墙后清空arp缓存，也能抵御一般的arp欺骗。</p>
-<p>(4)如果防火墙还是抵御不了，或者不允许开启防火墙，那么就进行抓包，先将arp缓存清空，之后抓取dns服务器发过来的包，其MAC一定正确，将该MAC地址与dns服务器ip绑定。(没有抓包工具就重复清空缓存，查询，大不了整个bat批处理，一定会有攻击者攻击间隙使得dns服务器发过来的包被解析，然后再绑定)</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191503433.png" alt="img"></p>
-<p>(5)如果攻击者充当中间人，截取dns发给受害者的服务包…那再说，估计只能破密了。</p>
-<p>▲可以事先将DNS的MAC定期备份，定期删除。</p>
-<p>4.开启目标机网络功能，截取目标机的数据包：</p>
-<p>▲使用的工具在不同协议和不同环境的抓取能力都不太一样</p>
-<p>(1)使用DSniff，支持Telnet 、Ftp、Smtp、P0P3、HTTP，以及其它的一些高层网络应用协议，用Telnet比较好用。比较老了，很多杀毒软件或者防火墙安全措施什么的都可以发现。</p>
-<p>dsniff -i eth0(有时候不太好用)</p>
-<p>(2)使用Ettercap<br>ettercap -Tq -i eth0(Tq是参数用的，过滤掉不必要的包)</p>
 </div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/19/5.%E5%88%A9%E7%94%A8Cobaltstrike%E8%8E%B7%E5%8F%96%E6%9D%83%E9%99%90/">5.利用Cobaltstrike获取权限</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>一、攻击weblogic(端口基于7001)：</p>
 <p>▲前置环境部署：</p>
 <figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">git clone https://github.com/vulhub/vulhub.git</span><br><span class="line">cd  vulhub/</span><br><span class="line">cd  weblogic/</span><br><span class="line">cd CVE-......(选择一种漏洞)</span><br><span class="line">docker-compose up -d</span><br></pre></td></tr></table></div></figure>
@@ -221,6 +186,41 @@ window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></he
 
 <p>这样sqlmap就可以上传东西，写入一些类似于web-shell等东西，从而获取权限。</p>
 <p>③那么就进入os-shell了，可以获取到服务器权限</p>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/19/6.ARP%E6%AC%BA%E9%AA%97/">arp欺骗</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.首先查看和自己同属一个网段下的ip：</p>
+<p>nbtscan -r 192.168.80.167/24</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191503723.png" alt="img"></p>
+<p>这里157即为目标ip，167即为本机攻击ip</p>
+<p>(这个需要apt-get install nbtscan)</p>
+<p>2.然后使用工具arpspoof进行欺骗，kalilinux自带：</p>
+<p>(1)arpspoof -i eth0 -t 192.168.80.157 192.168.80.2</p>
+<p>(eth0是网卡接口，-t后是目标ip，之后的ip是该网段下的默认路由ip，可以通过route -n查询，或者其它方式)</p>
+<p>▲这个原理就是修改己方的Mac地址为默认路由的Mac地址，那么目标主机发出的MAC帧就会被己方接收。</p>
+<p>(2)如果攻击机开启了Ipv4的路由转发功能，那么arp欺骗不会成功，因为到达攻击机的包被转发出去了。</p>
+<p>①查看己方的路由转发功能是否开启：</p>
+<p>cat /proc/sys/net/ipv4/ip_forward</p>
+<p>为0则关闭，为1则开启了。</p>
+<p>②修改路由转发功能：</p>
+<p>echo “0” &gt; /proc/sys/net/ipv4/ip_forward</p>
+<p>这行命令是往该文件中写入0，关闭路由转发功能</p>
+<p>sysctl -p(让服务即可生效)</p>
+<p>▲另外永久开启服务的相关命令可以上网再查</p>
+<p>3.查看自己是否被ARP欺骗攻击：arp -a</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191503844.png" alt="img"></p>
+<p>可以看到在目标机器上在没有被攻击之前，默认路由ip对应的mac地址和攻击机ip对应的mac地址是不一样的，但是被攻击之后却变成一样的了。</p>
+<p>▲解决办法：</p>
+<p>(1)将dns服务器ip和mac静态绑定:</p>
+<p>arp -s [dns_ip] [dns_mac]</p>
+<p>(2)如果不知道原来的dns服务器的mac地址，那么可以先arp -d清空一下arp缓存，然后arp -a查看，这时候原本的dns服务器就会发过来包，其MAC就能被看到。</p>
+<p>(3)如果攻击者一直执行欺骗程序，开启系统防火墙后清空arp缓存，也能抵御一般的arp欺骗。</p>
+<p>(4)如果防火墙还是抵御不了，或者不允许开启防火墙，那么就进行抓包，先将arp缓存清空，之后抓取dns服务器发过来的包，其MAC一定正确，将该MAC地址与dns服务器ip绑定。(没有抓包工具就重复清空缓存，查询，大不了整个bat批处理，一定会有攻击者攻击间隙使得dns服务器发过来的包被解析，然后再绑定)</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191503433.png" alt="img"></p>
+<p>(5)如果攻击者充当中间人，截取dns发给受害者的服务包…那再说，估计只能破密了。</p>
+<p>▲可以事先将DNS的MAC定期备份，定期删除。</p>
+<p>4.开启目标机网络功能，截取目标机的数据包：</p>
+<p>▲使用的工具在不同协议和不同环境的抓取能力都不太一样</p>
+<p>(1)使用DSniff，支持Telnet 、Ftp、Smtp、P0P3、HTTP，以及其它的一些高层网络应用协议，用Telnet比较好用。比较老了，很多杀毒软件或者防火墙安全措施什么的都可以发现。</p>
+<p>dsniff -i eth0(有时候不太好用)</p>
+<p>(2)使用Ettercap<br>ettercap -Tq -i eth0(Tq是参数用的，过滤掉不必要的包)</p>
 </div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/19/CISCN2017-babydriver/">CISCN2017-babydriver</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.常规解包分析:</p>
 <figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">//注释头</span><br><span class="line"></span><br><span class="line">mkdir rootfs</span><br><span class="line">cd rootfs</span><br><span class="line">mv ../rootfs.cpio rootfs.cpio.gz //改名，方便gunzip识别格式</span><br><span class="line">gunzip ./rootfs.cpio.gz //解压</span><br><span class="line">cpio -idm &lt; ./rootfs.cpio //再次解压</span><br></pre></td></tr></table></div></figure>
 
