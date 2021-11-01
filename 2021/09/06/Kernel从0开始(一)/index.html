@@ -1,0 +1,479 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta name="description" content="前言       前置环境，前置知识啥的就先不说了，这个系列记录新的kernel解析，旨在从源码题目编写，不同内核版本来进行各式各样的出题套路解析和exp的解析。另外内核的pwn基本都是基于某个特定版本的内核来进行模块开发，而出漏洞地方就是这个模块，我们可以借助这个模块来攻破内核，所以我们进行内核pwn的时候，最应该先学习的就是一些简单内核驱动模块的开发。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pwnKernel从0开始(一)">
+<meta property="og:url" content="http://pig-007.github.io/2021/09/06/Kernel%E4%BB%8E0%E5%BC%80%E5%A7%8B(%E4%B8%80)/index.html">
+<meta property="og:site_name" content="PIG-007">
+<meta property="og:description" content="前言       前置环境，前置知识啥的就先不说了，这个系列记录新的kernel解析，旨在从源码题目编写，不同内核版本来进行各式各样的出题套路解析和exp的解析。另外内核的pwn基本都是基于某个特定版本的内核来进行模块开发，而出漏洞地方就是这个模块，我们可以借助这个模块来攻破内核，所以我们进行内核pwn的时候，最应该先学习的就是一些简单内核驱动模块的开发。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210927101536.png">
+<meta property="article:published_time" content="2021-09-06T08:11:19.000Z">
+<meta property="article:modified_time" content="2021-10-06T09:16:23.087Z">
+<meta property="article:author" content="PIG-007">
+<meta property="article:tag" content="pwnKernel">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210927101536.png"><title>pwnKernel从0开始(一) | PIG-007</title><link ref="canonical" href="http://pig-007.github.io/2021/09/06/Kernel%E4%BB%8E0%E5%BC%80%E5%A7%8B(%E4%B8%80)/"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.12.1/css/all.min.css" type="text/css"><link rel="stylesheet" href="/css/index.css?v=2.6.2"><script>var Stun = window.Stun || {};
+var CONFIG = {
+  root: '/',
+  algolia: undefined,
+  assistSearch: undefined,
+  fontIcon: {"prompt":{"success":"fas fa-check-circle","info":"fas fa-arrow-circle-right","warning":"fas fa-exclamation-circle","error":"fas fa-times-circle"},"copyBtn":"fas fa-copy"},
+  sidebar: {"offsetTop":"20px","tocMaxDepth":6},
+  header: {"enable":true,"showOnPost":true,"scrollDownIcon":false},
+  postWidget: {"endText":true},
+  nightMode: {"enable":true},
+  back2top: {"enable":true},
+  codeblock: {"style":"default","highlight":"light","wordWrap":true},
+  reward: false,
+  fancybox: false,
+  zoomImage: {"gapAside":"20px"},
+  galleryWaterfall: undefined,
+  lazyload: false,
+  pjax: undefined,
+  externalLink: {"icon":{"enable":true,"name":"fas fa-external-link-alt"}},
+  shortcuts: undefined,
+  prompt: {"copyButton":"Copy","copySuccess":"Copy Success","copyError":"Copy Error"},
+  sourcePath: {"js":"js","css":"css","images":"images"},
+};
+
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content" id="content"><!-- Just used to judge whether it is an article page--><div id="is-post"></div><div class="post"><header class="post-header"><h1 class="post-title">pwnKernel从0开始(一)</h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-09-06</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-10-06</span></span></div></header><div class="post-body">
+        <h1 id="前言"   >
+          <a href="#前言" class="heading-link"><i class="fas fa-link"></i></a><a href="#前言" class="headerlink" title="前言"></a>前言</h1>
+      <p>前置环境，前置知识啥的就先不说了，这个系列记录新的kernel解析，旨在从源码题目编写，不同内核版本来进行各式各样的出题套路解析和exp的解析。另外内核的pwn基本都是基于某个特定版本的内核来进行模块开发，而出漏洞地方就是这个模块，我们可以借助这个模块来攻破内核，所以我们进行内核pwn的时候，最应该先学习的就是一些简单内核驱动模块的开发。</p>
+
+        <h1 id="一、例子编写"   >
+          <a href="#一、例子编写" class="heading-link"><i class="fas fa-link"></i></a><a href="#一、例子编写" class="headerlink" title="一、例子编写"></a>一、例子编写</h1>
+      <p>首先最简单和经典的的Hello world</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//注释头</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//由于基本都是用下载的内核编译，所以这里的头文件直接放到正常的编译器中可能找不到对应的头文件。</span></span><br><span class="line"><span class="comment">//在自己下载的编译好的内核中自己找对应的，然后Makefile中来设置内核源码路径</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/init.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/module.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/kernel.h&gt;</span></span></span><br><span class="line">MODULE_LICENSE(<span class="string">&quot;Dual BSD/GPL&quot;</span>);</span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> __init <span class="title">hello_init</span><span class="params">(<span class="keyword">void</span>)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    printk(<span class="string">&quot;PIG007:Hello world!\n&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> __exit <span class="title">hello_exit</span><span class="params">(<span class="keyword">void</span>)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    printk(<span class="string">&quot;PIG007:Bye,world\n&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line">module_init(hello_init);</span><br><span class="line">module_exit(hello_exit);</span><br></pre></td></tr></table></div></figure>
+
+
+        <h2 id="1-头文件简介"   >
+          <a href="#1-头文件简介" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-头文件简介" class="headerlink" title="1.头文件简介"></a>1.头文件简介</h2>
+      <p><code>module.h</code>:包含可装载模块需要的大量符号和函数定义。</p>
+<p><code>init.h</code>:指定初始化模块方面和清除函数。</p>
+<p>另外大部分模块还包括<code>moduleparam.h</code>头文件，这样就可以在装载的时候向模块传递参数。而我们常常用的函数<code>_copy_from_user</code>则来自头文件<code>uaccess.h</code></p>
+
+        <h2 id="2-模块许可证"   >
+          <a href="#2-模块许可证" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-模块许可证" class="headerlink" title="2.模块许可证"></a>2.模块许可证</h2>
+      <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//注释头</span></span><br><span class="line"></span><br><span class="line">MODULE_LICENSE(<span class="string">&quot;Dual BSD/GPL&quot;</span>);</span><br></pre></td></tr></table></div></figure>
+
+<p>这个就是模块许可证，<strong>具体有啥用不太清楚</strong>，如有大佬恳请告知。可以通过下列命令查询</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">grep <span class="string">&quot;MODULE_LICENSE&quot;</span> -B 27 /usr/src/linux-headers-`uname -r`/include/linux/module.h</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210927101536.png" alt="image-20210927100912684"></p>
+<p>或者网址<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.kernel.org/doc/html/latest/translations/zh_CN/process/license-rules.html" >Linux内核许可规则 — The Linux Kernel documentation</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+
+        <h2 id="3-模块加载卸载"   >
+          <a href="#3-模块加载卸载" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-模块加载卸载" class="headerlink" title="3.模块加载卸载"></a>3.模块加载卸载</h2>
+      
+        <h3 id="加载"   >
+          <a href="#加载" class="heading-link"><i class="fas fa-link"></i></a><a href="#加载" class="headerlink" title="加载"></a>加载</h3>
+      <p>一般以 __init标识声明，返回值为0表示加载成功，为负数表示加载失败。用来初始化，定义之类的。</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> __init <span class="title">hello_init</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br></pre></td></tr></table></div></figure>
+
+<p>在整个模块的最后加上</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">module_init(hello_init);</span><br></pre></td></tr></table></div></figure>
+
+<p>来通过这个init函数加载模块</p>
+
+        <h3 id="卸载"   >
+          <a href="#卸载" class="heading-link"><i class="fas fa-link"></i></a><a href="#卸载" class="headerlink" title="卸载"></a>卸载</h3>
+      <p>一般以 __exit标识声明，用来释放空间，清除一些东西的。</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> __exit <span class="title">hello_exit</span><span class="params">(<span class="keyword">void</span>)</span> </span></span><br></pre></td></tr></table></div></figure>
+
+<p>同样的模块最后加上以下代码来卸载</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">module_exit(hello_exit);</span><br></pre></td></tr></table></div></figure>
+
+<p>▲其实加载和卸载有点类似于面向对象里的构造函数和析构函数。</p>
+<p>以上是一个最简单的例子，下面讲讲实际题目的编写，实际的题目一般涉及驱动的装载。</p>
+
+        <h1 id="二、题目编写"   >
+          <a href="#二、题目编写" class="heading-link"><i class="fas fa-link"></i></a><a href="#二、题目编写" class="headerlink" title="二、题目编写"></a>二、题目编写</h1>
+      <p>由于模块装载是在内核启动时完成的(root下也可以设置再insmod装载)，所以一般需要安装驱动，通过驱动来启动模块中的代码功能。而驱动类型也一般有两种，一种是字符型设备驱动，一种是globalmem虚拟设备驱动。</p>
+
+        <h2 id="1-字符型设备驱动"   >
+          <a href="#1-字符型设备驱动" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-字符型设备驱动" class="headerlink" title="1.字符型设备驱动"></a>1.字符型设备驱动</h2>
+      
+        <h3 id="1-安装套路"   >
+          <a href="#1-安装套路" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-安装套路" class="headerlink" title="(1)安装套路"></a>(1)安装套路</h3>
+      <p>首先了解一下驱动设备的结构体：</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">///linux/cdev.h   kernel 5.14.8</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">cdev</span> &#123;</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">kobject</span> <span class="title">kobj</span>;</span>	<span class="comment">// 内嵌的kobject对象</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">module</span> *<span class="title">owner</span>;</span>	<span class="comment">// 所属模块</span></span><br><span class="line">	<span class="keyword">const</span> <span class="class"><span class="keyword">struct</span> <span class="title">file_operations</span> *<span class="title">ops</span>;</span>	<span class="comment">// 文件操作结构体,用来进行交互</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">list_head</span> <span class="title">list</span>;</span></span><br><span class="line">	<span class="keyword">dev_t</span> dev;				<span class="comment">// 设备号</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">int</span> count;</span><br><span class="line">&#125; __randomize_layout;</span><br></pre></td></tr></table></div></figure>
+
+<p>然后就是套路编写</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 设备结构体</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">xxx_dev_t</span> &#123;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">cdev</span> <span class="title">cdev</span>;</span></span><br><span class="line">&#125; xxx_dev;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 设备驱动模块加载函数</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> __init <span class="title">xxx_init</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// 初始化cdev</span></span><br><span class="line">    cdev_init(&amp;xxx_dev.cdev, &amp;xxx_fops); </span><br><span class="line">    xxx_dev.cdev.owner = THIS_MODULE;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 获取字符设备号</span></span><br><span class="line">    <span class="keyword">if</span> (xxx_major) &#123;</span><br><span class="line">     	<span class="comment">//register_chrdev_region用于已知起始设备的设备号的情况</span></span><br><span class="line">        register_chrdev_region(xxx_dev_no, <span class="number">1</span>, DEV_NAME);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        alloc_chrdev_region(&amp;xxx_dev_no, <span class="number">1</span>, DEV_NAME);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//申请设备号常用alloc_chrdev_region，表动态申请设备号，起始设备设备号位置。</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 注册设备</span></span><br><span class="line">    ret = cdev_add(&amp;xxx_dev.cdev, xxx_dev_no, <span class="number">1</span>); </span><br><span class="line">    </span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 设备驱动模块卸载函数</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> __exit <span class="title">xxx_exit</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// 释放占用的设备号</span></span><br><span class="line">    unregister_chrdev_region(xxx_dev_no, <span class="number">1</span>); </span><br><span class="line">    cdev_del(&amp;xxx_dev.cdev);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>这样简单的驱动就安装完了，安装完了之后，我们想要使用这个驱动的话，还需要进行交互，向驱动设备传递数据，所以上面的<code>xxx_fops</code>，即<code>file_operations</code>这个结构体就起到了这个功能。</p>
+<p>有的时候安装注册设备驱动需要用到class来创建注册，原因未知：</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> __init <span class="title">xxx_init</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    buffer_var=kmalloc(<span class="number">100</span>,GFP_DMA);</span><br><span class="line">    printk(KERN_INFO <span class="string">&quot;[i] Module xxx registered&quot;</span>);</span><br><span class="line">    <span class="keyword">if</span> (alloc_chrdev_region(&amp;dev_no, <span class="number">0</span>, <span class="number">1</span>, <span class="string">&quot;xxx&quot;</span>) &lt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> ((devClass = class_create(THIS_MODULE, <span class="string">&quot;chardrv&quot;</span>)) == <span class="literal">NULL</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        unregister_chrdev_region(dev_no, <span class="number">1</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (device_create(devClass, <span class="literal">NULL</span>, dev_no, <span class="literal">NULL</span>, <span class="string">&quot;xxx&quot;</span>) == <span class="literal">NULL</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        printk(KERN_INFO <span class="string">&quot;[i] Module xxx error&quot;</span>);</span><br><span class="line">        class_destroy(devClass);</span><br><span class="line">        unregister_chrdev_region(dev_no, <span class="number">1</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    cdev_init(&amp;cdev, &amp;xxx_fops);</span><br><span class="line">    <span class="keyword">if</span> (cdev_add(&amp;cdev, dev_no, <span class="number">1</span>) == <span class="number">-1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        device_destroy(devClass, dev_no);</span><br><span class="line">        class_destroy(devClass);</span><br><span class="line">        unregister_chrdev_region(dev_no, <span class="number">1</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    printk(KERN_INFO <span class="string">&quot;[i] &lt;Major, Minor&gt;: &lt;%d, %d&gt;\n&quot;</span>, MAJOR(dev_no), MINOR(dev_no));</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h3 id="2-交互套路"   >
+          <a href="#2-交互套路" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-交互套路" class="headerlink" title="(2)交互套路"></a>(2)交互套路</h3>
+      <p>安装完成之后还需要交互，用到<code>file_operations</code>结构体中的成员函数，首先了解下这个结构体。</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">///linux/fs.h 	kernel 5.14.8</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">file_operations</span> &#123;</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">module</span> *<span class="title">owner</span>;</span></span><br><span class="line">	<span class="keyword">loff_t</span> (*llseek) (struct file *, <span class="keyword">loff_t</span>, <span class="keyword">int</span>);</span><br><span class="line">	<span class="keyword">ssize_t</span> (*read) (struct file *, <span class="keyword">char</span> __user *, <span class="keyword">size_t</span>, <span class="keyword">loff_t</span> *);</span><br><span class="line">	<span class="keyword">ssize_t</span> (*write) (struct file *, <span class="keyword">const</span> <span class="keyword">char</span> __user *, <span class="keyword">size_t</span>, <span class="keyword">loff_t</span> *);</span><br><span class="line">	<span class="keyword">ssize_t</span> (*read_iter) (struct kiocb *, struct iov_iter *);</span><br><span class="line">	<span class="keyword">ssize_t</span> (*write_iter) (struct kiocb *, struct iov_iter *);</span><br><span class="line">	<span class="keyword">int</span> (*iopoll)(struct kiocb *kiocb, <span class="keyword">bool</span> spin);</span><br><span class="line">	<span class="keyword">int</span> (*iterate) (struct file *, struct dir_context *);</span><br><span class="line">	<span class="keyword">int</span> (*iterate_shared) (struct file *, struct dir_context *);</span><br><span class="line">	<span class="keyword">__poll_t</span> (*poll) (struct file *, struct poll_table_struct *);</span><br><span class="line">	<span class="keyword">long</span> (*unlocked_ioctl) (struct file *, <span class="keyword">unsigned</span> <span class="keyword">int</span>, <span class="keyword">unsigned</span> <span class="keyword">long</span>);</span><br><span class="line">	<span class="keyword">long</span> (*compat_ioctl) (struct file *, <span class="keyword">unsigned</span> <span class="keyword">int</span>, <span class="keyword">unsigned</span> <span class="keyword">long</span>);</span><br><span class="line">	<span class="keyword">int</span> (*mmap) (struct file *, struct vm_area_struct *);</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> mmap_supported_flags;</span><br><span class="line">	<span class="keyword">int</span> (*open) (struct inode *, struct file *);</span><br><span class="line">	<span class="keyword">int</span> (*flush) (struct file *, <span class="keyword">fl_owner_t</span> id);</span><br><span class="line">	<span class="keyword">int</span> (*release) (struct inode *, struct file *);</span><br><span class="line">	<span class="keyword">int</span> (*fsync) (struct file *, <span class="keyword">loff_t</span>, <span class="keyword">loff_t</span>, <span class="keyword">int</span> datasync);</span><br><span class="line">	<span class="keyword">int</span> (*fasync) (<span class="keyword">int</span>, struct file *, <span class="keyword">int</span>);</span><br><span class="line">	<span class="keyword">int</span> (*lock) (struct file *, <span class="keyword">int</span>, struct file_lock *);</span><br><span class="line">	<span class="keyword">ssize_t</span> (*sendpage) (struct file *, struct page *, <span class="keyword">int</span>, <span class="keyword">size_t</span>, <span class="keyword">loff_t</span> *, <span class="keyword">int</span>);</span><br><span class="line">	<span class="function"><span class="keyword">unsigned</span> <span class="title">long</span> <span class="params">(*get_unmapped_area)</span><span class="params">(struct file *, <span class="keyword">unsigned</span> <span class="keyword">long</span>, <span class="keyword">unsigned</span> <span class="keyword">long</span>, <span class="keyword">unsigned</span> <span class="keyword">long</span>, <span class="keyword">unsigned</span> <span class="keyword">long</span>)</span></span>;</span><br><span class="line">	<span class="keyword">int</span> (*check_flags)(<span class="keyword">int</span>);</span><br><span class="line">	<span class="keyword">int</span> (*flock) (struct file *, <span class="keyword">int</span>, struct file_lock *);</span><br><span class="line">	<span class="keyword">ssize_t</span> (*splice_write)(struct pipe_inode_info *, struct file *, <span class="keyword">loff_t</span> *, <span class="keyword">size_t</span>, <span class="keyword">unsigned</span> <span class="keyword">int</span>);</span><br><span class="line">	<span class="keyword">ssize_t</span> (*splice_read)(struct file *, <span class="keyword">loff_t</span> *, struct pipe_inode_info *, <span class="keyword">size_t</span>, <span class="keyword">unsigned</span> <span class="keyword">int</span>);</span><br><span class="line">	<span class="keyword">int</span> (*setlease)(struct file *, <span class="keyword">long</span>, struct file_lock **, <span class="keyword">void</span> **);</span><br><span class="line">	<span class="keyword">long</span> (*fallocate)(struct file *file, <span class="keyword">int</span> mode, <span class="keyword">loff_t</span> offset,</span><br><span class="line">			  <span class="keyword">loff_t</span> len);</span><br><span class="line">	<span class="keyword">void</span> (*show_fdinfo)(struct seq_file *m, struct file *f);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifndef</span> CONFIG_MMU</span></span><br><span class="line">	<span class="keyword">unsigned</span> (*mmap_capabilities)(struct file *);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">	<span class="keyword">ssize_t</span> (*copy_file_range)(struct file *, <span class="keyword">loff_t</span>, struct file *,</span><br><span class="line">			<span class="keyword">loff_t</span>, <span class="keyword">size_t</span>, <span class="keyword">unsigned</span> <span class="keyword">int</span>);</span><br><span class="line">	<span class="keyword">loff_t</span> (*remap_file_range)(struct file *file_in, <span class="keyword">loff_t</span> pos_in,</span><br><span class="line">				   struct file *file_out, <span class="keyword">loff_t</span> pos_out,</span><br><span class="line">				   <span class="keyword">loff_t</span> len, <span class="keyword">unsigned</span> <span class="keyword">int</span> remap_flags);</span><br><span class="line">	<span class="keyword">int</span> (*fadvise)(struct file *, <span class="keyword">loff_t</span>, <span class="keyword">loff_t</span>, <span class="keyword">int</span>);</span><br><span class="line">&#125; __randomize_layout;</span><br></pre></td></tr></table></div></figure>
+
+<p>其中常用的就是read，write等函数。</p>
+<p>之后也是正常的调用函数，套路编写</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 读设备</span></span><br><span class="line"><span class="function"><span class="keyword">ssize_t</span> <span class="title">xxx_read</span><span class="params">(struct file *filp, <span class="keyword">char</span> __user *buf, <span class="keyword">size_t</span> count, </span></span></span><br><span class="line"><span class="params"><span class="function">                <span class="keyword">loff_t</span> *f_pos)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    ...</span><br><span class="line">    copy_to_user(buf, ..., ...); <span class="comment">// 内核空间到用户空间缓冲区的复制</span></span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 写设备</span></span><br><span class="line"><span class="function"><span class="keyword">ssize_t</span> <span class="title">xxx_write</span><span class="params">(struct file *filp, <span class="keyword">const</span> <span class="keyword">char</span> __user *buf, </span></span></span><br><span class="line"><span class="params"><span class="function">                 <span class="keyword">size_t</span> count, <span class="keyword">loff_t</span> *f_pos)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    ...</span><br><span class="line">    copy_from_user(..., buf, ...); <span class="comment">// 用户空间缓冲区到内核空间的复制</span></span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ioctl函数命令控制</span></span><br><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">xxx_ioctl</span><span class="params">(struct file *filp, <span class="keyword">unsigned</span> <span class="keyword">int</span> cmd, <span class="keyword">unsigned</span> <span class="keyword">long</span> arg)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">switch</span> (cmd) &#123;</span><br><span class="line">    <span class="keyword">case</span> XXX_CMD1:</span><br><span class="line">        ...</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> XXX_CMD2:</span><br><span class="line">        ...</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">        <span class="comment">// 不支持的命令</span></span><br><span class="line">        <span class="keyword">return</span> -ENOTTY;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>然后需要<code>file_operations</code>结构体中的函数来重写用户空间的write，open，read等函数：</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">struct</span> <span class="title">file_operations</span> <span class="title">xxx_fops</span> =</span></span><br><span class="line">        &#123;</span><br><span class="line">                .owner = THIS_MODULE,</span><br><span class="line">                <span class="comment">// .open = xxx_open,</span></span><br><span class="line">                <span class="comment">// .release = xxx_close,</span></span><br><span class="line">                .write = xxx_write,</span><br><span class="line">                .read = xxxx_read</span><br><span class="line">        &#125;;</span><br></pre></td></tr></table></div></figure>
+
+<p>这样当用户空间打开该设备，调用该设备的<code>write</code>函数，就能通过<code>.write</code>进入到<code>xxx_write</code>函数中。</p>
+<p>▲这样一些常规kernel题的编写模板就总结出来了。</p>
+
+        <h3 id="3-具体的题目"   >
+          <a href="#3-具体的题目" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-具体的题目" class="headerlink" title="(3)具体的题目"></a>(3)具体的题目</h3>
+      <p>原题：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/black-bunny/LinKern-x86_64-bypass-SMEP-KASLR-kptr_restric" >https://github.com/black-bunny/LinKern-x86_64-bypass-SMEP-KASLR-kptr_restric</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+
+        <h4 id="①代码和简单的解析"   >
+          <a href="#①代码和简单的解析" class="heading-link"><i class="fas fa-link"></i></a><a href="#①代码和简单的解析" class="headerlink" title="①代码和简单的解析"></a>①代码和简单的解析</h4>
+      <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/module.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/version.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/kernel.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/kdev_t.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/fs.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/device.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/cdev.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;asm/uaccess.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/slab.h&gt;</span> </span></span><br><span class="line"></span><br><span class="line"><span class="comment">//正常的设置了dev_t和cdev，但是这里使用的class这个模板来创建设备驱动</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">dev_t</span> first; <span class="comment">// Global variable for the first device number</span></span><br><span class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">struct</span> <span class="title">cdev</span> <span class="title">c_dev</span>;</span> <span class="comment">// Global variable for the character device structure</span></span><br><span class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">struct</span> <span class="keyword">class</span> *<span class="title">cl</span>;</span> <span class="comment">// Global variable for the device class</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">char</span> *buffer_var;</span><br><span class="line"></span><br><span class="line"><span class="comment">//打开关闭设备的消息提示函数</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">vuln_open</span><span class="params">(struct inode *i, struct file *f)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  printk(KERN_INFO <span class="string">&quot;[i] Module vuln: open()\n&quot;</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">vuln_close</span><span class="params">(struct inode *i, struct file *f)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  printk(KERN_INFO <span class="string">&quot;[i] Module vuln: close()\n&quot;</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//从buffer_var中读取数据</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">ssize_t</span> <span class="title">vuln_read</span><span class="params">(struct file *f, <span class="keyword">char</span> __user *buf, <span class="keyword">size_t</span> len, <span class="keyword">loff_t</span> *off)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">if</span>(<span class="built_in">strlen</span>(buffer_var)&gt;<span class="number">0</span>) &#123;</span><br><span class="line">    printk(KERN_INFO <span class="string">&quot;[i] Module vuln read: %s\n&quot;</span>, buffer_var);</span><br><span class="line">    kfree(buffer_var);</span><br><span class="line">    buffer_var=kmalloc(<span class="number">100</span>,GFP_DMA);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//向buffer中写入数据，然后拷贝给buffer_var，这里就是漏洞存在点。</span></span><br><span class="line"><span class="comment">//由于len和buf都是我们可以控制的，而buffer是栈上的数据，长度为100。</span></span><br><span class="line"><span class="comment">//所以我们可以通过len和buf，将数据复制给buffer从而进行栈溢出。</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">ssize_t</span> <span class="title">vuln_write</span><span class="params">(struct file *f, <span class="keyword">const</span> <span class="keyword">char</span> __user *buf,<span class="keyword">size_t</span> len, <span class="keyword">loff_t</span> *off)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">char</span> buffer[<span class="number">100</span>]=&#123;<span class="number">0</span>&#125;;</span><br><span class="line">  <span class="keyword">if</span> (_copy_from_user(buffer, buf, len))</span><br><span class="line">    <span class="keyword">return</span> -EFAULT;</span><br><span class="line">  buffer[len<span class="number">-1</span>]=<span class="string">&#x27;\0&#x27;</span>;</span><br><span class="line">  printk(<span class="string">&quot;[i] Module vuln write: %s\n&quot;</span>, buffer);</span><br><span class="line">  <span class="built_in">strncpy</span>(buffer_var,buffer,len);</span><br><span class="line">  <span class="keyword">return</span> len;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//file_operations结构体初始化</span></span><br><span class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">struct</span> <span class="title">file_operations</span> <span class="title">pugs_fops</span> =</span></span><br><span class="line">&#123;</span><br><span class="line">  .owner = THIS_MODULE,</span><br><span class="line">  .open = vuln_open,</span><br><span class="line">  .release = vuln_close,</span><br><span class="line">  .write = vuln_write,</span><br><span class="line">  .read = vuln_read</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">//驱动设备加载函数</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> __init <span class="title">vuln_init</span><span class="params">(<span class="keyword">void</span>)</span> <span class="comment">/* Constructor */</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  buffer_var=kmalloc(<span class="number">100</span>,GFP_DMA);</span><br><span class="line">  printk(KERN_INFO <span class="string">&quot;[i] Module vuln registered&quot;</span>);</span><br><span class="line">  <span class="keyword">if</span> (alloc_chrdev_region(&amp;first, <span class="number">0</span>, <span class="number">1</span>, <span class="string">&quot;vuln&quot;</span>) &lt; <span class="number">0</span>)</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> ((cl = class_create(THIS_MODULE, <span class="string">&quot;chardrv&quot;</span>)) == <span class="literal">NULL</span>)</span><br><span class="line">  &#123;</span><br><span class="line">    unregister_chrdev_region(first, <span class="number">1</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (device_create(cl, <span class="literal">NULL</span>, first, <span class="literal">NULL</span>, <span class="string">&quot;vuln&quot;</span>) == <span class="literal">NULL</span>)</span><br><span class="line">  &#123;</span><br><span class="line">    printk(KERN_INFO <span class="string">&quot;[i] Module vuln error&quot;</span>);</span><br><span class="line">    class_destroy(cl);</span><br><span class="line">    unregister_chrdev_region(first, <span class="number">1</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  cdev_init(&amp;c_dev, &amp;pugs_fops);</span><br><span class="line">  <span class="keyword">if</span> (cdev_add(&amp;c_dev, first, <span class="number">1</span>) == <span class="number">-1</span>)</span><br><span class="line">  &#123;</span><br><span class="line">    device_destroy(cl, first);</span><br><span class="line">    class_destroy(cl);</span><br><span class="line">    unregister_chrdev_region(first, <span class="number">1</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  printk(KERN_INFO <span class="string">&quot;[i] &lt;Major, Minor&gt;: &lt;%d, %d&gt;\n&quot;</span>, MAJOR(first), MINOR(first));</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//驱动设备卸载函数</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> __exit <span class="title">vuln_exit</span><span class="params">(<span class="keyword">void</span>)</span> <span class="comment">/* Destructor */</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    unregister_chrdev_region(first, <span class="number">3</span>);</span><br><span class="line">    printk(KERN_INFO <span class="string">&quot;Module vuln unregistered&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">module_init(vuln_init);</span><br><span class="line">module_exit(vuln_exit);</span><br><span class="line"></span><br><span class="line">MODULE_LICENSE(<span class="string">&quot;GPL&quot;</span>);</span><br><span class="line">MODULE_AUTHOR(<span class="string">&quot;blackndoor&quot;</span>);</span><br><span class="line">MODULE_DESCRIPTION(<span class="string">&quot;Module vuln overflow&quot;</span>);</span><br></pre></td></tr></table></div></figure>
+
+
+        <h4 id="②内核函数解析"   >
+          <a href="#②内核函数解析" class="heading-link"><i class="fas fa-link"></i></a><a href="#②内核函数解析" class="headerlink" title="②内核函数解析"></a>②内核函数解析</h4>
+      
+        <h5 id="printk"   >
+          <a href="#printk" class="heading-link"><i class="fas fa-link"></i></a><a href="#printk" class="headerlink" title="printk:"></a><code>printk</code>:</h5>
+      <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">printk(日志级别 <span class="string">&quot;消息文本&quot;</span>);</span><br></pre></td></tr></table></div></figure>
+
+<p>其中日志级别定义如下：</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">#defineKERN_EMERG <span class="string">&quot;&lt;0&gt;&quot;</span><span class="comment">/*紧急事件消息，系统崩溃之前提示，表示系统不可用*/</span></span><br><span class="line">#defineKERN_ALERT <span class="string">&quot;&lt;1&gt;&quot;</span><span class="comment">/*报告消息，表示必须立即采取措施*/</span></span><br><span class="line">#defineKERN_CRIT <span class="string">&quot;&lt;2&gt;&quot;</span><span class="comment">/*临界条件，通常涉及严重的硬件或软件操作失败*/</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> KERN_ERR <span class="meta-string">&quot;&lt;3&gt;&quot;</span><span class="comment">/*错误条件，驱动程序常用KERN_ERR来报告硬件的错误*/</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> KERN_WARNING <span class="meta-string">&quot;&lt;4&gt;&quot;</span><span class="comment">/*警告条件，对可能出现问题的情况进行警告*/</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> KERN_NOTICE <span class="meta-string">&quot;&lt;5&gt;&quot;</span><span class="comment">/*正常但又重要的条件，用于提醒。常用于与安全相关的消息*/</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> KERN_INFO <span class="meta-string">&quot;&lt;6&gt;&quot;</span><span class="comment">/*提示信息，如驱动程序启动时，打印硬件信息*/</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> KERN_DEBUG <span class="meta-string">&quot;&lt;7&gt;&quot;</span><span class="comment">/*调试级别的消息*/</span></span></span><br></pre></td></tr></table></div></figure>
+
+
+        <h5 id="kmalloc"   >
+          <a href="#kmalloc" class="heading-link"><i class="fas fa-link"></i></a><a href="#kmalloc" class="headerlink" title="kmalloc:"></a><code>kmalloc</code>:</h5>
+      <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keyword">void</span> *<span class="title">kmalloc</span><span class="params">(<span class="keyword">size_t</span> size, <span class="keyword">gfp_t</span> flags)</span></span></span><br></pre></td></tr></table></div></figure>
+
+<p>其中flags一般设置为GFP_KERNEL或者GFP_DMA，在堆题中一般就是</p>
+<p>GFP_KERNEL模式，如下：</p>
+<p>　|– 进程上下文，可以睡眠　　　　　GFP_KERNEL<br>　|– 进程上下文，不可以睡眠　　　　GFP_ATOMIC<br>　|　　|– 中断处理程序　　　　　　　GFP_ATOMIC<br>　|　　|– 软中断　　　　　　　　　　GFP_ATOMIC<br>　|　　|– Tasklet　　　　　　　　　GFP_ATOMIC<br>　|– 用于DMA的内存，可以睡眠　　　GFP_DMA | GFP_KERNEL<br>　|– 用于DMA的内存，不可以睡眠　　GFP_DMA <strong>|GFP_ATOMIC</strong></p>
+<p>具体可以看</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.cnblogs.com/sky-heaven/p/7390370.html" >Linux内核空间内存申请函数kmalloc、kzalloc、vmalloc的区别【转】 - sky-heaven - 博客园 (cnblogs.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+
+        <h5 id="kfree"   >
+          <a href="#kfree" class="heading-link"><i class="fas fa-link"></i></a><a href="#kfree" class="headerlink" title="kfree:"></a><code>kfree</code>:</h5>
+      <p>这个就不多说了，就是简单的释放。</p>
+
+        <h5 id="copy-from-user"   >
+          <a href="#copy-from-user" class="heading-link"><i class="fas fa-link"></i></a><a href="#copy-from-user" class="headerlink" title="copy_from_user:"></a><code>copy_from_user</code>:</h5>
+      <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">copy_from_user(<span class="keyword">void</span> *to, <span class="keyword">const</span> <span class="keyword">void</span> __user *from, <span class="keyword">unsigned</span> <span class="keyword">long</span> n)</span><br></pre></td></tr></table></div></figure>
+
+
+        <h5 id="copy-to-user"   >
+          <a href="#copy-to-user" class="heading-link"><i class="fas fa-link"></i></a><a href="#copy-to-user" class="headerlink" title="copy_to_user:"></a><code>copy_to_user</code>:</h5>
+      <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">copy_to_user(<span class="keyword">void</span> __user *to, <span class="keyword">const</span> <span class="keyword">void</span> *from, <span class="keyword">unsigned</span> <span class="keyword">long</span> n)</span><br></pre></td></tr></table></div></figure>
+
+<p>这两个就不讲了，顾名思义。</p>
+
+        <h5 id="注册函数"   >
+          <a href="#注册函数" class="heading-link"><i class="fas fa-link"></i></a><a href="#注册函数" class="headerlink" title="注册函数"></a>注册函数</h5>
+      <p>剩下的好多就是常见的注册函数了</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">alloc_chrdev_region(&amp;t_dev, <span class="number">0</span>, <span class="number">1</span>, <span class="string">&quot;xxx&quot;</span>);</span><br><span class="line">unregister_chrdev_region(t_dev, <span class="number">1</span>);</span><br><span class="line">xxx_class = class_create(THIS_MODULE, <span class="string">&quot;xxx&quot;</span>);</span><br><span class="line">device_create(xxx_class, <span class="literal">NULL</span>, devno, <span class="literal">NULL</span>, <span class="string">&quot;xxx&quot;</span>);</span><br><span class="line">cdev_init(&amp;c_dev, &amp;pugs_fops);</span><br><span class="line">cdev_add(&amp;c_dev, t_dev, <span class="number">1</span>)</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h2 id="2-globalmem虚拟设备驱动"   >
+          <a href="#2-globalmem虚拟设备驱动" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-globalmem虚拟设备驱动" class="headerlink" title="2.globalmem虚拟设备驱动"></a>2.globalmem虚拟设备驱动</h2>
+      <p>这个不太清楚，题目见的也少，先忽略。</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.cnblogs.com/king-77024128/articles/2262023.html" >printk()函数的总结 - 深蓝工作室 - 博客园 (cnblogs.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.cnblogs.com/hac425/p/9416886.html" >Linux kernel pwn notes（内核漏洞利用学习） - hac425 - 博客园 (cnblogs.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="http://pwn4.fun/2016/10/21/Linux%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%EF%BC%88%E4%BA%8C%EF%BC%89%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8/" >Linux设备驱动（二）字符设备驱动 | BruceFan’s Blog (pwn4.fun)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+</div><footer class="post-footer"><div class="post-ending ending"><div class="ending__text">------ END ------</div></div><div class="post-copyright copyright"><div class="copyright-author"><span class="copyright-author__name">Author: </span><span class="copyright-author__value"><a href="http://PIG-007.github.io">PIG-007</a></span></div><div class="copyright-link"><span class="copyright-link__name">Link: </span><span class="copyright-link__value"><a href="http://pig-007.github.io/2021/09/06/Kernel%E4%BB%8E0%E5%BC%80%E5%A7%8B(%E4%B8%80)/">http://pig-007.github.io/2021/09/06/Kernel%E4%BB%8E0%E5%BC%80%E5%A7%8B(%E4%B8%80)/</a></span></div><div class="copyright-notice"><span class="copyright-notice__name">Copyright: </span><span class="copyright-notice__value">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" rel="external nofollow" target="_blank">BY-NC-SA</a> unless stating additionally</span></div></div><div class="post-tags"><span class="post-tags-item"><span class="post-tags-item__icon"><i class="fas fa-tag"></i></span><a class="post-tags-item__link" href="http://pig-007.github.io/tags/pwnKernel/">pwnKernel</a></span></div><nav class="post-paginator paginator"><div class="paginator-prev"><a class="paginator-prev__link" href="/2021/10/19/Kernel%E4%BB%8E0%E5%BC%80%E5%A7%8B(%E5%9B%9B)/"><span class="paginator-prev__icon"><i class="fas fa-angle-left"></i></span><span class="paginator-prev__text">pwnKernel从0开始(四)</span></a></div><div class="paginator-next"><a class="paginator-next__link" href="/2021/09/06/Kernel%E4%BB%8E0%E5%BC%80%E5%A7%8B(%E4%B8%89)/"><span class="paginator-prev__text">pwnKernel从0开始(三)</span><span class="paginator-next__icon"><i class="fas fa-angle-right"></i></span></a></div></nav></footer></div></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><div class="sidebar-nav"><span class="sidebar-nav-toc current">Catalog</span><span class="sidebar-nav-ov">Overview</span></div><section class="sidebar-toc"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-text">
+          前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%BE%8B%E5%AD%90%E7%BC%96%E5%86%99"><span class="toc-text">
+          一、例子编写</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%A4%B4%E6%96%87%E4%BB%B6%E7%AE%80%E4%BB%8B"><span class="toc-text">
+          1.头文件简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%A8%A1%E5%9D%97%E8%AE%B8%E5%8F%AF%E8%AF%81"><span class="toc-text">
+          2.模块许可证</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E6%A8%A1%E5%9D%97%E5%8A%A0%E8%BD%BD%E5%8D%B8%E8%BD%BD"><span class="toc-text">
+          3.模块加载卸载</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%A0%E8%BD%BD"><span class="toc-text">
+          加载</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8D%B8%E8%BD%BD"><span class="toc-text">
+          卸载</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E9%A2%98%E7%9B%AE%E7%BC%96%E5%86%99"><span class="toc-text">
+          二、题目编写</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%AD%97%E7%AC%A6%E5%9E%8B%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8"><span class="toc-text">
+          1.字符型设备驱动</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%AE%89%E8%A3%85%E5%A5%97%E8%B7%AF"><span class="toc-text">
+          (1)安装套路</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E4%BA%A4%E4%BA%92%E5%A5%97%E8%B7%AF"><span class="toc-text">
+          (2)交互套路</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%85%B7%E4%BD%93%E7%9A%84%E9%A2%98%E7%9B%AE"><span class="toc-text">
+          (3)具体的题目</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A0%E4%BB%A3%E7%A0%81%E5%92%8C%E7%AE%80%E5%8D%95%E7%9A%84%E8%A7%A3%E6%9E%90"><span class="toc-text">
+          ①代码和简单的解析</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A1%E5%86%85%E6%A0%B8%E5%87%BD%E6%95%B0%E8%A7%A3%E6%9E%90"><span class="toc-text">
+          ②内核函数解析</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#printk"><span class="toc-text">
+          printk:</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#kmalloc"><span class="toc-text">
+          kmalloc:</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#kfree"><span class="toc-text">
+          kfree:</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#copy-from-user"><span class="toc-text">
+          copy_from_user:</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#copy-to-user"><span class="toc-text">
+          copy_to_user:</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%B3%A8%E5%86%8C%E5%87%BD%E6%95%B0"><span class="toc-text">
+          注册函数</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-globalmem%E8%99%9A%E6%8B%9F%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8"><span class="toc-text">
+          2.globalmem虚拟设备驱动</span></a></li></ol></li></ol></section><!-- ov = overview--><section class="sidebar-ov hide"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">The way forward</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">101</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">44</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">45</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section><div class="sidebar-reading"><div class="sidebar-reading-info"><span class="sidebar-reading-info__text">You have read </span><span class="sidebar-reading-info__num">0</span><span class="sidebar-reading-info__perc">%</span></div><div class="sidebar-reading-line"></div></div></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2021</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
+  var isXML = true;
+  var search_path = 'search.json';
+
+  if (!search_path) {
+    search_path = 'search.xml';
+  } else if (/json$/i.test(search_path)) {
+    isXML = false;
+  }
+
+  var path = '/' + search_path;
+  $.ajax({
+    url: path,
+    dataType: isXML ? 'xml' : 'json',
+    async: true,
+    success: function (res) {
+      var datas = isXML ? $('entry', res).map(function () {
+        // 将 XML 转为 JSON
+        return {
+          title: $('title', this).text(),
+          content: $('content', this).text(),
+          url: $('url', this).text()
+        };
+      }).get() : res;
+      var $input = $('.search-input input');
+      var $result = $('.search-results');
+      // 搜索对象（标题、内容）的权重，影响显示顺序
+      var WEIGHT = { title: 100, content: 1 };
+      var searchPost = function () {
+        var searchText = $input.val().toLowerCase().trim();
+        // 根据空白字符分隔关键字
+        var keywords = searchText.split(/[\s]+/);
+        // 搜索结果
+        var matchPosts = [];
+
+        // 有多个关键字时，将原文字整个保存下来
+        if (keywords.length > 1) {
+          keywords.push(searchText);
+        }
+        // 防止未输入字符时搜索
+        if (searchText.length > 0) {
+          datas.forEach(function (data) {
+            var isMatch  = false;
+            // 没有标题的文章使用预设的 i18n 变量代替
+            var title = (data.title && data.title.trim()) || '[ Untitled ]';
+            var titleLower = title && title.toLowerCase();
+            // 删除 HTML 标签 和 所有空白字符
+            var content = data.content && data.content.replace(/<[^>]+>/g, '');
+            var contentLower = content && content.toLowerCase();
+            // 删除重复的 /
+            var postURL = data.url && decodeURI(data.url).replace(/\/{2,}/g, '/');
+            // 标题中匹配到的关键词
+            var titleHitSlice = [];
+            // 内容中匹配到的关键词
+            var contentHitSlice = [];
+
+            keywords.forEach(function (keyword) {
+              /**
+              * 获取匹配的关键词的索引
+              * @param {String} keyword 要匹配的关键字
+              * @param {String} text 原文字
+              * @param {Boolean} caseSensitive 是否区分大小写
+              * @param {Number} weight 匹配对象的权重。权重大的优先显示
+              * @return {Array}
+              */
+              function getIndexByword (word, text, caseSensitive, weight) {
+                if (!word || !text) {
+                  return [];
+                };
+
+                var startIndex = 0; // 每次匹配的开始索引
+                var index = -1;     // 匹配到的索引值
+                var result = [];    // 匹配结果
+
+                if (!caseSensitive) {
+                  word = word.toLowerCase();
+                  text = text.toLowerCase();
+                }
+
+                while((index = text.indexOf(word, startIndex)) !== -1) {
+                  var hasMatch = false;
+                  // 索引位置相同的关键词，保留长度较长的
+                  titleHitSlice.forEach(function (hit) {
+                    if (hit.index === index && hit.word.length < word.length) {
+                      hit.word = word;
+                      hasMatch = true;
+                    }
+                  });
+                  startIndex = index + word.length;
+                  !hasMatch && result.push({ index: index, word: word, weight: weight });
+                }
+                return result;
+              }
+              titleHitSlice = titleHitSlice.concat(getIndexByword(keyword, titleLower, false, WEIGHT.title));
+              contentHitSlice = contentHitSlice.concat(getIndexByword(keyword, contentLower, false, WEIGHT.content));
+            });
+
+            var hitTitle = titleHitSlice.length;
+            var hitContent = contentHitSlice.length;
+
+            if (hitTitle > 0 || hitContent > 0) {
+              isMatch = true;
+            }
+            if (isMatch) {
+              ;[titleHitSlice, contentHitSlice].forEach(function (hit) {
+                // 按照匹配文字的索引的递增顺序排序
+                hit.sort(function (left, right) {
+                  return left.index - right.index;
+                });
+              });
+              /**
+              * 给文本中匹配到的关键词添加标记，从而进行高亮显示
+              * @param {String} text 原文本
+              * @param {Array} hitSlice 匹配项的索引信息
+              * @param {Number} start 开始索引
+              * @param {Number} end 结束索引
+              * @return {String}
+              */
+              function highlightKeyword (text, hitSlice, start, end) {
+                if (!text || !hitSlice || !hitSlice.length) {
+                  return;
+                }
+
+                var result = '';
+                var startIndex = start;
+                var endIndex = end;
+                hitSlice.forEach(function (hit) {
+                  if (hit.index < startIndex) {
+                    return;
+                  }
+
+                  var hitWordEnd = hit.index + hit.word.length;
+                  result += text.slice(startIndex, hit.index);
+                  result += '<b>' + text.slice(hit.index, hitWordEnd) + '</b>';
+                  startIndex = hitWordEnd;
+                });
+                result += text.slice(startIndex, endIndex);
+                return result;
+              }
+
+              var postData = {};
+              // 文章总的搜索权重
+              var postWeight = titleHitSlice.length * WEIGHT.title + contentHitSlice.length * WEIGHT.content;
+              // 标记匹配关键词后的标题
+              var postTitle = highlightKeyword(title, titleHitSlice, 0, title.length) || title;
+              // 标记匹配关键词后的内容
+              var postContent;
+              // 显示内容的长度
+              var SHOW_WORD_LENGTH = 200;
+              // 命中关键词前的字符显示长度
+              var SHOW_WORD_FRONT_LENGTH = 20;
+              var SHOW_WORD_END_LENGTH = SHOW_WORD_LENGTH - SHOW_WORD_FRONT_LENGTH;
+
+              // 截取匹配的第一个字符，前后共 200 个字符来显示
+              if (contentHitSlice.length > 0) {
+                var firstIndex = contentHitSlice[0].index;
+                var start = firstIndex > SHOW_WORD_FRONT_LENGTH ? firstIndex - SHOW_WORD_FRONT_LENGTH : 0;
+                var end = firstIndex + SHOW_WORD_END_LENGTH;
+                postContent = highlightKeyword(content, contentHitSlice, start, end);
+              } else { // 未匹配到内容，直接截取前 200 个字符来显示
+                postContent = content.slice(0, SHOW_WORD_LENGTH);
+              }
+              postData.title = postTitle;
+              postData.content = postContent;
+              postData.url = postURL;
+              postData.weight = postWeight;
+              matchPosts.push(postData);
+            }
+          });
+        }
+
+        var resultInnerHtml = '';
+        if (matchPosts.length) {
+          // 按权重递增的顺序排序，使权重大的优先显示
+          matchPosts.sort(function (left, right) {
+            return right.weight - left.weight;
+          });
+          resultInnerHtml += '<ul>';
+          matchPosts.forEach(function (post) {
+            resultInnerHtml += '<li><a class="search-results-title" href="' + post.url + '">';
+            resultInnerHtml += post.title;
+            resultInnerHtml += '</a><div class="search-results-content">';
+            resultInnerHtml += post.content;
+            resultInnerHtml += '</div></li>';
+          });
+          resultInnerHtml += '</ul>';
+        } else {
+          resultInnerHtml += '<div class="search-results-none"><i class="far fa-meh"></i></div>';
+        }
+        $result.html(resultInnerHtml);
+      };
+      $input.on('input', searchPost);
+      $input.on('keyup', function (e) {
+        if (e.keyCode === Stun.utils.codeToKeyCode('Enter')) {
+          searchPost();
+        }
+      });
+    }
+  });
+}
+
+function closeSearch () {
+  $('body').css({ overflow: 'auto' });
+  $('.search-popup').css({ display: 'none' });
+  $('.search-mask').css({ display: 'none' });
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  Stun.utils.pjaxReloadLocalSearch = function () {
+    $('.header-nav-search').on('click', function (e) {
+      e.stopPropagation();
+      $('body').css('overflow', 'hidden');
+      $('.search-popup')
+        .velocity('stop')
+        .velocity('transition.expandIn', {
+          duration: 300,
+          complete: function () {
+            $('.search-popup input').focus();
+          }
+        });
+      $('.search-mask')
+        .velocity('stop')
+        .velocity('transition.fadeIn', {
+          duration: 300
+        });
+
+      initSearch();
+    });
+    $('.search-mask, .search-close').on('click', function () {
+      closeSearch();
+    });
+    $(document).on('keydown', function (e) {
+      // Escape <=> 27
+      if (e.keyCode === Stun.utils.codeToKeyCode('Escape')) {
+        closeSearch();
+      }
+    });
+  };
+
+  Stun.utils.pjaxReloadLocalSearch();
+}, false);
+
+function safeOpenUrl(url) {
+  var newTab = window.open();
+  newTab.opener = null;
+  newTab.location = url;
+}
+
+function extSearch(engine) {
+  var engines = {
+    google: 'https://www.google.com/search?q=',
+    bing: 'https://cn.bing.com/search?q=',
+    baidu: 'https://www.baidu.com/s?ie=UTF-8&wd=',
+  };
+  var host = window.location.host;
+  var query = $('.search-input input').val().toLowerCase().trim();
+  var uri = engines[engine] + query + ' site:' + host;
+
+  if (query) {
+    safeOpenUrl(uri);
+  } else {
+    Stun.utils.popAlert('warning', 'Please enter characters');
+  }
+}
+
+var assistSearchList = window.CONFIG.assistSearch;
+
+if (Array.isArray(assistSearchList)) {
+  assistSearchList.forEach(function (name) {
+    document.querySelector('.search-btns-item--' + name).addEventListener('click', function () {
+      extSearch(name);
+    }, false);
+  });
+}</script><script src="/js/utils.js?v=2.6.2"></script><script src="/js/stun-boot.js?v=2.6.2"></script><script src="/js/scroll.js?v=2.6.2"></script><script src="/js/header.js?v=2.6.2"></script><script src="/js/sidebar.js?v=2.6.2"></script><script type="application/json" src="/search.json"></script><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"superSample":2,"width":150,"height":300,"position":"left","hOffset":0,"vOffset":-80},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body></html>

