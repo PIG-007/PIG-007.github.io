@@ -603,7 +603,7 @@ window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></he
 <p>iretq类似于ret，直接一个指令即可。</p>
 <p>寄存器保存需要在进入内核之前。</p>
 <p>堆块申请时的规则需要是<code>GFP_KERNEL</code>才行，至少<code>GFP_DMA</code>不行。</p>
-</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/09/06/Kernel%E4%BB%8E0%E5%BC%80%E5%A7%8B(%E4%BA%8C)/">pwnKernel从0开始(二)</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-09-06</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-10-06</span></span></div></header><div class="post-body"><div class="post-excerpt">
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/09/06/Kernel%E4%BB%8E0%E5%BC%80%E5%A7%8B(%E4%BA%8C)/">pwnKernel从0开始(二)</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-09-06</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-11-02</span></span></div></header><div class="post-body"><div class="post-excerpt">
         <h1 id="前言"   >
           <a href="#前言" class="heading-link"><i class="fas fa-link"></i></a><a href="#前言" class="headerlink" title="前言"></a>前言</h1>
       <p>先尝试下最简单的栈溢出，保护和未被保护的情况</p>
@@ -634,11 +634,15 @@ window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></he
 
         <h2 id="ROPgadget"   >
           <a href="#ROPgadget" class="heading-link"><i class="fas fa-link"></i></a><a href="#ROPgadget" class="headerlink" title="ROPgadget"></a><code>ROPgadget</code></h2>
-      <p>依然可以用，但有时候可能比较慢：</p>
+      <p>依然可以用，但有时候可能比较慢，可以先保存下来，然后再找：</p>
 <figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ROPgadget --binary vmlinux | grep <span class="string">&quot;pop rdx ; ret&quot;</span></span><br></pre></td></tr></table></div></figure>
 
 
-
+        <h2 id="一键获取"   >
+          <a href="#一键获取" class="heading-link"><i class="fas fa-link"></i></a><a href="#一键获取" class="headerlink" title="一键获取"></a>一键获取</h2>
+      <p>详见之前的项目中的<code>getKernelROP</code>命令，常用gadget，还是比较好用的</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/PIG-007/kernelAll" >PIG-007/kernelAll (github.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://gitee.com/Piggy007/kernelAll" >PIG-007/kernelAll (gitee.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
 
         <h1 id="一、Stack被保护"   >
           <a href="#一、Stack被保护" class="heading-link"><i class="fas fa-link"></i></a><a href="#一、Stack被保护" class="headerlink" title="一、Stack被保护"></a>一、Stack被保护</h1>
