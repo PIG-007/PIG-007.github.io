@@ -47,6 +47,41 @@ window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></he
 <p>此时msfconsole就会进入停滞状态，一旦检查到有目标服务器运行了上述命令，就会生成meterpreter连接。</p>
 <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191506787.png" alt="img"></p>
 <p>打不通可能是防火墙或者杀毒软件之类的关系</p>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/19/3.%E5%BC%B1%E5%8F%A3%E4%BB%A4%E5%AF%86%E7%A0%81%E7%A0%B4%E8%A7%A3%E7%99%BB%E5%BD%95/">3.弱口令密码破解登录</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.制作字典：</p>
+<p>(1)利用cewl制作：</p>
+<p>cewl -d 2 -m 5 -w word.txt <span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="http://www.baidu.com/" >www.baidu.com</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>(d:deepth，爬取层数</p>
+<p>m:….性能，设置越大爬取越快)</p>
+<p>(2)利用工具制作：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="http://www.bugku.com/mima/" >http://www.bugku.com/mima/</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span> 输入相应信息即可生成</p>
+<p>(3)利用github上的工具：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/TheKingOfDuck/fuzzDicts" >https://github.com/TheKingOfDuck/fuzzDicts</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/fuzzdb-project/fuzzdb" >https://github.com/fuzzdb-project/fuzzdb</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>▲生成的字典可能有中文，使用%s/\v[^\x00-\xff]+//g来强制删除中文[^\x00-\xff]即中文的表示，双字节字符</p>
+<p>2.利用字典爆破SSH/RDP:</p>
+<p>(1)先扫描是否开启了ssh端口：</p>
+<p>nmap -sT -T4 ip：快速扫描</p>
+<p>(1)使用hydra:</p>
+<p>参数设置:</p>
+<p>-l(Login)：想要破解的用户，例如root</p>
+<p>-L(FILE)：指定用户名字典</p>
+<p>-p(pass)：指定密码，如果有密码还爆破干啥</p>
+<p>-P(FILE)：指定密码字典</p>
+<p>-s(PORT)：指定爆破端口</p>
+<p>-M(FILE)：指定目标列表文件，如果有多个IP目标需要攻击，可用来指定</p>
+<p>-C(FILE)：</p>
+<p>-f ：使用-M参数后，找到第一登录名和密码即终止</p>
+<p>▲hydra -l root -p root 127.0.0.1 -s 2222 ssh -f：用root密码登录root通过ssh</p>
+<p>▲hydra -l root -P word.txt 127.0.0.1 -s 2222 -f ssh</p>
+<p>▲hydra -l administrator -P word.txt 127.0.0.1 rdp(类似windows下的ssh)</p>
+<p>★可以使用kali自带的密码字典尝试：</p>
+<p>目录在/usr/share/wordlists/metasploit/下，有很多字典密码</p>
+<p>(2)使用msf攻击</p>
+<p>①搜索一下：search login //login等等</p>
+<p>②通过查找到的使用该模块：use auxiliary/scanner/ssh/ssh_login</p>
+<p>③show options看一下需要设置什么信息，设置ip，用户名，密码字典，端口，爆破线程数量等信息，然后直接run即可。</p>
+<p>set RHOST/USERNAME/PASS_FILE/RPORT/THREADS等等</p>
+<p>3.Burp(burpsuite)爆破后台密码：(还没学)</p>
 </div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/19/4.SQL%E6%B3%A8%E5%85%A5/">4.SQL注入</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>一、SQL注入：</p>
 <p>1.常用命令：</p>
 <p>2.SQLMAP使用：</p>
@@ -94,41 +129,16 @@ window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></he
 
 <p>这样sqlmap就可以上传东西，写入一些类似于web-shell等东西，从而获取权限。</p>
 <p>③那么就进入os-shell了，可以获取到服务器权限</p>
-</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/19/3.%E5%BC%B1%E5%8F%A3%E4%BB%A4%E5%AF%86%E7%A0%81%E7%A0%B4%E8%A7%A3%E7%99%BB%E5%BD%95/">3.弱口令密码破解登录</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.制作字典：</p>
-<p>(1)利用cewl制作：</p>
-<p>cewl -d 2 -m 5 -w word.txt <span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="http://www.baidu.com/" >www.baidu.com</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
-<p>(d:deepth，爬取层数</p>
-<p>m:….性能，设置越大爬取越快)</p>
-<p>(2)利用工具制作：</p>
-<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="http://www.bugku.com/mima/" >http://www.bugku.com/mima/</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span> 输入相应信息即可生成</p>
-<p>(3)利用github上的工具：</p>
-<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/TheKingOfDuck/fuzzDicts" >https://github.com/TheKingOfDuck/fuzzDicts</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
-<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/fuzzdb-project/fuzzdb" >https://github.com/fuzzdb-project/fuzzdb</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
-<p>▲生成的字典可能有中文，使用%s/\v[^\x00-\xff]+//g来强制删除中文[^\x00-\xff]即中文的表示，双字节字符</p>
-<p>2.利用字典爆破SSH/RDP:</p>
-<p>(1)先扫描是否开启了ssh端口：</p>
-<p>nmap -sT -T4 ip：快速扫描</p>
-<p>(1)使用hydra:</p>
-<p>参数设置:</p>
-<p>-l(Login)：想要破解的用户，例如root</p>
-<p>-L(FILE)：指定用户名字典</p>
-<p>-p(pass)：指定密码，如果有密码还爆破干啥</p>
-<p>-P(FILE)：指定密码字典</p>
-<p>-s(PORT)：指定爆破端口</p>
-<p>-M(FILE)：指定目标列表文件，如果有多个IP目标需要攻击，可用来指定</p>
-<p>-C(FILE)：</p>
-<p>-f ：使用-M参数后，找到第一登录名和密码即终止</p>
-<p>▲hydra -l root -p root 127.0.0.1 -s 2222 ssh -f：用root密码登录root通过ssh</p>
-<p>▲hydra -l root -P word.txt 127.0.0.1 -s 2222 -f ssh</p>
-<p>▲hydra -l administrator -P word.txt 127.0.0.1 rdp(类似windows下的ssh)</p>
-<p>★可以使用kali自带的密码字典尝试：</p>
-<p>目录在/usr/share/wordlists/metasploit/下，有很多字典密码</p>
-<p>(2)使用msf攻击</p>
-<p>①搜索一下：search login //login等等</p>
-<p>②通过查找到的使用该模块：use auxiliary/scanner/ssh/ssh_login</p>
-<p>③show options看一下需要设置什么信息，设置ip，用户名，密码字典，端口，爆破线程数量等信息，然后直接run即可。</p>
-<p>set RHOST/USERNAME/PASS_FILE/RPORT/THREADS等等</p>
-<p>3.Burp(burpsuite)爆破后台密码：(还没学)</p>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/19/5.%E5%88%A9%E7%94%A8Cobaltstrike%E8%8E%B7%E5%8F%96%E6%9D%83%E9%99%90/">5.利用Cobaltstrike获取权限</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>一、攻击weblogic(端口基于7001)：</p>
+<p>▲前置环境部署：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">git clone https://github.com/vulhub/vulhub.git</span><br><span class="line">cd  vulhub/</span><br><span class="line">cd  weblogic/</span><br><span class="line">cd CVE-......(选择一种漏洞)</span><br><span class="line">docker-compose up -d</span><br></pre></td></tr></table></div></figure>
+
+<p>这样就搭建了好了该漏洞的环境，使用docker ps -a可以看到端口映射到本地，所以在本地输入127.0.0.1:7001即可看到对应的weblogic服务。</p>
+<p>输入127.0.0.1:7001/console可以进入到服务界面</p>
+<p>1.利用WeblogicScan先扫描看看有没有weblogic的漏洞:</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">git clone https://github.com/dr0op/WeblogicScan.git</span><br><span class="line">cd WeblogicScan</span><br><span class="line">pip3 install -r requirements.txt</span><br><span class="line">python3 WeblogicScan.py ip 7001</span><br></pre></td></tr></table></div></figure>
+
+<p>2.有cve漏洞后上网搜索对应的利用poc来打攻击</p>
 </div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/19/6.ARP%E6%AC%BA%E9%AA%97/">arp欺骗</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.首先查看和自己同属一个网段下的ip：</p>
 <p>nbtscan -r 192.168.80.167/24</p>
 <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191503723.png" alt="img"></p>
@@ -164,16 +174,6 @@ window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></he
 <p>(1)使用DSniff，支持Telnet 、Ftp、Smtp、P0P3、HTTP，以及其它的一些高层网络应用协议，用Telnet比较好用。比较老了，很多杀毒软件或者防火墙安全措施什么的都可以发现。</p>
 <p>dsniff -i eth0(有时候不太好用)</p>
 <p>(2)使用Ettercap<br>ettercap -Tq -i eth0(Tq是参数用的，过滤掉不必要的包)</p>
-</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/19/5.%E5%88%A9%E7%94%A8Cobaltstrike%E8%8E%B7%E5%8F%96%E6%9D%83%E9%99%90/">5.利用Cobaltstrike获取权限</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>一、攻击weblogic(端口基于7001)：</p>
-<p>▲前置环境部署：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">git clone https://github.com/vulhub/vulhub.git</span><br><span class="line">cd  vulhub/</span><br><span class="line">cd  weblogic/</span><br><span class="line">cd CVE-......(选择一种漏洞)</span><br><span class="line">docker-compose up -d</span><br></pre></td></tr></table></div></figure>
-
-<p>这样就搭建了好了该漏洞的环境，使用docker ps -a可以看到端口映射到本地，所以在本地输入127.0.0.1:7001即可看到对应的weblogic服务。</p>
-<p>输入127.0.0.1:7001/console可以进入到服务界面</p>
-<p>1.利用WeblogicScan先扫描看看有没有weblogic的漏洞:</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">git clone https://github.com/dr0op/WeblogicScan.git</span><br><span class="line">cd WeblogicScan</span><br><span class="line">pip3 install -r requirements.txt</span><br><span class="line">python3 WeblogicScan.py ip 7001</span><br></pre></td></tr></table></div></figure>
-
-<p>2.有cve漏洞后上网搜索对应的利用poc来打攻击</p>
 </div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/19/CISCN2017-babydriver/">CISCN2017-babydriver</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.常规解包分析:</p>
 <figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">//注释头</span><br><span class="line"></span><br><span class="line">mkdir rootfs</span><br><span class="line">cd rootfs</span><br><span class="line">mv ../rootfs.cpio rootfs.cpio.gz //改名，方便gunzip识别格式</span><br><span class="line">gunzip ./rootfs.cpio.gz //解压</span><br><span class="line">cpio -idm &lt; ./rootfs.cpio //再次解压</span><br></pre></td></tr></table></div></figure>
 
