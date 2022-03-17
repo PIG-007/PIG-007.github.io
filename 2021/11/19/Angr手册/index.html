@@ -1,0 +1,1024 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta name="description" content="一、初始化                           ▲模板       12345678910111213141516171819202122232425262728293031323334353637383940import angrimport sysimport claripyfilePath &#x3D; &quot;&#x2F;home&#x2F;hacker&#x2F;De">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Angr手册">
+<meta property="og:url" content="http://pig-007.github.io/2021/11/19/Angr%E6%89%8B%E5%86%8C/index.html">
+<meta property="og:site_name" content="PIG-007">
+<meta property="og:description" content="一、初始化                           ▲模板       12345678910111213141516171819202122232425262728293031323334353637383940import angrimport sysimport claripyfilePath &#x3D; &quot;&#x2F;home&#x2F;hacker&#x2F;De">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211129153552.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211129163056.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211129164136.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211129164213.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211129172222.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211208111250.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211208111727.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211208111922.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211208111957.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211207175459.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211208155507.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211208155815.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211207180744.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211208111616.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211210175007.png">
+<meta property="article:published_time" content="2021-11-19T02:25:33.000Z">
+<meta property="article:modified_time" content="2022-03-17T09:49:46.046Z">
+<meta property="article:author" content="PIG-007">
+<meta property="article:tag" content="Angr">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211129153552.png"><title>Angr手册 | PIG-007</title><link ref="canonical" href="http://pig-007.github.io/2021/11/19/Angr%E6%89%8B%E5%86%8C/"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.12.1/css/all.min.css" type="text/css"><link rel="stylesheet" href="/css/index.css?v=2.6.2"><script>var Stun = window.Stun || {};
+var CONFIG = {
+  root: '/',
+  algolia: undefined,
+  assistSearch: undefined,
+  fontIcon: {"prompt":{"success":"fas fa-check-circle","info":"fas fa-arrow-circle-right","warning":"fas fa-exclamation-circle","error":"fas fa-times-circle"},"copyBtn":"fas fa-copy"},
+  sidebar: {"offsetTop":"20px","tocMaxDepth":6},
+  header: {"enable":true,"showOnPost":true,"scrollDownIcon":false},
+  postWidget: {"endText":true},
+  nightMode: {"enable":true},
+  back2top: {"enable":true},
+  codeblock: {"style":"default","highlight":"light","wordWrap":true},
+  reward: false,
+  fancybox: false,
+  zoomImage: {"gapAside":"20px"},
+  galleryWaterfall: undefined,
+  lazyload: false,
+  pjax: undefined,
+  externalLink: {"icon":{"enable":true,"name":"fas fa-external-link-alt"}},
+  shortcuts: undefined,
+  prompt: {"copyButton":"Copy","copySuccess":"Copy Success","copyError":"Copy Error"},
+  sourcePath: {"js":"js","css":"css","images":"images"},
+};
+
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content" id="content"><!-- Just used to judge whether it is an article page--><div id="is-post"></div><div class="post"><header class="post-header"><h1 class="post-title">Angr手册</h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-11-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2022-03-17</span></span></div></header><div class="post-body">
+        <h1 id="一、初始化"   >
+          <a href="#一、初始化" class="heading-link"><i class="fas fa-link"></i></a><a href="#一、初始化" class="headerlink" title="一、初始化"></a>一、初始化</h1>
+      
+        <h2 id="▲模板"   >
+          <a href="#▲模板" class="heading-link"><i class="fas fa-link"></i></a><a href="#▲模板" class="headerlink" title="▲模板"></a>▲模板</h2>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> angr</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> claripy</span><br><span class="line"></span><br><span class="line">filePath = <span class="string">&quot;/home/hacker/Desktop/Reverse/Angr/AngrCTF_FITM/&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">Go</span>():</span></span><br><span class="line">    path_to_binary = filePath + <span class="string">&quot;./14_angr_shared_library/lib14_angr_shared_library.so&quot;</span></span><br><span class="line"></span><br><span class="line">    base = <span class="number">0x4000000</span></span><br><span class="line">    project = angr.Project(path_to_binary, load_options=&#123;</span><br><span class="line">        <span class="string">&#x27;main_opts&#x27;</span> : &#123;<span class="string">&#x27;custom_base_addr&#x27;</span> : base&#125;</span><br><span class="line">    &#125;)</span><br><span class="line">    </span><br><span class="line">    buffer_pointer = claripy.BVV(<span class="number">0x3000000</span>, <span class="number">32</span>)</span><br><span class="line">    </span><br><span class="line">    validate_function_address = base + <span class="number">0x6d7</span></span><br><span class="line">    initial_state = project.factory.call_state(validate_function_address, buffer_pointer, claripy.BVV(<span class="number">8</span>, <span class="number">32</span>))</span><br><span class="line">    </span><br><span class="line">    password = claripy.BVS(<span class="string">&#x27;password&#x27;</span>, <span class="number">8</span>*<span class="number">8</span>)</span><br><span class="line">    initial_state.memory.store(buffer_pointer, password)</span><br><span class="line">    </span><br><span class="line">    simulation = project.factory.simgr(initial_state)</span><br><span class="line">    </span><br><span class="line">    success_address = base + <span class="number">0x783</span></span><br><span class="line">    simulation.explore(find=success_address)</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> simulation.found:</span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> simulation.found:</span><br><span class="line">            solution_state = i</span><br><span class="line">            solution_state.add_constraints(solution_state.regs.eax != <span class="number">0</span>)</span><br><span class="line">            solution = solution_state.solver.<span class="built_in">eval</span>(password,cast_to=<span class="built_in">bytes</span>)</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;[+] Success! Solution is: &#123;0&#125;&quot;</span>.<span class="built_in">format</span>(solution))</span><br><span class="line">            <span class="comment">#print(scanf0_solution, scanf1_solution)</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">raise</span> Exception(<span class="string">&#x27;Could not find the solution&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    Go()</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+
+
+        <h2 id="1-创建Project"   >
+          <a href="#1-创建Project" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-创建Project" class="headerlink" title="1.创建Project"></a>1.创建Project</h2>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">path_to_binary = filePath + <span class="string">&quot;00_angr_find/00_angr_find&quot;</span></span><br><span class="line">project = angr.Project(path_to_binary, auto_load_libs=<span class="literal">False</span>)</span><br><span class="line">initial_state = project.factory.entry_state()</span><br><span class="line"><span class="comment">#initial_state = project.factory.blank_state(addr=start_address)</span></span><br><span class="line">simulation = project.factory.simgr(initial_state)</span><br></pre></td></tr></table></div></figure>
+
+<p><code>auto_load_libs</code>：表是否载入依赖库的函数，libc等，如果不载入，返回的值是不可约束的，但是载入可能会路径爆炸。</p>
+<p><code>initial_state</code>：告诉angr从入口处开始，或者从指定的地址<code>start_address</code>开始，不过这样一般需要设置一下寄存器。</p>
+<p><code>simulation</code>：获取我们操作的对象，之后的操作即对这个对象进行操作。</p>
+
+        <h2 id="2-设置探索路径"   >
+          <a href="#2-设置探索路径" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-设置探索路径" class="headerlink" title="2.设置探索路径"></a>2.设置探索路径</h2>
+      
+        <h3 id="1-设置约束路径"   >
+          <a href="#1-设置约束路径" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-设置约束路径" class="headerlink" title="(1)设置约束路径"></a>(1)设置约束路径</h3>
+      
+        <h4 id="①通过地址设置"   >
+          <a href="#①通过地址设置" class="heading-link"><i class="fas fa-link"></i></a><a href="#①通过地址设置" class="headerlink" title="①通过地址设置"></a>①通过地址设置</h4>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">print_good_address = <span class="number">0x8048678</span></span><br><span class="line">avoid_me_address = <span class="number">0x080485A8</span></span><br></pre></td></tr></table></div></figure>
+
+<p>表如果程序到达<code>print_good_address</code>，即代表成功解题，一般题中就是输出flag的地址。</p>
+<p><code>avoid_me_address</code>则用在需要避免到达的地方</p>
+
+        <h4 id="②通过打印内容设置"   >
+          <a href="#②通过打印内容设置" class="heading-link"><i class="fas fa-link"></i></a><a href="#②通过打印内容设置" class="headerlink" title="②通过打印内容设置"></a>②通过打印内容设置</h4>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">is_successful</span>(<span class="params">state</span>):</span></span><br><span class="line">    stdout_output = state.posix.dumps(sys.stdout.fileno())</span><br><span class="line">    <span class="keyword">if</span> <span class="string">b&#x27;Good Job.&#x27;</span> <span class="keyword">in</span> stdout_output:</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">True</span></span><br><span class="line">    <span class="keyword">else</span>: </span><br><span class="line">        <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line">    </span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">should_abort</span>(<span class="params">state</span>):</span></span><br><span class="line">    stdout_output = state.posix.dumps(sys.stdout.fileno())</span><br><span class="line">    <span class="keyword">if</span> <span class="string">b&#x27;Try again.&#x27;</span> <span class="keyword">in</span>  stdout_output:</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">True</span></span><br><span class="line">    <span class="keyword">else</span>: </span><br><span class="line">        <span class="keyword">return</span> <span class="literal">False</span>    </span><br></pre></td></tr></table></div></figure>
+
+<p>当程序中有多个正确输出的时候，获取程序输出，如果输出中包含标志性的符号<code>Good Job</code>，则代表成功到达，或者设置其他的标志性符号。或者当程序中有多个相同的错误输出的时候，获取程序输出，如果输出中包含标志性的符号<code>Try Again</code>，则代表应该需要避免的地方，而不用输入多个地址。</p>
+
+        <h4 id="③设置向量"   >
+          <a href="#③设置向量" class="heading-link"><i class="fas fa-link"></i></a><a href="#③设置向量" class="headerlink" title="③设置向量"></a>③设置向量</h4>
+      <p>一般而言，可能输入的长度或者字符有些限制，比如scanf的格式化获取输入，这时候我们就可以通过向量生成限制性的输入字符，缩小搜索路径</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> claripy</span><br><span class="line">passwd_size_in_bits = <span class="number">32</span></span><br><span class="line">passwd0 = claripy.BVS(<span class="string">&#x27;passwd0&#x27;</span>, passwd_size_in_bits)</span><br><span class="line">passwd1 = claripy.BVS(<span class="string">&#x27;passwd1&#x27;</span>, passwd_size_in_bits)</span><br><span class="line">passwd2 = claripy.BVS(<span class="string">&#x27;passwd2&#x27;</span>, passwd_size_in_bits)</span><br></pre></td></tr></table></div></figure>
+
+<p>设置了三个向量，长度为32bit</p>
+<p><code>BVS()</code>：代表位向量创建</p>
+<p><code>FPS()</code>：代表符号向量创建</p>
+
+        <h4 id="④设置寄存器"   >
+          <a href="#④设置寄存器" class="heading-link"><i class="fas fa-link"></i></a><a href="#④设置寄存器" class="headerlink" title="④设置寄存器"></a>④设置寄存器</h4>
+      <p>当程序有时候不需要从头开始，而是只测试某个地方或者在某个地方需要更改寄存器时，可以进行设置</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#initial_state = project.factory.blank_state(addr=start_address)</span></span><br><span class="line">initial_state.regs.eax = passwd0</span><br><span class="line">initial_state.regs.ebx = passwd1</span><br><span class="line">initial_state.regs.edx = passwd2</span><br></pre></td></tr></table></div></figure>
+
+
+        <h4 id="⑤设置栈上的数据"   >
+          <a href="#⑤设置栈上的数据" class="heading-link"><i class="fas fa-link"></i></a><a href="#⑤设置栈上的数据" class="headerlink" title="⑤设置栈上的数据"></a>⑤设置栈上的数据</h4>
+      
+        <h5 id="A-先设置栈帧指针"   >
+          <a href="#A-先设置栈帧指针" class="heading-link"><i class="fas fa-link"></i></a><a href="#A-先设置栈帧指针" class="headerlink" title="A.先设置栈帧指针"></a>A.先设置栈帧指针</h5>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#initial_state = project.factory.blank_state(addr=start_address)</span></span><br><span class="line">initial_state.regs.ebp = initial_state.regs.esp *<span class="comment">#EBP=ESP*</span></span><br></pre></td></tr></table></div></figure>
+
+
+        <h5 id="B-观察栈上数据，然后进行设置"   >
+          <a href="#B-观察栈上数据，然后进行设置" class="heading-link"><i class="fas fa-link"></i></a><a href="#B-观察栈上数据，然后进行设置" class="headerlink" title="B.观察栈上数据，然后进行设置"></a>B.观察栈上数据，然后进行设置</h5>
+      <p>比如如下情形，需要0x8的栈空间</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211129153552.png"></p>
+<p>那么先将esp放到ebp-0x8的位置</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#initial_state = project.factory.blank_state(addr=start_address)</span></span><br><span class="line">padding_length_in_bytes = <span class="number">0x08</span></span><br><span class="line">initial_state.regs.esp -= padding_length_in_bytes</span><br></pre></td></tr></table></div></figure>
+
+<p>然后设置向量，压入栈中</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#initial_state = project.factory.blank_state(addr=start_address)</span></span><br><span class="line">passwd0 = claripy.BVS(<span class="string">&#x27;var_10&#x27;</span>, <span class="number">32</span>) <span class="comment">#s1</span></span><br><span class="line">passwd1 = claripy.BVS(<span class="string">&#x27;var_C&#x27;</span>, <span class="number">32</span>) <span class="comment">#s2</span></span><br><span class="line"><span class="comment">#var_10只代表name</span></span><br><span class="line"></span><br><span class="line">initial_state.stack_push(passwd0) </span><br><span class="line">initial_state.stack_push(passwd1)</span><br></pre></td></tr></table></div></figure>
+
+<p>这样即可完成栈中数据的布置</p>
+
+        <h5 id="🔺注："   >
+          <a href="#🔺注：" class="heading-link"><i class="fas fa-link"></i></a><a href="#🔺注：" class="headerlink" title="🔺注："></a>🔺注：</h5>
+      <p>这里符号化栈上数据时，只能一个一个push，即32位一次push进4字节，64位一次push进8字节，不能多，不然会造成符号截断。这里其实可以直接通过获取rsp，然后利用rsp来加载数据即可。</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">initial_state.regs.rsp = initial_state.regs.rbp</span><br><span class="line">buf_addr = initial_state.regs.rsp - <span class="number">0x10</span></span><br><span class="line">passwd0 = claripy.BVS(<span class="string">&#x27;password&#x27;</span>, <span class="number">0x8</span> * <span class="number">8</span>)</span><br><span class="line">initial_state.memory.store(buf_addr, passwd0)</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h4 id="⑥符号化内存"   >
+          <a href="#⑥符号化内存" class="heading-link"><i class="fas fa-link"></i></a><a href="#⑥符号化内存" class="headerlink" title="⑥符号化内存"></a>⑥符号化内存</h4>
+      <p>寻址需要符号化的内存地址，如下：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211129163056.png" alt="image-20211129163056788"></p>
+<p>即符号化四个八字节长度的user_input</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">passwd_size_in_bits = <span class="number">64</span></span><br><span class="line">passwd0 = claripy.BVS(<span class="string">&#x27;passwd0&#x27;</span>, passwd_size_in_bits)</span><br><span class="line">passwd1 = claripy.BVS(<span class="string">&#x27;passwd1&#x27;</span>, passwd_size_in_bits)</span><br><span class="line">passwd2 = claripy.BVS(<span class="string">&#x27;passwd2&#x27;</span>, passwd_size_in_bits)</span><br><span class="line">passwd3 = claripy.BVS(<span class="string">&#x27;passwd3&#x27;</span>, passwd_size_in_bits)</span><br><span class="line"></span><br><span class="line"><span class="comment">#initial_state = project.factory.blank_state(addr=start_address)</span></span><br><span class="line">passwd0_address = <span class="number">0xA1BA1C0</span></span><br><span class="line"><span class="comment">#passwd1_address = 0xA1BA1C8</span></span><br><span class="line"><span class="comment">#passwd2_address = 0xA1BA1D0</span></span><br><span class="line"><span class="comment">#passwd3_address = 0xA1BA1D8</span></span><br><span class="line">initial_state.memory.store(passwd0_address, passwd0)</span><br><span class="line">initial_state.memory.store(passwd0_address + <span class="number">0x8</span>,  passwd1)</span><br><span class="line">initial_state.memory.store(passwd0_address + <span class="number">0x10</span>, passwd2)</span><br><span class="line">initial_state.memory.store(passwd0_address + <span class="number">0x18</span>, passwd3)</span><br></pre></td></tr></table></div></figure>
+
+
+        <h4 id="⑦符号化堆内存"   >
+          <a href="#⑦符号化堆内存" class="heading-link"><i class="fas fa-link"></i></a><a href="#⑦符号化堆内存" class="headerlink" title="⑦符号化堆内存"></a>⑦符号化堆内存</h4>
+      <p>即在buffer0和buffer1中保存的是malloc出来的内存指针</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211129164136.png" alt="image-20211129164136483"></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211129164213.png" alt="image-20211129164213775"></p>
+<p>这样我们就可以向这两个buf中写入内存地址，然后把需要符号化的内存写入到对应的内存地址中，这里选取的内存地址设置为</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">fake_heap_address0 = <span class="number">0xffffc93c</span></span><br><span class="line">fake_heap_address1 = <span class="number">0xffffc94c</span></span><br></pre></td></tr></table></div></figure>
+
+<p>最终如下设置</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#initial_state = project.factory.blank_state(addr=start_address)</span></span><br><span class="line">fake_heap_address0 = <span class="number">0xffffc93c</span></span><br><span class="line">pointer_to_malloc_memory_address0 = <span class="number">0xabcc8a4</span></span><br><span class="line">fake_heap_address1 = <span class="number">0xffffc94c</span></span><br><span class="line">pointer_to_malloc_memory_address1 = <span class="number">0xabcc8ac</span></span><br><span class="line">initial_state.memory.store(pointer_to_malloc_memory_address0, fake_heap_address0, endness=project.arch.memory_endness)</span><br><span class="line">initial_state.memory.store(pointer_to_malloc_memory_address1, fake_heap_address1, endness=project.arch.memory_endness)</span><br><span class="line"></span><br><span class="line">initial_state.memory.store(fake_heap_address0, passwd0)  </span><br><span class="line">initial_state.memory.store(fake_heap_address1, passwd1)</span><br></pre></td></tr></table></div></figure>
+
+
+        <h4 id="⑧符号化文件"   >
+          <a href="#⑧符号化文件" class="heading-link"><i class="fas fa-link"></i></a><a href="#⑧符号化文件" class="headerlink" title="⑧符号化文件"></a>⑧符号化文件</h4>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">filename = <span class="string">&#x27;OJKSQYDP.txt&#x27;</span></span><br><span class="line"><span class="comment">#64个字节</span></span><br><span class="line">symbolic_file_size_bytes = <span class="number">64</span></span><br><span class="line"><span class="comment">#创建文件向量</span></span><br><span class="line">passwd0 = claripy.BVS(<span class="string">&#x27;password&#x27;</span>, symbolic_file_size_bytes * <span class="number">8</span>)</span><br><span class="line">passwd_file = angr.storage.SimFile(filename, content=passwd0, size=symbolic_file_size_bytes)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">#initial_state = project.factory.blank_state(addr=start_address)</span></span><br><span class="line"><span class="comment">#将文件向量插入</span></span><br><span class="line">initial_state.fs.insert(filename, passwd_file)</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+
+
+
+
+        <h2 id="3-约束比较函数"   >
+          <a href="#3-约束比较函数" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-约束比较函数" class="headerlink" title="3.约束比较函数"></a>3.约束比较函数</h2>
+      <p>当在循环里进行比较判断是，会产生很多分支</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">_BOOL4 __cdecl <span class="title">check</span><span class="params">(<span class="keyword">int</span> a1, <span class="keyword">unsigned</span> <span class="keyword">int</span> a2)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> v3; <span class="comment">// [esp+8h] [ebp-8h]</span></span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">int</span> i; <span class="comment">// [esp+Ch] [ebp-4h]</span></span><br><span class="line">  v3 = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt; a2; ++i )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">if</span> ( *(_BYTE *)(i + a1) == *(_BYTE *)(i + <span class="number">0x804A040</span>) )</span><br><span class="line">      ++v3;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> v3 == a2;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>这里的a2=16，即将16个字符都拿出来逐个比较，每次比较产生两个分支，16次比较就会产生2^16=65536个分支，会使得分支变得很大，但是这里其实只是一个比较函数，保证a1代表字符串的内容和<code>0x804A040</code>中保存的字符串内容相等就可以了，这里就可以运行到该函数之前，然后自己获取对应内存中值进行比较，添加限制即可。</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#initial_state = project.factory.blank_state(addr=start_address)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#buff_addr中保存的即为我们运行到比较函数之前得到的字符串，使之与0x804A040中的字符串进行比较</span></span><br><span class="line">buff_addr = <span class="number">0x0804A050</span></span><br><span class="line">address_to_check_constraint = <span class="number">0x08048565</span></span><br><span class="line">simulation = project.factory.simgr(initial_state)</span><br><span class="line"><span class="comment">#探索路径到进入比较函数之前</span></span><br><span class="line">simulation.explore(find=address_to_check_constraint)</span><br><span class="line"><span class="keyword">if</span> simulation.found:</span><br><span class="line">    solution_state = simulation.found[<span class="number">0</span>]</span><br><span class="line">    constrained_parameter_address = buff_addr</span><br><span class="line">    constrained_parameter_size_bytes = <span class="number">16</span></span><br><span class="line">    constrained_parameter_bitvector = solution_state.memory.load(constrained_parameter_address,constrained_parameter_size_bytes)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">#0x804A040中保存的即为&quot;AUPDNNPROEZRJWKB&quot;</span></span><br><span class="line">constrained_parameter_desired_value = <span class="string">&#x27;AUPDNNPROEZRJWKB&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#比较约束，获得使两值相等的符号量</span></span><br><span class="line">solution_state.solver.add(constrained_parameter_bitvector == constrained_parameter_desired_value)</span><br><span class="line"></span><br><span class="line"><span class="comment">#得到最终解</span></span><br><span class="line">solution0 = solution_state.solver.<span class="built_in">eval</span>(passwd0,cast_to=<span class="built_in">bytes</span>)</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h2 id="4-使用HOOK函数"   >
+          <a href="#4-使用HOOK函数" class="heading-link"><i class="fas fa-link"></i></a><a href="#4-使用HOOK函数" class="headerlink" title="4.使用HOOK函数"></a>4.使用HOOK函数</h2>
+      
+        <h3 id="1-利用地址进行hook"   >
+          <a href="#1-利用地址进行hook" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-利用地址进行hook" class="headerlink" title="(1)利用地址进行hook"></a>(1)利用地址进行hook</h3>
+      <p>即用自己编写的函数替代程序中的函数来执行，假设这里想hook掉以下函数，该函数即为之前的比较函数check</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211129172222.png" alt="image-20211129172222733"></p>
+<p>那么看字节码可知对应的函数为5个字节，地址为<code>0x80486B3</code></p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">check_equals_called_address = <span class="number">0x80486B3</span></span><br><span class="line">instruction_to_skip_length = <span class="number">5</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#以下是一个整体</span></span><br><span class="line"><span class="comment">#利用hook函数进行替换</span></span><br><span class="line"><span class="meta">@project.hook(<span class="params">check_equals_called_address, length=instruction_to_skip_length</span>)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">skip_check_equals_</span>(<span class="params">state</span>):</span></span><br><span class="line">    <span class="comment">#函数的输入参数</span></span><br><span class="line">    user_input_buffer_address = <span class="number">0x804A054</span></span><br><span class="line">    user_input_buffer_length = <span class="number">16</span></span><br><span class="line">    user_input_string = state.memory.load(</span><br><span class="line">        user_input_buffer_address,</span><br><span class="line">        user_input_buffer_length,</span><br><span class="line">        endness=archinfo.Endness.LE</span><br><span class="line">    )</span><br><span class="line">    <span class="comment">#一般都是小端，大端:BE</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">#需要比较的字符串</span></span><br><span class="line">    check_against_string = <span class="string">&#x27;XKSPZSJKJYQCQXZV&#x27;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">#设置返回的寄存器，只返回给了eax寄存器，所以只需要设置eax寄存器</span></span><br><span class="line">    register_size_bit = <span class="number">32</span></span><br><span class="line">    state.regs.eax = claripy.If(</span><br><span class="line">        user_input_string == check_against_string,</span><br><span class="line">        claripy.BVV(<span class="number">1</span>, register_size_bit),</span><br><span class="line">        claripy.BVV(<span class="number">0</span>, register_size_bit)</span><br><span class="line">    )</span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="2-利用函数名进行hook"   >
+          <a href="#2-利用函数名进行hook" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-利用函数名进行hook" class="headerlink" title="(2)利用函数名进行hook"></a>(2)利用函数名进行hook</h3>
+      <p>当函数被调用了多次，而我们又需要对每一个这个函数进行hook时，就可以通过函数名进行hook</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">_BOOL4 __cdecl <span class="title">check_equals_ORSDDWXHZURJRBDH</span><span class="params">(<span class="keyword">char</span> *to_check, <span class="keyword">unsigned</span> <span class="keyword">int</span> length)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> v3; <span class="comment">// [esp+8h] [ebp-8h]</span></span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">int</span> i; <span class="comment">// [esp+Ch] [ebp-4h]</span></span><br><span class="line"></span><br><span class="line">  v3 = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt; length; ++i )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">if</span> ( to_check[i] == *(_BYTE *)(i + <span class="number">0x804C048</span>) )</span><br><span class="line">      ++v3;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> v3 == length;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>比如替换上述的函数</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ReplacementCheckEquals</span>(<span class="params">angr.SimProcedure</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">run</span>(<span class="params">self, to_check, length</span>):</span></span><br><span class="line">        <span class="comment">#第一个参数</span></span><br><span class="line">        user_input_buffer_address = to_check</span><br><span class="line">        <span class="comment">#第二个参数</span></span><br><span class="line">        user_input_buffer_length = length</span><br><span class="line">        </span><br><span class="line">        <span class="comment">#依据参数获取输入的字符串</span></span><br><span class="line">        user_input_string = self.state.memory.load(</span><br><span class="line">            user_input_buffer_address,</span><br><span class="line">            user_input_buffer_length)</span><br><span class="line">        </span><br><span class="line">        <span class="comment">#执行比较功能并返回</span></span><br><span class="line">        check_against_string = <span class="string">&#x27;ORSDDWXHZURJRBDH&#x27;</span></span><br><span class="line">        <span class="keyword">return</span> claripy.If(</span><br><span class="line">            user_input_string == check_against_string,</span><br><span class="line">            claripy.BVV(<span class="number">1</span>, <span class="number">32</span>),</span><br><span class="line">            claripy.BVV(<span class="number">0</span>, <span class="number">32</span>))</span><br><span class="line"></span><br><span class="line">check_equals_symbol = <span class="string">&#x27;check_equals_ORSDDWXHZURJRBDH&#x27;</span></span><br><span class="line">project.hook_symbol(check_equals_symbol, ReplacementCheckEquals())</span><br></pre></td></tr></table></div></figure>
+
+<p>主要就是定义一个类，将所有函数名称为check_equals_ORSDDWXHZURJRBDH的函数用类ReplacementCheckEquals中的run函数替换</p>
+
+        <h3 id="3-Hook掉Scanf函数"   >
+          <a href="#3-Hook掉Scanf函数" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-Hook掉Scanf函数" class="headerlink" title="(3)Hook掉Scanf函数"></a>(3)Hook掉Scanf函数</h3>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ReplacementScanf</span>(<span class="params">angr.SimProcedure</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">run</span>(<span class="params">self, format_string, param0, param1</span>):</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment">#设置要存入对应参数内存中的数据</span></span><br><span class="line">        scanf0 = claripy.BVS(<span class="string">&#x27;scanf0&#x27;</span>, <span class="number">32</span>)</span><br><span class="line">        scanf1 = claripy.BVS(<span class="string">&#x27;scanf1&#x27;</span>, <span class="number">32</span>)</span><br><span class="line"></span><br><span class="line">        <span class="comment">#获取需要存入的内存地址，然后以符号向量的形式存储进去</span></span><br><span class="line">        scanf0_address = param0</span><br><span class="line">        self.state.memory.store(scanf0_address, scanf0, endness=project.arch.memory_endness)</span><br><span class="line">        scanf1_address = param1</span><br><span class="line">        self.state.memory.store(scanf1_address, scanf1, endness=project.arch.memory_endness)</span><br><span class="line"></span><br><span class="line">        <span class="comment">#将两个向量数据设置为全局的，方便之后求解打印</span></span><br><span class="line">        self.state.<span class="built_in">globals</span>[<span class="string">&#x27;solutions&#x27;</span>] = (scanf0, scanf1)</span><br><span class="line">scanf_symbol = <span class="string">&#x27;__isoc99_scanf&#x27;</span></span><br><span class="line"></span><br><span class="line">project.hook_symbol(scanf_symbol, ReplacementScanf())</span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="4-Hook静态库函数"   >
+          <a href="#4-Hook静态库函数" class="heading-link"><i class="fas fa-link"></i></a><a href="#4-Hook静态库函数" class="headerlink" title="(4)Hook静态库函数"></a>(4)Hook静态库函数</h3>
+      <p>当程序使用静态编译时，可能需要Hook一些静态库函数</p>
+<p>在探索开始之前添加即可</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">project.hook(<span class="number">0x804ed40</span>, angr.SIM_PROCEDURES[<span class="string">&#x27;libc&#x27;</span>][<span class="string">&#x27;printf&#x27;</span>]())</span><br><span class="line">project.hook(<span class="number">0x804ed80</span>, angr.SIM_PROCEDURES[<span class="string">&#x27;libc&#x27;</span>][<span class="string">&#x27;scanf&#x27;</span>]())</span><br><span class="line">project.hook(<span class="number">0x804f350</span>, angr.SIM_PROCEDURES[<span class="string">&#x27;libc&#x27;</span>][<span class="string">&#x27;puts&#x27;</span>]())</span><br><span class="line">project.hook(<span class="number">0x8048d10</span>, angr.SIM_PROCEDURES[<span class="string">&#x27;glibc&#x27;</span>][<span class="string">&#x27;__libc_start_main&#x27;</span>]())</span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="5-处理函数在外部库so中"   >
+          <a href="#5-处理函数在外部库so中" class="heading-link"><i class="fas fa-link"></i></a><a href="#5-处理函数在外部库so中" class="headerlink" title="(5)处理函数在外部库so中"></a>(5)处理函数在外部库so中</h3>
+      <p>当程序对于flag的加解密处理函数在外部库中时，这时候可以直接调用外部库中的函数进行符号执行</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#因为库函数动态加载，所以需要指定偏移</span></span><br><span class="line">base = <span class="number">0x4000000</span></span><br><span class="line">project = angr.Project(path_to_binary, load_options=&#123;</span><br><span class="line">    <span class="string">&#x27;main_opts&#x27;</span> : &#123;<span class="string">&#x27;custom_base_addr&#x27;</span> : base&#125;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">#为输入参数创建内存向量的地址</span></span><br><span class="line">buffer_pointer = claripy.BVV(<span class="number">0x3000000</span>, <span class="number">32</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">#设置需要调用的函数地址</span></span><br><span class="line">validate_function_address = base + <span class="number">0x6d7</span></span><br><span class="line"><span class="comment">#设置状态，调用函数</span></span><br><span class="line">initial_state = project.factory.call_state(validate_function_address, buffer_pointer, claripy.BVV(<span class="number">8</span>, <span class="number">32</span>))</span><br><span class="line"></span><br><span class="line"><span class="comment">#装载内存向量进入地址指针中</span></span><br><span class="line">password = claripy.BVS(<span class="string">&#x27;password&#x27;</span>, <span class="number">8</span>*<span class="number">8</span>)</span><br><span class="line">initial_state.memory.store(buffer_pointer, password)</span><br></pre></td></tr></table></div></figure>
+
+<p><code>main_opts</code>为主程序指定加载参数，常用以下参数</p>
+<ul>
+<li>custom_base_addr —— 使用的基地址</li>
+<li>custom_entry_point —— 使用的入口点</li>
+<li>custom_arch —— 使用的处理器体系结构的名字</li>
+</ul>
+<p>这样在之后的设置成功地址也需要用到<code>base</code></p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">success_address = base + <span class="number">0x783</span></span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="6-快速hook"   >
+          <a href="#6-快速hook" class="heading-link"><i class="fas fa-link"></i></a><a href="#6-快速hook" class="headerlink" title="(6)快速hook"></a>(6)快速hook</h3>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hook_Normal</span>(<span class="params">state</span>):</span></span><br><span class="line">    state.regs.rax = <span class="number">8</span></span><br><span class="line">p.hook(<span class="number">0x40168e</span>, hook_Normal, length=<span class="number">5</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">#或者</span></span><br><span class="line">p.hook_symbol(<span class="string">&#x27;ptrace&#x27;</span>, angr.SIM_PROCEDURES[<span class="string">&#x27;stubs&#x27;</span>][<span class="string">&#x27;ReturnUnconstrained&#x27;</span>](return_value=<span class="number">0</span>))</span><br><span class="line"></span><br><span class="line"><span class="comment">#直接pass</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">patch_0</span>(<span class="params">state</span>):</span></span><br><span class="line">    <span class="keyword">pass</span></span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h2 id="5-开始探索"   >
+          <a href="#5-开始探索" class="heading-link"><i class="fas fa-link"></i></a><a href="#5-开始探索" class="headerlink" title="5.开始探索"></a>5.开始探索</h2>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">simulation.explore(find=is_successful, avoid=should_abort)</span><br></pre></td></tr></table></div></figure>
+
+<p><code>simulation.explore</code>表开始探索，试图进入到<code>print_good_address</code>中</p>
+
+        <h3 id="▲veritesting模式"   >
+          <a href="#▲veritesting模式" class="heading-link"><i class="fas fa-link"></i></a><a href="#▲veritesting模式" class="headerlink" title="▲veritesting模式"></a>▲veritesting模式</h3>
+      <p>该模式可以对路径爆炸进行一些解决</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/251984" >https://www.anquanke.com/post/id/251984</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>但是在需要探索所有路径的时候，veritesting会出错，将一些路径合并，从而无法抵达正确的deadend路径，详见<code>csaw_wyvern/wyvern</code></p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">simulation = project.factory.simgr(initial_state, veritesting=<span class="literal">True</span>)</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h2 id="6-输出答案"   >
+          <a href="#6-输出答案" class="heading-link"><i class="fas fa-link"></i></a><a href="#6-输出答案" class="headerlink" title="6.输出答案"></a>6.输出答案</h2>
+      
+        <h3 id="1-符号输出"   >
+          <a href="#1-符号输出" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-符号输出" class="headerlink" title="(1)符号输出"></a>(1)符号输出</h3>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> simulation.found:</span><br><span class="line">    solution_state = simulation.found[<span class="number">0</span>]</span><br><span class="line">    solution = solution_state.posix.dumps(sys.stdin.fileno())</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[+] Success! Solution is: &#123;&#125;&quot;</span>.<span class="built_in">format</span>(solution.decode(<span class="string">&quot;utf-8&quot;</span>)))</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    <span class="keyword">raise</span> Exception(<span class="string">&#x27;Could not find the solution&#x27;</span>)</span><br></pre></td></tr></table></div></figure>
+
+<p>即获取找到的第一串符号，然后输出</p>
+
+        <h3 id="2-位向量输出"   >
+          <a href="#2-位向量输出" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-位向量输出" class="headerlink" title="(2)位向量输出"></a>(2)位向量输出</h3>
+      <p>这个一般在最开始使用位向量BVS创建输入的时候使用</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#passwd0 = claripy.BVS(&#x27;passwd0&#x27;, passwd_size_in_bits)</span></span><br><span class="line"><span class="comment">#passwd1 = claripy.BVS(&#x27;passwd1&#x27;, passwd_size_in_bits)</span></span><br><span class="line"><span class="comment">#passwd2 = claripy.BVS(&#x27;passwd2&#x27;, passwd_size_in_bits)</span></span><br><span class="line"><span class="keyword">if</span> simulation.found:</span><br><span class="line">    <span class="keyword">for</span> solution_state <span class="keyword">in</span> simulation.found:</span><br><span class="line">        solution0 = <span class="built_in">format</span>(solution_state.solver.<span class="built_in">eval</span>(passwd0), <span class="string">&#x27;x&#x27;</span>)</span><br><span class="line">        solution1 = <span class="built_in">format</span>(solution_state.solver.<span class="built_in">eval</span>(passwd1), <span class="string">&#x27;x&#x27;</span>)</span><br><span class="line">        solution2 = <span class="built_in">format</span>(solution_state.solver.<span class="built_in">eval</span>(passwd2), <span class="string">&#x27;x&#x27;</span>)</span><br><span class="line">        solution = solution0 + <span class="string">&quot; &quot;</span> + solution1 + <span class="string">&quot; &quot;</span> + solution2</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;[+] Success! Solution is: &#123;&#125;&quot;</span>.<span class="built_in">format</span>(solution))</span><br><span class="line">        <span class="comment"># print(simgr.found[0].posix.dumps(0))</span></span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    <span class="keyword">raise</span> Exception(<span class="string">&#x27;Could not find the solution&#x27;</span>)</span><br></pre></td></tr></table></div></figure>
+
+<p>输出的是十六进制的数字</p>
+
+        <h3 id="3-求解选项"   >
+          <a href="#3-求解选项" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-求解选项" class="headerlink" title="(3)求解选项"></a>(3)求解选项</h3>
+      <div class="table-container"><table>
+<thead>
+<tr>
+<th>接口</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>solver.eval(expression)</code></td>
+<td>将会解出一个可行解</td>
+</tr>
+<tr>
+<td><code>solver.eval_one(expression)</code></td>
+<td>将会给出一个表达式的可行解，若有多个可行解，则抛出异常</td>
+</tr>
+<tr>
+<td><code>solver.eval_upto(expression, n)</code></td>
+<td>将会给出最多n个可行解，如果不足n个就给出所有的可行解。</td>
+</tr>
+<tr>
+<td><code>solver.eval_exact(expression, n)</code></td>
+<td>将会给出n个可行解，如果解的个数不等于n个，将会抛出异常。</td>
+</tr>
+<tr>
+<td><code>solver.min(expression)</code></td>
+<td>给出最小可行解</td>
+</tr>
+<tr>
+<td><code>solver.max(expression)</code></td>
+<td>给出最大可行解</td>
+</tr>
+</tbody></table></div>
+
+        <h1 id="二、进阶管理"   >
+          <a href="#二、进阶管理" class="heading-link"><i class="fas fa-link"></i></a><a href="#二、进阶管理" class="headerlink" title="二、进阶管理"></a>二、进阶管理</h1>
+      <p>Stash:  active 、deadend 、found等</p>
+
+        <h2 id="1-运行方式"   >
+          <a href="#1-运行方式" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-运行方式" class="headerlink" title="1.运行方式"></a>1.运行方式</h2>
+      <p>基本块的区分通常以<code>call</code>，<code>cmp-jz/jmp...</code>，<code>ret</code>等为标志。</p>
+
+        <h3 id="1-step"   >
+          <a href="#1-step" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-step" class="headerlink" title="(1)step()"></a>(1)step()</h3>
+      <p>每次向前运行一个基本块，并返回进行分类</p>
+<p>让 stash 中的所有状态都执行一个基本块，默认的 stash 为 active</p>
+
+        <h3 id="2-run"   >
+          <a href="#2-run" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-run" class="headerlink" title="(2)run()"></a>(2)run()</h3>
+      <p>每次向前运行一个基本块，并返回进行分类</p>
+
+        <h3 id="3-explore"   >
+          <a href="#3-explore" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-explore" class="headerlink" title="(3)explore()"></a>(3)explore()</h3>
+      <p>根据<code>find</code>和<code>avoid</code>进行基本块的执行，最后会返回<code>found</code>和<code>avoid</code>状态</p>
+
+        <h2 id="2-跨平台使用"   >
+          <a href="#2-跨平台使用" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-跨平台使用" class="headerlink" title="2.跨平台使用"></a>2.跨平台使用</h2>
+      
+        <h3 id="1-ARM"   >
+          <a href="#1-ARM" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-ARM" class="headerlink" title="(1)ARM"></a>(1)ARM</h3>
+      <p>直接对应使用，不用添加其他的什么配置</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">state.regs.r0 = concrete_addr</span><br></pre></td></tr></table></div></figure>
+
+
+        <h2 id="3-直接使用二进制里的函数"   >
+          <a href="#3-直接使用二进制里的函数" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-直接使用二进制里的函数" class="headerlink" title="3.直接使用二进制里的函数"></a>3.直接使用二进制里的函数</h2>
+      <p>文件在”/home/hacker/Desktop/Reverse/Angr/myTest/callBinaryFunc”</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#myFunc函数的地址，即函数最开始的汇编代码的地址</span></span><br><span class="line">myFunc_addr = base + <span class="number">0x64A</span></span><br><span class="line">project = angr.Project(path_to_binary, auto_load_libs=<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">#(SimTypeInt(False)表设置参数，传参和返回值的类型设置</span></span><br><span class="line">prototype = SimTypeFunction((SimTypeInt(<span class="literal">False</span>),SimTypeInt(<span class="literal">False</span>)),SimTypeInt(<span class="literal">False</span>))</span><br><span class="line"></span><br><span class="line">myFunc = project.factory.<span class="built_in">callable</span>(myFunc_addr, cc=project.factory.cc(func_ty=prototype), toc=<span class="literal">None</span>, concrete_only=<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">#调用函数</span></span><br><span class="line">myFunc.perform_call(<span class="number">0</span>,<span class="number">0x100</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">#获取最终的状态state,即可从该state中获取返回值和各种寄存器状态</span></span><br><span class="line">state = myFunc.result_state</span><br><span class="line"><span class="built_in">print</span>(state.regs.rax)</span><br></pre></td></tr></table></div></figure>
+
+<p>或者如下：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">func = project.factory.callable(project.loader.find_symbol(&#x27;myFunc).rebased_addr)</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h2 id="4-C-库的实现"   >
+          <a href="#4-C-库的实现" class="heading-link"><i class="fas fa-link"></i></a><a href="#4-C-库的实现" class="headerlink" title="4.C++库的实现"></a>4.C++库的实现</h2>
+      <p>只能从最开始进行</p>
+<p>由于<code>angr</code>是只实现了C库，为了深入C++标准库中，我们需要在设置state时需要使用<code>full_init_state</code>方法，并且设置<code>unicorn</code>引擎</p>
+<p>unicorn引擎可能可以加快运行速度，有时候也会放慢速度，就比如在只有一条路径，但是需要添加flag约束的：<code>asisctffinals2015_fake</code></p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">initial_state = project.factory.full_init_state(</span><br><span class="line">    args=path_to_binary,</span><br><span class="line">    add_options=angr.options.unicorn,</span><br><span class="line">    stdin=flag,</span><br><span class="line">)</span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="▲注："   >
+          <a href="#▲注：" class="heading-link"><i class="fas fa-link"></i></a><a href="#▲注：" class="headerlink" title="▲注："></a>▲注：</h3>
+      <p>这种从最开始执行的方法通常用在路径分支不多的时候，如果比较多就容易路径爆炸。</p>
+
+        <h2 id="5-loader-加载模块"   >
+          <a href="#5-loader-加载模块" class="heading-link"><i class="fas fa-link"></i></a><a href="#5-loader-加载模块" class="headerlink" title="5.loader 加载模块"></a>5.loader 加载模块</h2>
+      <p>将二进制文件加载到虚拟的地址空间</p>
+
+        <h3 id="1-加载二进制选项"   >
+          <a href="#1-加载二进制选项" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-加载二进制选项" class="headerlink" title="(1)加载二进制选项"></a>(1)加载二进制选项</h3>
+      <p>在加载二进制文件时可以设置特定的参数，使用 <code>main_opts</code> 和 <code>lib_opts</code> 参数进行设置。</p>
+<ul>
+<li><code>backend</code> - 指定 backend</li>
+<li><code>base_addr</code> - 指定基址</li>
+<li><code>entry_point</code> - 指定入口点</li>
+<li><code>arch</code> - 指定架构</li>
+</ul>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>angr.Project(<span class="string">&#x27;examples/fauxware/fauxware&#x27;</span>, main_opts=&#123;<span class="string">&#x27;backend&#x27;</span>: <span class="string">&#x27;blob&#x27;</span>, <span class="string">&#x27;arch&#x27;</span>: <span class="string">&#x27;i386&#x27;</span>&#125;, lib_opts=&#123;<span class="string">&#x27;libc.so.6&#x27;</span>: &#123;<span class="string">&#x27;backend&#x27;</span>: <span class="string">&#x27;elf&#x27;</span>&#125;&#125;)</span><br><span class="line">&lt;Project examples/fauxware/fauxware&gt;</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h3 id="2-获取加载对象的信息"   >
+          <a href="#2-获取加载对象的信息" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-获取加载对象的信息" class="headerlink" title="(2)获取加载对象的信息"></a>(2)获取加载对象的信息</h3>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">obj = proj.loader.main_object</span><br><span class="line">obj = proj.loader.all_objects</span><br><span class="line">obj.sections</span><br><span class="line">obj.plt</span><br><span class="line">obj.linked_base</span><br><span class="line">obj.mapped_base</span><br><span class="line">obj.max_addr</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h3 id="3-符号和重定位信息"   >
+          <a href="#3-符号和重定位信息" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-符号和重定位信息" class="headerlink" title="(3)符号和重定位信息"></a>(3)符号和重定位信息</h3>
+      
+        <h4 id="①符号对象信息"   >
+          <a href="#①符号对象信息" class="heading-link"><i class="fas fa-link"></i></a><a href="#①符号对象信息" class="headerlink" title="①符号对象信息"></a>①符号对象信息</h4>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">malloc = proj.loader.find_symbol(<span class="string">&#x27;malloc&#x27;</span>)</span><br><span class="line">malloc = proj.loader.main_object.get_symbol(<span class="string">&#x27;malloc&#x27;</span>)</span><br><span class="line"><span class="comment">#之后可以使用malloc这个对象</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>malloc.</span><br><span class="line">malloc.is_common           malloc.is_local            malloc.owner_obj           malloc.resolvedby</span><br><span class="line">malloc.is_export           malloc.is_static           malloc.rebased_addr        malloc.size</span><br><span class="line">malloc.is_extern           malloc.is_weak             malloc.relative_addr       malloc.subtype</span><br><span class="line">malloc.is_forward          malloc.linked_addr         malloc.resolve(            malloc.<span class="built_in">type</span></span><br><span class="line">malloc.is_function         malloc.name                malloc.resolve_forwarder(  </span><br><span class="line">malloc.is_import           malloc.owner               malloc.resolved</span><br><span class="line">    </span><br><span class="line"><span class="comment">#获取符号对象地址</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>malloc.rebased_addr</span><br><span class="line"><span class="number">0x10002c0</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>malloc.linked_addr </span><br><span class="line"><span class="number">0x2c0</span>     </span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>malloc.relative_addr</span><br><span class="line"><span class="number">0x2c0</span></span><br></pre></td></tr></table></div></figure>
+
+
+        <h4 id="②共享库信息"   >
+          <a href="#②共享库信息" class="heading-link"><i class="fas fa-link"></i></a><a href="#②共享库信息" class="headerlink" title="②共享库信息"></a>②共享库信息</h4>
+      <p>选项</p>
+<div class="table-container"><table>
+<thead>
+<tr>
+<th><code>auto_load_libs</code></th>
+<th>是否自动加载程序的依赖</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>skip_libs</code></td>
+<td>避免加载的库</td>
+</tr>
+<tr>
+<td><code>except_missing_libs</code></td>
+<td>无法解析共享库时是否抛出异常</td>
+</tr>
+<tr>
+<td><code>force_load_libs</code></td>
+<td>强制加载的库</td>
+</tr>
+<tr>
+<td><code>ld_path</code></td>
+<td>共享库的优先搜索搜寻路径</td>
+</tr>
+</tbody></table></div>
+<p>信息</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj = angr.Project(<span class="string">&#x27;/bin/true&#x27;</span>)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj.loader.shared_objects</span><br><span class="line">OrderedDict([(<span class="string">&#x27;true&#x27;</span>, &lt;ELF Object true, maps [<span class="number">0x400000</span>:<span class="number">0x60721f</span>]&gt;), (<span class="string">&#x27;libc.so.6&#x27;</span>, &lt;ELF Object libc-<span class="number">2.27</span>.so, maps [<span class="number">0x1000000</span>:<span class="number">0x13f0adf</span>]&gt;), (<span class="string">&#x27;ld-linux-x86-64.so.2&#x27;</span>, &lt;ELF Object ld-<span class="number">2.27</span>.so, maps [<span class="number">0x2000000</span>:<span class="number">0x222916f</span>]&gt;)])</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj = angr.Project(<span class="string">&#x27;/bin/true&#x27;</span>, load_options=&#123;<span class="string">&quot;auto_load_libs&quot;</span>: <span class="literal">False</span>&#125;)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj.loader.shared_objects</span><br><span class="line">OrderedDict([(<span class="string">&#x27;true&#x27;</span>, &lt;ELF Object true, maps [<span class="number">0x400000</span>:<span class="number">0x60721f</span>]&gt;)])</span><br></pre></td></tr></table></div></figure>
+
+
+        <h4 id="③Libc函数信息"   >
+          <a href="#③Libc函数信息" class="heading-link"><i class="fas fa-link"></i></a><a href="#③Libc函数信息" class="headerlink" title="③Libc函数信息"></a>③Libc函数信息</h4>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>angr.procedures.libc.malloc</span><br><span class="line">&lt;module <span class="string">&#x27;angr.procedures.libc.malloc&#x27;</span> <span class="keyword">from</span> <span class="string">&#x27;/home/angr/angr-dev/angr/angr/procedures/libc/malloc.py&#x27;</span>&gt;</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>angr.SIM_PROCEDURES[<span class="string">&#x27;libc&#x27;</span>][<span class="string">&#x27;malloc&#x27;</span>]</span><br><span class="line">&lt;<span class="class"><span class="keyword">class</span> &#x27;<span class="title">angr</span>.<span class="title">procedures</span>.<span class="title">libc</span>.<span class="title">malloc</span>.<span class="title">malloc</span>&#x27;&gt;</span></span><br></pre></td></tr></table></div></figure>
+
+
+        <h2 id="6-Hook信息"   >
+          <a href="#6-Hook信息" class="heading-link"><i class="fas fa-link"></i></a><a href="#6-Hook信息" class="headerlink" title="6.Hook信息"></a>6.Hook信息</h2>
+      <p>查看hook相关的信息</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>stub_func = angr.SIM_PROCEDURES[<span class="string">&#x27;stubs&#x27;</span>][<span class="string">&#x27;ReturnUnconstrained&#x27;</span>] <span class="comment"># this is a CLASS</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj.hook(<span class="number">0x10000</span>, stub_func())  <span class="comment"># hook with an instance of the class</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj.is_hooked(<span class="number">0x10000</span>)            <span class="comment"># these functions should be pretty self-explanitory</span></span><br><span class="line"><span class="literal">True</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj.hooked_by(<span class="number">0x10000</span>)</span><br><span class="line">&lt;ReturnUnconstrained&gt;</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj.unhook(<span class="number">0x10000</span>)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>@proj.hook(<span class="number">0x20000</span>, length=<span class="number">5</span>)</span><br><span class="line"><span class="meta">... </span><span class="function"><span class="keyword">def</span> <span class="title">my_hook</span>(<span class="params">state</span>):</span></span><br><span class="line"><span class="meta">... </span>    state.regs.rax = <span class="number">1</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj.is_hooked(<span class="number">0x20000</span>)</span><br><span class="line"><span class="literal">True</span></span><br></pre></td></tr></table></div></figure>
+
+
+
+
+
+
+        <h1 id="三、命令行使用angr"   >
+          <a href="#三、命令行使用angr" class="heading-link"><i class="fas fa-link"></i></a><a href="#三、命令行使用angr" class="headerlink" title="三、命令行使用angr"></a>三、命令行使用angr</h1>
+      
+        <h2 id="1-docker环境"   >
+          <a href="#1-docker环境" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-docker环境" class="headerlink" title="1.docker环境"></a>1.docker环境</h2>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo docker run -it --rm -v $PWD/myTest:/myTest angr/angr</span><br></pre></td></tr></table></div></figure>
+
+
+        <h2 id="2-前期准备"   >
+          <a href="#2-前期准备" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-前期准备" class="headerlink" title="2.前期准备"></a>2.前期准备</h2>
+      
+        <h3 id="1-进入angr"   >
+          <a href="#1-进入angr" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-进入angr" class="headerlink" title="(1)进入angr"></a>(1)进入angr</h3>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> angr</span><br><span class="line"><span class="keyword">import</span> logging</span><br><span class="line">project = angr.Project(<span class="string">&quot;/myTest/callBinaryFunc&quot;</span>)</span><br><span class="line"><span class="comment">#使用unicorn引擎</span></span><br><span class="line">initial_state = project.factory.entry_state(add_options=angr.options.unicorn)</span><br><span class="line">logging.getLogger(<span class="string">&#x27;angr&#x27;</span>).setLevel(logging.INFO)</span><br><span class="line"><span class="comment">#现在就是停在start函数的入口</span></span><br><span class="line"><span class="built_in">hex</span>(initial_state.addr)</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h2 id="3-中期调试"   >
+          <a href="#3-中期调试" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-中期调试" class="headerlink" title="3.中期调试"></a>3.中期调试</h2>
+      
+        <h3 id="1-中断调试"   >
+          <a href="#1-中断调试" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-中断调试" class="headerlink" title="(1)中断调试"></a>(1)中断调试</h3>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> logging</span><br><span class="line">logging.getLogger(<span class="string">&#x27;angr&#x27;</span>).setLevel(logging.INFO)</span><br><span class="line"><span class="comment">#from pwn import*</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hook</span>(<span class="params">l=<span class="literal">None</span></span>):</span></span><br><span class="line">    <span class="keyword">if</span> l:</span><br><span class="line">        <span class="built_in">locals</span>().update(l)</span><br><span class="line">    <span class="keyword">import</span> IPython</span><br><span class="line">    IPython.embed(banner1=<span class="string">&#x27;&#x27;</span>,confirm_exit=<span class="literal">False</span>)</span><br><span class="line">    exit(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">#然后在需要中断的地方调用该函数即可</span></span><br><span class="line">hook(<span class="built_in">locals</span>())</span><br></pre></td></tr></table></div></figure>
+
+<p>或者使用ipdb</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> ipdb</span><br><span class="line"></span><br><span class="line"><span class="comment">#在需要断点的地方下断点即可</span></span><br><span class="line">ipdb.set_trace()</span><br></pre></td></tr></table></div></figure>
+
+<p>使用手册</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">h(help)：帮助命令</span><br><span class="line">s(step into)：进入函数内部</span><br><span class="line">n(next)：执行下一行</span><br><span class="line">b(break): b line_number 打断点</span><br><span class="line">cl(clear): 清除断点</span><br><span class="line">c(continue): 一直执行到断点</span><br><span class="line">r(return): 从当前函数返回</span><br><span class="line">j(jump): j line_number，跳过代码片段，直接执行指定行号所在的代码</span><br><span class="line">l(list): 列出上下文代码</span><br><span class="line">a(argument): 列出传入函数所有的参数值</span><br><span class="line">p/pp: print 和 pretty print 打印出变量值</span><br><span class="line">r(restart): 重启调试器</span><br><span class="line">q(quit): 推出调试，清除所有信息</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h3 id="2-angr管理器"   >
+          <a href="#2-angr管理器" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-angr管理器" class="headerlink" title="(2)angr管理器"></a>(2)angr管理器</h3>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#获取路径管理器，从入口开始运行</span></span><br><span class="line">sm = project.factory.simulation_manager()</span><br><span class="line">sm.run()</span><br><span class="line"></span><br><span class="line"><span class="comment">#或者如下设置，设置初始状态和入口地址，从该状态开始探索，直到find</span></span><br><span class="line">initial_state = project.factory.blank_state(addr=start_address)</span><br><span class="line">simulation = project.factory.simgr(initial_state,veritesting=<span class="literal">True</span>)</span><br><span class="line">simulation.explore(find=success_address)</span><br></pre></td></tr></table></div></figure>
+
+<p>以下为运行之后可能的状态路径</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211208111250.png" alt="image-20211208111243588"></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211208111727.png" alt="image-20211208111727739"></p>
+<p>然后即可通过状态来查看当前状态的中的各种内存，寄存器等</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211208111922.png" alt="image-20211208111922248"></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211208111957.png" alt="image-20211208111957281"></p>
+
+        <h3 id="3-获取当前块相关信息"   >
+          <a href="#3-获取当前块相关信息" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-获取当前块相关信息" class="headerlink" title="(3)获取当前块相关信息"></a>(3)获取当前块相关信息</h3>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#查看block相关信息</span></span><br><span class="line">block = state.block()</span><br><span class="line">block.capstone.pp()</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211207175459.png" alt="image-20211207175452322"></p>
+
+        <h3 id="4-调试core"   >
+          <a href="#4-调试core" class="heading-link"><i class="fas fa-link"></i></a><a href="#4-调试core" class="headerlink" title="(4)调试core"></a>(4)调试core</h3>
+      <p>一般而言，core可以从gdb中获得，得到当前gdb状态的所有数据，包括加载的libc函数等，我们就可以中获得相关的数据来初始化我们的state</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211208155507.png" alt="image-20211208155507602"></p>
+<p>然后就可以对应调试了，设置还是一样的设置，只不过地址直接变成当前的gdb中的地址即可。可以看到所有内存基本一致，只有rbp,rsp等栈指针不太一样，这样比较方便我们来获取数据调试。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211208155815.png" alt="image-20211208155814628"></p>
+
+        <h3 id="5-继续探索"   >
+          <a href="#5-继续探索" class="heading-link"><i class="fas fa-link"></i></a><a href="#5-继续探索" class="headerlink" title="(5)继续探索"></a>(5)继续探索</h3>
+      <p>当使用过的<code>simulation</code>想接着某个状态继续探索时，直接使用以下代码不会成功</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">simulation.explore(find = addr)</span><br></pre></td></tr></table></div></figure>
+
+<p>这时候需要获取当前<code>simulation</code>的状态<code>state</code>，然后依据该状态<code>state</code>新建一个<code>newSimulation</code>才能继续探索</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">nextFind</span>(<span class="params">project,state,find=<span class="number">0</span>,avoid=<span class="number">0</span></span>):</span></span><br><span class="line">    simulation = project.factory.simgr(state,veritesting=<span class="literal">True</span>)</span><br><span class="line">    simulation.explore(find = find,avoid = avoid)</span><br><span class="line">    <span class="keyword">return</span> simulation</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+
+
+
+<p>▲TIPS</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#输入？获取帮助</span></span><br><span class="line">p.factory.simulation_manager?</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></div></figure>
+
+
+
+<p>1.获取字符串</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#转成byte类型的字符串</span></span><br><span class="line"><span class="comment">#sm = p.factory.simulation_manager()</span></span><br><span class="line"><span class="comment">#sm.step()</span></span><br><span class="line"><span class="comment">#state = sm.active[0]</span></span><br><span class="line">flag = state.mem[addr].string</span><br><span class="line">flag.concrete</span><br><span class="line"></span><br><span class="line">sm.deadended[<span class="number">1</span>].posix.stdout.concretize()</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211207180744.png" alt="image-20211207180744674"></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211208111616.png" alt="image-20211208111616726"></p>
+
+        <h1 id="TIPS"   >
+          <a href="#TIPS" class="heading-link"><i class="fas fa-link"></i></a><a href="#TIPS" class="headerlink" title="TIPS"></a>TIPS</h1>
+      
+        <h2 id="1-求值问题"   >
+          <a href="#1-求值问题" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-求值问题" class="headerlink" title="1.求值问题"></a>1.求值问题</h2>
+      
+        <h3 id="1-求BVV符号值"   >
+          <a href="#1-求BVV符号值" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-求BVV符号值" class="headerlink" title="(1)求BVV符号值"></a>(1)求BVV符号值</h3>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">a = claripy.BVV(<span class="number">0xffffffff</span>, <span class="number">0x4</span>*<span class="number">8</span>)</span><br><span class="line">s = claripy.Solver()</span><br><span class="line"><span class="keyword">if</span>(s.<span class="built_in">eval</span>(a, <span class="number">0</span>)[<span class="number">0</span>] == <span class="number">0xffffffff</span>):</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Get!&quot;</span>)</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+
+
+
+
+        <h3 id="2-获取内存符号值"   >
+          <a href="#2-获取内存符号值" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-获取内存符号值" class="headerlink" title="(2)获取内存符号值"></a>(2)获取内存符号值</h3>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">state = proj.factory.entry_state()</span><br><span class="line"><span class="comment">#add rax, qword ptr [rsp + 8]</span></span><br><span class="line">state.regs.rax += state.mem[state.regs.rsp + <span class="number">8</span>].uint64_t.resolved</span><br><span class="line"></span><br><span class="line">result = simgr.found[<span class="number">0</span>].memory.load(flag_addr, <span class="number">40</span>)</span><br><span class="line"><span class="comment">#or get_byte</span></span><br><span class="line">simulation.found[<span class="number">0</span>].solver.<span class="built_in">eval</span>(result.get_bytes(<span class="number">0</span>,<span class="number">0x17</span>),cast_to=<span class="built_in">bytes</span>)</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h3 id="3-输入参数的值"   >
+          <a href="#3-输入参数的值" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-输入参数的值" class="headerlink" title="(3)输入参数的值"></a>(3)输入参数的值</h3>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#set</span></span><br><span class="line">initial_state = p.factory.entry_state(args=[binary,argv1])</span><br><span class="line">simgr = p.factory.simgr(inital_state,veritesting=<span class="literal">True</span>)</span><br><span class="line">found = simgr.found[<span class="number">0</span>]</span><br><span class="line"><span class="comment">#get</span></span><br><span class="line">found.solver.<span class="built_in">eval</span>(argv1,cast_to=<span class="built_in">bytes</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">#or such as</span></span><br><span class="line">data = claripy.BVS(<span class="string">&#x27;data&#x27;</span>,<span class="number">20</span>*<span class="number">8</span>)</span><br><span class="line">p = angr.Project(path_to_binary, auto_load_libs=<span class="literal">True</span>)</span><br><span class="line">inital_state = p.factory.entry_state(stdin=data)</span><br><span class="line">simgr = p.factory.simgr(inital_state,veritesting=<span class="literal">True</span>)</span><br><span class="line"><span class="comment">#get</span></span><br><span class="line"><span class="built_in">print</span>(simgr.found[<span class="number">0</span>].posix.stdin.concretize())</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+
+
+        <h3 id="4-向量连接"   >
+          <a href="#4-向量连接" class="heading-link"><i class="fas fa-link"></i></a><a href="#4-向量连接" class="headerlink" title="(4)向量连接"></a>(4)向量连接</h3>
+      <p><code>claripy.Concat</code>方法用于<code>bitVector</code>的连接</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">flag_chars = claripy.BVS(<span class="string">&#x27;flag_%d&#x27;</span> % <span class="number">1</span>, <span class="number">8</span>)</span><br><span class="line">flag = claripy.Concat(flag_chars + claripy.BVV(<span class="string">b&#x27;\n&#x27;</span>))</span><br><span class="line"></span><br><span class="line"><span class="comment">#list中的向量</span></span><br><span class="line">flag_chars = [claripy.BVS(<span class="string">&#x27;flag_%d&#x27;</span> % i, <span class="number">8</span>) <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">28</span>)]</span><br><span class="line">flag = claripy.Concat(*flag_chars + [claripy.BVV(<span class="string">b&#x27;\n&#x27;</span>)])</span><br><span class="line"><span class="comment">#之后在state中设置stdin=flag即可从命令行输入多组向量</span></span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h3 id="5-获取内存进行对比"   >
+          <a href="#5-获取内存进行对比" class="heading-link"><i class="fas fa-link"></i></a><a href="#5-获取内存进行对比" class="headerlink" title="(5)获取内存进行对比"></a>(5)获取内存进行对比</h3>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">found.add_constraints(found.memory.load(flag_addr, <span class="number">5</span>) == <span class="built_in">int</span>(binascii.hexlify(<span class="string">b&quot;ASIS&#123;&quot;</span>), <span class="number">16</span>))</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h3 id="6-常见添加flag的约束"   >
+          <a href="#6-常见添加flag的约束" class="heading-link"><i class="fas fa-link"></i></a><a href="#6-常见添加flag的约束" class="headerlink" title="(6)常见添加flag的约束"></a>(6)常见添加flag的约束</h3>
+      <p>当输入某个数字，经过计算打印flag，只有简单几条路径时，就需要对flag进行约束才能正常输出，<code>asisctffinals2015_fake</code></p>
+<p>添加约束的时候，不能使用<code>eval</code>求解，只能使用<code>load</code></p>
+
+        <h4 id="①整个Flag约束"   >
+          <a href="#①整个Flag约束" class="heading-link"><i class="fas fa-link"></i></a><a href="#①整个Flag约束" class="headerlink" title="①整个Flag约束"></a>①整个Flag约束</h4>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#这里即代表flag中应该都是[0~9]或者[a~z][-,_]，最后应该以&#x27;&#125;&#x27;结尾</span></span><br><span class="line">flag = found.memory.load(flag_addr, <span class="number">40</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>, <span class="number">5</span>+<span class="number">32</span>):</span><br><span class="line">    cond_0 = flag.get_byte(i) &gt;= <span class="built_in">ord</span>(<span class="string">&#x27;0&#x27;</span>)</span><br><span class="line">    cond_1 = flag.get_byte(i) &lt;= <span class="built_in">ord</span>(<span class="string">&#x27;9&#x27;</span>)</span><br><span class="line">    cond_2 = flag.get_byte(i) &gt;= <span class="built_in">ord</span>(<span class="string">&#x27;a&#x27;</span>)</span><br><span class="line">    cond_3 = flag.get_byte(i) &lt;= <span class="built_in">ord</span>(<span class="string">&#x27;z&#x27;</span>)</span><br><span class="line">    cond_4 = found.solver.And(cond_0, cond_1)</span><br><span class="line">    cond_5 = found.solver.And(cond_2, cond_3)</span><br><span class="line">    cond_6 = flag.get_byte(i) == <span class="built_in">ord</span>(<span class="string">&#x27;-&#x27;</span>)</span><br><span class="line">    cond_7 = flag.get_byte(i) == <span class="built_in">ord</span>(<span class="string">&#x27;_&#x27;</span>)</span><br><span class="line">    found.add_constraints(found.solver.Or(cond_4, cond_5,cond_6,cond_7))</span><br><span class="line">found.add_constraints(flag.get_byte(<span class="number">32</span>+<span class="number">5</span>) == <span class="built_in">ord</span>(<span class="string">&#x27;&#125;&#x27;</span>))</span><br></pre></td></tr></table></div></figure>
+
+
+        <h4 id="②向量约束"   >
+          <a href="#②向量约束" class="heading-link"><i class="fas fa-link"></i></a><a href="#②向量约束" class="headerlink" title="②向量约束"></a>②向量约束</h4>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> b <span class="keyword">in</span> arg1.chop(<span class="number">8</span>):</span><br><span class="line">    initial_state.add_constraints(b != <span class="number">0</span>)</span><br></pre></td></tr></table></div></figure>
+
+
+        <h4 id="③字符约束"   >
+          <a href="#③字符约束" class="heading-link"><i class="fas fa-link"></i></a><a href="#③字符约束" class="headerlink" title="③字符约束"></a>③字符约束</h4>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#可见</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">36</span>):</span><br><span class="line">    <span class="comment"># We want those flags to be printable characters</span></span><br><span class="line">    state.add_constraints(flag.get_byte(i) &gt;= <span class="number">0x20</span>)</span><br><span class="line">    state.add_constraints(flag.get_byte(i) &lt;= <span class="number">0x7e</span>)</span><br><span class="line">    </span><br><span class="line"><span class="comment">#Or</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(dataLen):</span><br><span class="line">    state.solver.add(</span><br><span class="line">    	claripy.Or(</span><br><span class="line">            *(data.get_byte(i) == x <span class="keyword">for</span> x <span class="keyword">in</span> printable)</span><br><span class="line">        )</span><br><span class="line">    )</span><br></pre></td></tr></table></div></figure>
+
+
+        <h4 id="④特殊约束"   >
+          <a href="#④特殊约束" class="heading-link"><i class="fas fa-link"></i></a><a href="#④特殊约束" class="headerlink" title="④特殊约束"></a>④特殊约束</h4>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">found.add_constraints(found.memory.load(flag_addr, <span class="number">5</span>) == <span class="built_in">int</span>(binascii.hexlify(<span class="string">b&quot;ASIS&#123;&quot;</span>), <span class="number">16</span>))</span><br><span class="line">found.add_constraints(flag.get_byte(<span class="number">32</span>+<span class="number">5</span>) == <span class="built_in">ord</span>(<span class="string">&#x27;&#125;&#x27;</span>))</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+
+
+        <h3 id="7-方便的栈数据存取操作"   >
+          <a href="#7-方便的栈数据存取操作" class="heading-link"><i class="fas fa-link"></i></a><a href="#7-方便的栈数据存取操作" class="headerlink" title="(7)方便的栈数据存取操作"></a>(7)方便的栈数据存取操作</h3>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">state.regs.rbp = state.regs.rsp</span><br><span class="line">    state.mem[state.regs.rbp - <span class="number">0x74</span>].uint32_t = <span class="number">0x40</span></span><br><span class="line">    state.mem[state.regs.rbp - <span class="number">0x70</span>].uint64_t = <span class="number">0x1000</span></span><br><span class="line">    state.mem[state.regs.rbp - <span class="number">0x68</span>].uint64_t = <span class="number">0x1008</span></span><br><span class="line">    state.mem[state.regs.rbp - <span class="number">0x60</span>].uint64_t = <span class="number">0x1010</span></span><br><span class="line">    state.mem[state.regs.rbp - <span class="number">0x58</span>].uint64_t = <span class="number">0x1018</span></span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h3 id="8-获取state的输出"   >
+          <a href="#8-获取state的输出" class="heading-link"><i class="fas fa-link"></i></a><a href="#8-获取state的输出" class="headerlink" title="(8)获取state的输出"></a>(8)获取state的输出</h3>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#p = angr.Project(&quot;/myTest/callBinaryFunc&quot;)</span></span><br><span class="line"><span class="comment">#sm = p.factory.simulation_manager()</span></span><br><span class="line"><span class="built_in">print</span>(sm.deadended[<span class="number">0</span>].posix.stdout.concretize())</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">#当需要从多条路径遍历获取flag时</span></span><br><span class="line">out = <span class="string">b&#x27;&#x27;</span></span><br><span class="line"><span class="keyword">for</span> pp <span class="keyword">in</span> simulation.deadended:</span><br><span class="line">    out = pp.posix.dumps(<span class="number">1</span>)</span><br><span class="line">    <span class="keyword">if</span> <span class="string">b&#x27;flag&#123;&#x27;</span> <span class="keyword">in</span> out:</span><br><span class="line">        final_flag = <span class="built_in">next</span>(<span class="built_in">filter</span>(<span class="keyword">lambda</span> s: <span class="string">b&#x27;flag&#123;&#x27;</span> <span class="keyword">in</span> s, out.split()))</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;[+] Success! Solution is: &#123;0&#125;&quot;</span>.<span class="built_in">format</span>(final_flag))</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+
+
+        <h2 id="2-无法识别的函数"   >
+          <a href="#2-无法识别的函数" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-无法识别的函数" class="headerlink" title="2.无法识别的函数"></a>2.无法识别的函数</h2>
+      <p>strtol(),strlen()等一系列的字符串操作</p>
+
+        <h2 id="3-末尾加’-x00’问题"   >
+          <a href="#3-末尾加’-x00’问题" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-末尾加’-x00’问题" class="headerlink" title="3.末尾加’\x00’问题"></a>3.末尾加’\x00’问题</h2>
+      <p>有时候会向量设置，最好在末尾加上’\x00’，使得某些情况能够通过。同样的当有canary的时候，没办法从压入canary的地方开始的时候，这时候最好给canary向量化或者给’\x00’截断。<code>sym-write</code></p>
+
+        <h2 id="4-符号写问题"   >
+          <a href="#4-符号写问题" class="heading-link"><i class="fas fa-link"></i></a><a href="#4-符号写问题" class="headerlink" title="4.符号写问题"></a>4.符号写问题</h2>
+      <p>同样的，在很多时候，最好加上<code>&#123;angr.options.SYMBOLIC_WRITE_ADDRESSES&#125;</code>选项，这个其实也不是很清楚，有的题不加也可以，但是有的题不加就不行。</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">state = project.factory.entry_state(add_options=&#123;angr.options.SYMBOLIC_WRITE_ADDRESSES&#125;)</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h2 id="5-32位问题"   >
+          <a href="#5-32位问题" class="heading-link"><i class="fas fa-link"></i></a><a href="#5-32位问题" class="headerlink" title="5.32位问题"></a>5.32位问题</h2>
+      <p>x86的32位程序下，参数从栈上取，有时候通常需要设置这个才行的<code>flareon2015_2</code></p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">s.memory.store(s.regs.esp+<span class="number">12</span>, s.solver.BVV(<span class="number">50</span>,<span class="number">8</span>*<span class="number">4</span>))</span><br><span class="line">s.mem[s.regs.esp+<span class="number">8</span>].uint32_t = <span class="number">0x402159</span></span><br><span class="line">s.mem[s.regs.esp+<span class="number">4</span>].uint32_t = <span class="number">0x4010e4</span></span><br><span class="line">s.mem[s.regs.esp].uint32_t = <span class="number">0x401064</span></span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h2 id="6-检查问题"   >
+          <a href="#6-检查问题" class="heading-link"><i class="fas fa-link"></i></a><a href="#6-检查问题" class="headerlink" title="6.检查问题"></a>6.检查问题</h2>
+      <p>正常情况下某个 state 被发现是不可满足条件的，那么state会进行回溯，来确定到底是哪个state不被满足，之后所有的state会被放入到stash中。但是有的时候回溯并不好，会比较不容易出结果，尤其是运算量比较大的时候，这时候就可以添加<code>LAZY_SOLVES</code>，不进行检查，先把所有路径跑完。</p>
+<p>总的来说LAZY_SOLVES是在路径爆炸和花费在约束求解上的时间之间的平衡。</p>
+<p>同样的，有的版本是默认开启，有的是默认关闭，对应修改即可</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">state = p.factory.blank_state(addr=START_ADDR, add_options=&#123;angr.options.LAZY_SOLVES&#125;)</span><br><span class="line">state = p.factory.blank_state(addr=START_ADDR, remove_options=&#123;angr.options.LAZY_SOLVES&#125;)</span><br></pre></td></tr></table></div></figure>
+
+<p>详见题目<code>google2016_unbreakable_1</code></p>
+<p>比较适用于当find路径和avoid路径都比较容易抵达的时候，即某些库函数调用比较少，但是运算量比较庞大的时候，类似如下全是运算的</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211210175007.png" alt="image-20211210175000853"></p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://docs.angr.io/appendix/options#option-sets" >https://docs.angr.io/appendix/options#option-sets</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://hitcon.org/2016/CMT/slide/day1-r1-a-1.pdf" >day1-r1-a-1.pdf (hitcon.org)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://flagbot.ch/lesson5.pdf" >https://flagbot.ch/lesson5.pdf</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+
+        <h2 id="7-执行非-text段代码"   >
+          <a href="#7-执行非-text段代码" class="heading-link"><i class="fas fa-link"></i></a><a href="#7-执行非-text段代码" class="headerlink" title="7.执行非.text段代码"></a>7.执行非.text段代码</h2>
+      <p>正常的angr只能执行.text段的代码，但是有的题会执行非.text段的代码，不过需要在创建Project的时候加入选项<code>support_selfmodifying_code=True</code>，详见题目<code>tumctf2016_zwiebel</code></p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">project = angr.Project(<span class="string">&quot;zwiebel&quot;</span>, support_selfmodifying_code=<span class="literal">True</span>) </span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h2 id="8-指定运行代码块数"   >
+          <a href="#8-指定运行代码块数" class="heading-link"><i class="fas fa-link"></i></a><a href="#8-指定运行代码块数" class="headerlink" title="8.指定运行代码块数"></a>8.指定运行代码块数</h2>
+      <p>设定n，表示从state的状态开始运行3个基本块</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">simulation.run(n=<span class="number">3</span>)</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h1 id="帮助"   >
+          <a href="#帮助" class="heading-link"><i class="fas fa-link"></i></a><a href="#帮助" class="headerlink" title="帮助"></a>帮助</h1>
+      <p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="http://angr.io/api-doc/angr.html#angr.sim_state.SimState" >angr — Analysis and Coordination — angr 9.0.10689 documentation</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://xz.aliyun.com/t/3990" >https://xz.aliyun.com/t/3990</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.cnblogs.com/61355ing/p/10523147.html" >https://www.cnblogs.com/61355ing/p/10523147.html</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=9dQFM5O4KFk" >angr Tutorials EP1 - Reverse Engineering 101 - YouTube</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://angr.io/blog/" >angr</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://myts2.cn/2020/05/24/guan-yu-fasterde-na-xie-shi/" >关于Faster的那些事… (myts2.cn)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>[<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://bbs.pediy.com/thread-266757.htm" >原创]符号执行在自动化Pwn中的简单利用-Pwn-看雪论坛-安全社区|安全招聘|bbs.pediy.com</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/shellphish/driller" >shellphish/driller: Driller: augmenting AFL with symbolic execution! (github.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+</div><footer class="post-footer"><div class="post-ending ending"><div class="ending__text">------ END ------</div></div><div class="post-copyright copyright"><div class="copyright-author"><span class="copyright-author__name">Author: </span><span class="copyright-author__value"><a href="http://PIG-007.github.io">PIG-007</a></span></div><div class="copyright-link"><span class="copyright-link__name">Link: </span><span class="copyright-link__value"><a href="http://pig-007.github.io/2021/11/19/Angr%E6%89%8B%E5%86%8C/">http://pig-007.github.io/2021/11/19/Angr%E6%89%8B%E5%86%8C/</a></span></div><div class="copyright-notice"><span class="copyright-notice__name">Copyright: </span><span class="copyright-notice__value">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" rel="external nofollow" target="_blank">BY-NC-SA</a> unless stating additionally</span></div></div><div class="post-tags"><span class="post-tags-item"><span class="post-tags-item__icon"><i class="fas fa-tag"></i></span><a class="post-tags-item__link" href="http://pig-007.github.io/tags/Angr/">Angr</a></span></div><nav class="post-paginator paginator"><div class="paginator-prev"><a class="paginator-prev__link" href="/2021/11/19/Unicorn/"><span class="paginator-prev__icon"><i class="fas fa-angle-left"></i></span><span class="paginator-prev__text">Unicorn</span></a></div><div class="paginator-next"><a class="paginator-next__link" href="/2021/11/08/%E9%99%87%E5%8E%9F%E6%88%98%E7%96%AB/"><span class="paginator-prev__text">陇原战疫WP</span><span class="paginator-next__icon"><i class="fas fa-angle-right"></i></span></a></div></nav></footer></div></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><div class="sidebar-nav"><span class="sidebar-nav-toc current">Catalog</span><span class="sidebar-nav-ov">Overview</span></div><section class="sidebar-toc"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-text">
+          一、初始化</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%96%B2%E6%A8%A1%E6%9D%BF"><span class="toc-text">
+          ▲模板</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%88%9B%E5%BB%BAProject"><span class="toc-text">
+          1.创建Project</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E8%AE%BE%E7%BD%AE%E6%8E%A2%E7%B4%A2%E8%B7%AF%E5%BE%84"><span class="toc-text">
+          2.设置探索路径</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E8%AE%BE%E7%BD%AE%E7%BA%A6%E6%9D%9F%E8%B7%AF%E5%BE%84"><span class="toc-text">
+          (1)设置约束路径</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A0%E9%80%9A%E8%BF%87%E5%9C%B0%E5%9D%80%E8%AE%BE%E7%BD%AE"><span class="toc-text">
+          ①通过地址设置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A1%E9%80%9A%E8%BF%87%E6%89%93%E5%8D%B0%E5%86%85%E5%AE%B9%E8%AE%BE%E7%BD%AE"><span class="toc-text">
+          ②通过打印内容设置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A2%E8%AE%BE%E7%BD%AE%E5%90%91%E9%87%8F"><span class="toc-text">
+          ③设置向量</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A3%E8%AE%BE%E7%BD%AE%E5%AF%84%E5%AD%98%E5%99%A8"><span class="toc-text">
+          ④设置寄存器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A4%E8%AE%BE%E7%BD%AE%E6%A0%88%E4%B8%8A%E7%9A%84%E6%95%B0%E6%8D%AE"><span class="toc-text">
+          ⑤设置栈上的数据</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#A-%E5%85%88%E8%AE%BE%E7%BD%AE%E6%A0%88%E5%B8%A7%E6%8C%87%E9%92%88"><span class="toc-text">
+          A.先设置栈帧指针</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#B-%E8%A7%82%E5%AF%9F%E6%A0%88%E4%B8%8A%E6%95%B0%E6%8D%AE%EF%BC%8C%E7%84%B6%E5%90%8E%E8%BF%9B%E8%A1%8C%E8%AE%BE%E7%BD%AE"><span class="toc-text">
+          B.观察栈上数据，然后进行设置</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%F0%9F%94%BA%E6%B3%A8%EF%BC%9A"><span class="toc-text">
+          🔺注：</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A5%E7%AC%A6%E5%8F%B7%E5%8C%96%E5%86%85%E5%AD%98"><span class="toc-text">
+          ⑥符号化内存</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A6%E7%AC%A6%E5%8F%B7%E5%8C%96%E5%A0%86%E5%86%85%E5%AD%98"><span class="toc-text">
+          ⑦符号化堆内存</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A7%E7%AC%A6%E5%8F%B7%E5%8C%96%E6%96%87%E4%BB%B6"><span class="toc-text">
+          ⑧符号化文件</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E7%BA%A6%E6%9D%9F%E6%AF%94%E8%BE%83%E5%87%BD%E6%95%B0"><span class="toc-text">
+          3.约束比较函数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E4%BD%BF%E7%94%A8HOOK%E5%87%BD%E6%95%B0"><span class="toc-text">
+          4.使用HOOK函数</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%88%A9%E7%94%A8%E5%9C%B0%E5%9D%80%E8%BF%9B%E8%A1%8Chook"><span class="toc-text">
+          (1)利用地址进行hook</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%88%A9%E7%94%A8%E5%87%BD%E6%95%B0%E5%90%8D%E8%BF%9B%E8%A1%8Chook"><span class="toc-text">
+          (2)利用函数名进行hook</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-Hook%E6%8E%89Scanf%E5%87%BD%E6%95%B0"><span class="toc-text">
+          (3)Hook掉Scanf函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-Hook%E9%9D%99%E6%80%81%E5%BA%93%E5%87%BD%E6%95%B0"><span class="toc-text">
+          (4)Hook静态库函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E5%A4%84%E7%90%86%E5%87%BD%E6%95%B0%E5%9C%A8%E5%A4%96%E9%83%A8%E5%BA%93so%E4%B8%AD"><span class="toc-text">
+          (5)处理函数在外部库so中</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-%E5%BF%AB%E9%80%9Fhook"><span class="toc-text">
+          (6)快速hook</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E5%BC%80%E5%A7%8B%E6%8E%A2%E7%B4%A2"><span class="toc-text">
+          5.开始探索</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%96%B2veritesting%E6%A8%A1%E5%BC%8F"><span class="toc-text">
+          ▲veritesting模式</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E8%BE%93%E5%87%BA%E7%AD%94%E6%A1%88"><span class="toc-text">
+          6.输出答案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E7%AC%A6%E5%8F%B7%E8%BE%93%E5%87%BA"><span class="toc-text">
+          (1)符号输出</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E4%BD%8D%E5%90%91%E9%87%8F%E8%BE%93%E5%87%BA"><span class="toc-text">
+          (2)位向量输出</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E6%B1%82%E8%A7%A3%E9%80%89%E9%A1%B9"><span class="toc-text">
+          (3)求解选项</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E8%BF%9B%E9%98%B6%E7%AE%A1%E7%90%86"><span class="toc-text">
+          二、进阶管理</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E8%BF%90%E8%A1%8C%E6%96%B9%E5%BC%8F"><span class="toc-text">
+          1.运行方式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-step"><span class="toc-text">
+          (1)step()</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-run"><span class="toc-text">
+          (2)run()</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-explore"><span class="toc-text">
+          (3)explore()</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E8%B7%A8%E5%B9%B3%E5%8F%B0%E4%BD%BF%E7%94%A8"><span class="toc-text">
+          2.跨平台使用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-ARM"><span class="toc-text">
+          (1)ARM</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E7%9B%B4%E6%8E%A5%E4%BD%BF%E7%94%A8%E4%BA%8C%E8%BF%9B%E5%88%B6%E9%87%8C%E7%9A%84%E5%87%BD%E6%95%B0"><span class="toc-text">
+          3.直接使用二进制里的函数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-C-%E5%BA%93%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="toc-text">
+          4.C++库的实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%96%B2%E6%B3%A8%EF%BC%9A"><span class="toc-text">
+          ▲注：</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-loader-%E5%8A%A0%E8%BD%BD%E6%A8%A1%E5%9D%97"><span class="toc-text">
+          5.loader 加载模块</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%8A%A0%E8%BD%BD%E4%BA%8C%E8%BF%9B%E5%88%B6%E9%80%89%E9%A1%B9"><span class="toc-text">
+          (1)加载二进制选项</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E8%8E%B7%E5%8F%96%E5%8A%A0%E8%BD%BD%E5%AF%B9%E8%B1%A1%E7%9A%84%E4%BF%A1%E6%81%AF"><span class="toc-text">
+          (2)获取加载对象的信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E7%AC%A6%E5%8F%B7%E5%92%8C%E9%87%8D%E5%AE%9A%E4%BD%8D%E4%BF%A1%E6%81%AF"><span class="toc-text">
+          (3)符号和重定位信息</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A0%E7%AC%A6%E5%8F%B7%E5%AF%B9%E8%B1%A1%E4%BF%A1%E6%81%AF"><span class="toc-text">
+          ①符号对象信息</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A1%E5%85%B1%E4%BA%AB%E5%BA%93%E4%BF%A1%E6%81%AF"><span class="toc-text">
+          ②共享库信息</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A2Libc%E5%87%BD%E6%95%B0%E4%BF%A1%E6%81%AF"><span class="toc-text">
+          ③Libc函数信息</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-Hook%E4%BF%A1%E6%81%AF"><span class="toc-text">
+          6.Hook信息</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%91%BD%E4%BB%A4%E8%A1%8C%E4%BD%BF%E7%94%A8angr"><span class="toc-text">
+          三、命令行使用angr</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-docker%E7%8E%AF%E5%A2%83"><span class="toc-text">
+          1.docker环境</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%89%8D%E6%9C%9F%E5%87%86%E5%A4%87"><span class="toc-text">
+          2.前期准备</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E8%BF%9B%E5%85%A5angr"><span class="toc-text">
+          (1)进入angr</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E4%B8%AD%E6%9C%9F%E8%B0%83%E8%AF%95"><span class="toc-text">
+          3.中期调试</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E4%B8%AD%E6%96%AD%E8%B0%83%E8%AF%95"><span class="toc-text">
+          (1)中断调试</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-angr%E7%AE%A1%E7%90%86%E5%99%A8"><span class="toc-text">
+          (2)angr管理器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E8%8E%B7%E5%8F%96%E5%BD%93%E5%89%8D%E5%9D%97%E7%9B%B8%E5%85%B3%E4%BF%A1%E6%81%AF"><span class="toc-text">
+          (3)获取当前块相关信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E8%B0%83%E8%AF%95core"><span class="toc-text">
+          (4)调试core</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E7%BB%A7%E7%BB%AD%E6%8E%A2%E7%B4%A2"><span class="toc-text">
+          (5)继续探索</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#TIPS"><span class="toc-text">
+          TIPS</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E6%B1%82%E5%80%BC%E9%97%AE%E9%A2%98"><span class="toc-text">
+          1.求值问题</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%B1%82BVV%E7%AC%A6%E5%8F%B7%E5%80%BC"><span class="toc-text">
+          (1)求BVV符号值</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E8%8E%B7%E5%8F%96%E5%86%85%E5%AD%98%E7%AC%A6%E5%8F%B7%E5%80%BC"><span class="toc-text">
+          (2)获取内存符号值</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E8%BE%93%E5%85%A5%E5%8F%82%E6%95%B0%E7%9A%84%E5%80%BC"><span class="toc-text">
+          (3)输入参数的值</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E5%90%91%E9%87%8F%E8%BF%9E%E6%8E%A5"><span class="toc-text">
+          (4)向量连接</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E8%8E%B7%E5%8F%96%E5%86%85%E5%AD%98%E8%BF%9B%E8%A1%8C%E5%AF%B9%E6%AF%94"><span class="toc-text">
+          (5)获取内存进行对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-%E5%B8%B8%E8%A7%81%E6%B7%BB%E5%8A%A0flag%E7%9A%84%E7%BA%A6%E6%9D%9F"><span class="toc-text">
+          (6)常见添加flag的约束</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A0%E6%95%B4%E4%B8%AAFlag%E7%BA%A6%E6%9D%9F"><span class="toc-text">
+          ①整个Flag约束</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A1%E5%90%91%E9%87%8F%E7%BA%A6%E6%9D%9F"><span class="toc-text">
+          ②向量约束</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A2%E5%AD%97%E7%AC%A6%E7%BA%A6%E6%9D%9F"><span class="toc-text">
+          ③字符约束</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A3%E7%89%B9%E6%AE%8A%E7%BA%A6%E6%9D%9F"><span class="toc-text">
+          ④特殊约束</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-%E6%96%B9%E4%BE%BF%E7%9A%84%E6%A0%88%E6%95%B0%E6%8D%AE%E5%AD%98%E5%8F%96%E6%93%8D%E4%BD%9C"><span class="toc-text">
+          (7)方便的栈数据存取操作</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-%E8%8E%B7%E5%8F%96state%E7%9A%84%E8%BE%93%E5%87%BA"><span class="toc-text">
+          (8)获取state的输出</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%97%A0%E6%B3%95%E8%AF%86%E5%88%AB%E7%9A%84%E5%87%BD%E6%95%B0"><span class="toc-text">
+          2.无法识别的函数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E6%9C%AB%E5%B0%BE%E5%8A%A0%E2%80%99-x00%E2%80%99%E9%97%AE%E9%A2%98"><span class="toc-text">
+          3.末尾加’\x00’问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E7%AC%A6%E5%8F%B7%E5%86%99%E9%97%AE%E9%A2%98"><span class="toc-text">
+          4.符号写问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-32%E4%BD%8D%E9%97%AE%E9%A2%98"><span class="toc-text">
+          5.32位问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E6%A3%80%E6%9F%A5%E9%97%AE%E9%A2%98"><span class="toc-text">
+          6.检查问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E6%89%A7%E8%A1%8C%E9%9D%9E-text%E6%AE%B5%E4%BB%A3%E7%A0%81"><span class="toc-text">
+          7.执行非.text段代码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E6%8C%87%E5%AE%9A%E8%BF%90%E8%A1%8C%E4%BB%A3%E7%A0%81%E5%9D%97%E6%95%B0"><span class="toc-text">
+          8.指定运行代码块数</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B8%AE%E5%8A%A9"><span class="toc-text">
+          帮助</span></a></li></ol></section><!-- ov = overview--><section class="sidebar-ov hide"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">The way forward</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">115</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">58</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">57</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section><div class="sidebar-reading"><div class="sidebar-reading-info"><span class="sidebar-reading-info__text">You have read </span><span class="sidebar-reading-info__num">0</span><span class="sidebar-reading-info__perc">%</span></div><div class="sidebar-reading-line"></div></div></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2022</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
+  var isXML = true;
+  var search_path = 'search.json';
+
+  if (!search_path) {
+    search_path = 'search.xml';
+  } else if (/json$/i.test(search_path)) {
+    isXML = false;
+  }
+
+  var path = '/' + search_path;
+  $.ajax({
+    url: path,
+    dataType: isXML ? 'xml' : 'json',
+    async: true,
+    success: function (res) {
+      var datas = isXML ? $('entry', res).map(function () {
+        // 将 XML 转为 JSON
+        return {
+          title: $('title', this).text(),
+          content: $('content', this).text(),
+          url: $('url', this).text()
+        };
+      }).get() : res;
+      var $input = $('.search-input input');
+      var $result = $('.search-results');
+      // 搜索对象（标题、内容）的权重，影响显示顺序
+      var WEIGHT = { title: 100, content: 1 };
+      var searchPost = function () {
+        var searchText = $input.val().toLowerCase().trim();
+        // 根据空白字符分隔关键字
+        var keywords = searchText.split(/[\s]+/);
+        // 搜索结果
+        var matchPosts = [];
+
+        // 有多个关键字时，将原文字整个保存下来
+        if (keywords.length > 1) {
+          keywords.push(searchText);
+        }
+        // 防止未输入字符时搜索
+        if (searchText.length > 0) {
+          datas.forEach(function (data) {
+            var isMatch  = false;
+            // 没有标题的文章使用预设的 i18n 变量代替
+            var title = (data.title && data.title.trim()) || '[ Untitled ]';
+            var titleLower = title && title.toLowerCase();
+            // 删除 HTML 标签 和 所有空白字符
+            var content = data.content && data.content.replace(/<[^>]+>/g, '');
+            var contentLower = content && content.toLowerCase();
+            // 删除重复的 /
+            var postURL = data.url && decodeURI(data.url).replace(/\/{2,}/g, '/');
+            // 标题中匹配到的关键词
+            var titleHitSlice = [];
+            // 内容中匹配到的关键词
+            var contentHitSlice = [];
+
+            keywords.forEach(function (keyword) {
+              /**
+              * 获取匹配的关键词的索引
+              * @param {String} keyword 要匹配的关键字
+              * @param {String} text 原文字
+              * @param {Boolean} caseSensitive 是否区分大小写
+              * @param {Number} weight 匹配对象的权重。权重大的优先显示
+              * @return {Array}
+              */
+              function getIndexByword (word, text, caseSensitive, weight) {
+                if (!word || !text) {
+                  return [];
+                };
+
+                var startIndex = 0; // 每次匹配的开始索引
+                var index = -1;     // 匹配到的索引值
+                var result = [];    // 匹配结果
+
+                if (!caseSensitive) {
+                  word = word.toLowerCase();
+                  text = text.toLowerCase();
+                }
+
+                while((index = text.indexOf(word, startIndex)) !== -1) {
+                  var hasMatch = false;
+                  // 索引位置相同的关键词，保留长度较长的
+                  titleHitSlice.forEach(function (hit) {
+                    if (hit.index === index && hit.word.length < word.length) {
+                      hit.word = word;
+                      hasMatch = true;
+                    }
+                  });
+                  startIndex = index + word.length;
+                  !hasMatch && result.push({ index: index, word: word, weight: weight });
+                }
+                return result;
+              }
+              titleHitSlice = titleHitSlice.concat(getIndexByword(keyword, titleLower, false, WEIGHT.title));
+              contentHitSlice = contentHitSlice.concat(getIndexByword(keyword, contentLower, false, WEIGHT.content));
+            });
+
+            var hitTitle = titleHitSlice.length;
+            var hitContent = contentHitSlice.length;
+
+            if (hitTitle > 0 || hitContent > 0) {
+              isMatch = true;
+            }
+            if (isMatch) {
+              ;[titleHitSlice, contentHitSlice].forEach(function (hit) {
+                // 按照匹配文字的索引的递增顺序排序
+                hit.sort(function (left, right) {
+                  return left.index - right.index;
+                });
+              });
+              /**
+              * 给文本中匹配到的关键词添加标记，从而进行高亮显示
+              * @param {String} text 原文本
+              * @param {Array} hitSlice 匹配项的索引信息
+              * @param {Number} start 开始索引
+              * @param {Number} end 结束索引
+              * @return {String}
+              */
+              function highlightKeyword (text, hitSlice, start, end) {
+                if (!text || !hitSlice || !hitSlice.length) {
+                  return;
+                }
+
+                var result = '';
+                var startIndex = start;
+                var endIndex = end;
+                hitSlice.forEach(function (hit) {
+                  if (hit.index < startIndex) {
+                    return;
+                  }
+
+                  var hitWordEnd = hit.index + hit.word.length;
+                  result += text.slice(startIndex, hit.index);
+                  result += '<b>' + text.slice(hit.index, hitWordEnd) + '</b>';
+                  startIndex = hitWordEnd;
+                });
+                result += text.slice(startIndex, endIndex);
+                return result;
+              }
+
+              var postData = {};
+              // 文章总的搜索权重
+              var postWeight = titleHitSlice.length * WEIGHT.title + contentHitSlice.length * WEIGHT.content;
+              // 标记匹配关键词后的标题
+              var postTitle = highlightKeyword(title, titleHitSlice, 0, title.length) || title;
+              // 标记匹配关键词后的内容
+              var postContent;
+              // 显示内容的长度
+              var SHOW_WORD_LENGTH = 200;
+              // 命中关键词前的字符显示长度
+              var SHOW_WORD_FRONT_LENGTH = 20;
+              var SHOW_WORD_END_LENGTH = SHOW_WORD_LENGTH - SHOW_WORD_FRONT_LENGTH;
+
+              // 截取匹配的第一个字符，前后共 200 个字符来显示
+              if (contentHitSlice.length > 0) {
+                var firstIndex = contentHitSlice[0].index;
+                var start = firstIndex > SHOW_WORD_FRONT_LENGTH ? firstIndex - SHOW_WORD_FRONT_LENGTH : 0;
+                var end = firstIndex + SHOW_WORD_END_LENGTH;
+                postContent = highlightKeyword(content, contentHitSlice, start, end);
+              } else { // 未匹配到内容，直接截取前 200 个字符来显示
+                postContent = content.slice(0, SHOW_WORD_LENGTH);
+              }
+              postData.title = postTitle;
+              postData.content = postContent;
+              postData.url = postURL;
+              postData.weight = postWeight;
+              matchPosts.push(postData);
+            }
+          });
+        }
+
+        var resultInnerHtml = '';
+        if (matchPosts.length) {
+          // 按权重递增的顺序排序，使权重大的优先显示
+          matchPosts.sort(function (left, right) {
+            return right.weight - left.weight;
+          });
+          resultInnerHtml += '<ul>';
+          matchPosts.forEach(function (post) {
+            resultInnerHtml += '<li><a class="search-results-title" href="' + post.url + '">';
+            resultInnerHtml += post.title;
+            resultInnerHtml += '</a><div class="search-results-content">';
+            resultInnerHtml += post.content;
+            resultInnerHtml += '</div></li>';
+          });
+          resultInnerHtml += '</ul>';
+        } else {
+          resultInnerHtml += '<div class="search-results-none"><i class="far fa-meh"></i></div>';
+        }
+        $result.html(resultInnerHtml);
+      };
+      $input.on('input', searchPost);
+      $input.on('keyup', function (e) {
+        if (e.keyCode === Stun.utils.codeToKeyCode('Enter')) {
+          searchPost();
+        }
+      });
+    }
+  });
+}
+
+function closeSearch () {
+  $('body').css({ overflow: 'auto' });
+  $('.search-popup').css({ display: 'none' });
+  $('.search-mask').css({ display: 'none' });
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  Stun.utils.pjaxReloadLocalSearch = function () {
+    $('.header-nav-search').on('click', function (e) {
+      e.stopPropagation();
+      $('body').css('overflow', 'hidden');
+      $('.search-popup')
+        .velocity('stop')
+        .velocity('transition.expandIn', {
+          duration: 300,
+          complete: function () {
+            $('.search-popup input').focus();
+          }
+        });
+      $('.search-mask')
+        .velocity('stop')
+        .velocity('transition.fadeIn', {
+          duration: 300
+        });
+
+      initSearch();
+    });
+    $('.search-mask, .search-close').on('click', function () {
+      closeSearch();
+    });
+    $(document).on('keydown', function (e) {
+      // Escape <=> 27
+      if (e.keyCode === Stun.utils.codeToKeyCode('Escape')) {
+        closeSearch();
+      }
+    });
+  };
+
+  Stun.utils.pjaxReloadLocalSearch();
+}, false);
+
+function safeOpenUrl(url) {
+  var newTab = window.open();
+  newTab.opener = null;
+  newTab.location = url;
+}
+
+function extSearch(engine) {
+  var engines = {
+    google: 'https://www.google.com/search?q=',
+    bing: 'https://cn.bing.com/search?q=',
+    baidu: 'https://www.baidu.com/s?ie=UTF-8&wd=',
+  };
+  var host = window.location.host;
+  var query = $('.search-input input').val().toLowerCase().trim();
+  var uri = engines[engine] + query + ' site:' + host;
+
+  if (query) {
+    safeOpenUrl(uri);
+  } else {
+    Stun.utils.popAlert('warning', 'Please enter characters');
+  }
+}
+
+var assistSearchList = window.CONFIG.assistSearch;
+
+if (Array.isArray(assistSearchList)) {
+  assistSearchList.forEach(function (name) {
+    document.querySelector('.search-btns-item--' + name).addEventListener('click', function () {
+      extSearch(name);
+    }, false);
+  });
+}</script><script src="/js/utils.js?v=2.6.2"></script><script src="/js/stun-boot.js?v=2.6.2"></script><script src="/js/scroll.js?v=2.6.2"></script><script src="/js/header.js?v=2.6.2"></script><script src="/js/sidebar.js?v=2.6.2"></script><script type="application/json" src="/search.json"></script><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"superSample":2,"width":150,"height":300,"position":"left","hOffset":0,"vOffset":-80},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body></html>

