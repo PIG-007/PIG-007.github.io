@@ -1,0 +1,739 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta name="description" content="前言       复习一下汇编                     一、X86                           1.汇编指令                           (1)跳转       依据ZF(Zero)、SF(Symbol))、OF(Overflow)、PF(Parity)、CF(Carry)五种状态标志位有对应的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="汇编基础">
+<meta property="og:url" content="http://pig-007.github.io/2021/11/02/%E6%B1%87%E7%BC%96/index.html">
+<meta property="og:site_name" content="PIG-007">
+<meta property="og:description" content="前言       复习一下汇编                     一、X86                           1.汇编指令                           (1)跳转       依据ZF(Zero)、SF(Symbol))、OF(Overflow)、PF(Parity)、CF(Carry)五种状态标志位有对应的">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211103145318.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20211230150231733.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20211230150255746.png">
+<meta property="article:published_time" content="2021-11-02T02:25:33.000Z">
+<meta property="article:modified_time" content="2022-03-22T11:53:20.445Z">
+<meta property="article:author" content="PIG-007">
+<meta property="article:tag" content="汇编">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211103145318.png"><title>汇编基础 | PIG-007</title><link ref="canonical" href="http://pig-007.github.io/2021/11/02/%E6%B1%87%E7%BC%96/"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.12.1/css/all.min.css" type="text/css"><link rel="stylesheet" href="/css/index.css?v=2.6.2"><script>var Stun = window.Stun || {};
+var CONFIG = {
+  root: '/',
+  algolia: undefined,
+  assistSearch: undefined,
+  fontIcon: {"prompt":{"success":"fas fa-check-circle","info":"fas fa-arrow-circle-right","warning":"fas fa-exclamation-circle","error":"fas fa-times-circle"},"copyBtn":"fas fa-copy"},
+  sidebar: {"offsetTop":"20px","tocMaxDepth":6},
+  header: {"enable":true,"showOnPost":true,"scrollDownIcon":false},
+  postWidget: {"endText":true},
+  nightMode: {"enable":true},
+  back2top: {"enable":true},
+  codeblock: {"style":"default","highlight":"light","wordWrap":true},
+  reward: false,
+  fancybox: false,
+  zoomImage: {"gapAside":"20px"},
+  galleryWaterfall: undefined,
+  lazyload: false,
+  pjax: undefined,
+  externalLink: {"icon":{"enable":true,"name":"fas fa-external-link-alt"}},
+  shortcuts: undefined,
+  prompt: {"copyButton":"Copy","copySuccess":"Copy Success","copyError":"Copy Error"},
+  sourcePath: {"js":"js","css":"css","images":"images"},
+};
+
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content" id="content"><!-- Just used to judge whether it is an article page--><div id="is-post"></div><div class="post"><header class="post-header"><h1 class="post-title">汇编基础</h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-11-02</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2022-03-22</span></span></div></header><div class="post-body">
+        <h1 id="前言"   >
+          <a href="#前言" class="heading-link"><i class="fas fa-link"></i></a><a href="#前言" class="headerlink" title="前言"></a>前言</h1>
+      <p>复习一下汇编</p>
+
+        <h1 id="一、X86"   >
+          <a href="#一、X86" class="heading-link"><i class="fas fa-link"></i></a><a href="#一、X86" class="headerlink" title="一、X86"></a>一、X86</h1>
+      
+        <h2 id="1-汇编指令"   >
+          <a href="#1-汇编指令" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-汇编指令" class="headerlink" title="1.汇编指令"></a>1.汇编指令</h2>
+      
+        <h3 id="1-跳转"   >
+          <a href="#1-跳转" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-跳转" class="headerlink" title="(1)跳转"></a>(1)跳转</h3>
+      <p>依据ZF(Zero)、SF(Symbol))、OF(Overflow)、PF(Parity)、CF(Carry)五种状态标志位有对应的跳转JZ(JNZ)/JS(JNS)等五种跳转</p>
+<p>状态标志位除了以上五种还有AF(Assistant)辅助进位</p>
+<p>此外还有Jmp无条件跳转</p>
+
+        <h3 id="2-标志位"   >
+          <a href="#2-标志位" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-标志位" class="headerlink" title="(2)标志位"></a>(2)标志位</h3>
+      <p>以上的六种状态标志位外，还有以下三种标志位</p>
+<p>TF(trap):跟踪标答志位：单步标志</p>
+<p>IF(interregnum):中断标志位</p>
+<p>DF(direction):方向标志位</p>
+
+        <h2 id="2-寄存器"   >
+          <a href="#2-寄存器" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-寄存器" class="headerlink" title="2.寄存器"></a>2.寄存器</h2>
+      
+        <h3 id="1-传参"   >
+          <a href="#1-传参" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-传参" class="headerlink" title="(1)传参"></a>(1)传参</h3>
+      <p>64位：rdi  rsi  rdx  rcx r8 r9 栈</p>
+<p>32位：栈传参</p>
+
+        <h3 id="2-栈指针"   >
+          <a href="#2-栈指针" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-栈指针" class="headerlink" title="(2)栈指针"></a>(2)栈指针</h3>
+      <p>RSP、RBP</p>
+
+        <h1 id="二、ARM"   >
+          <a href="#二、ARM" class="heading-link"><i class="fas fa-link"></i></a><a href="#二、ARM" class="headerlink" title="二、ARM"></a>二、ARM</h1>
+      
+        <h2 id="1-寄存器关系"   >
+          <a href="#1-寄存器关系" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-寄存器关系" class="headerlink" title="1.寄存器关系"></a>1.寄存器关系</h2>
+      <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211103145318.png" alt="32"></p>
+<p>(1)R0<del>R3：函数调用参数，代表第0</del>4个参数，剩下的参数从右向左依次入栈，函数返回值保存在R0中。(对应在aarch64中为R0<del>R7，但是gdb调试或者IDA中一般显示X0</del>X30，同时还有低32位的W0~W30)</p>
+<p>(2)SP(R13)：类似rsp,esp，栈指针</p>
+<p>(3)FP(R11)：类似ebp，栈指针</p>
+<p>(4)LR(R14)：当发生函数调用时，会保存调用函数处的地址，退出函数时赋值给PC。</p>
+<p>(5)PC：类似eip,rip，存储下一条指令的地址。</p>
+
+        <h2 id="2-汇编指令"   >
+          <a href="#2-汇编指令" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-汇编指令" class="headerlink" title="2.汇编指令"></a>2.汇编指令</h2>
+      
+        <h3 id="1-寄存器传送MOV"   >
+          <a href="#1-寄存器传送MOV" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-寄存器传送MOV" class="headerlink" title="(1)寄存器传送MOV"></a>(1)寄存器传送MOV</h3>
+      <p>寄存器之间还是MOV指令，比如MOV R2,R0;但是如果涉及到内存上的，则需要先加载到寄存器中，或者把寄存器中的值存储到内存中</p>
+
+        <h3 id="2-寄存器-内存传送"   >
+          <a href="#2-寄存器-内存传送" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-寄存器-内存传送" class="headerlink" title="(2)寄存器-内存传送"></a>(2)寄存器-内存传送</h3>
+      <p>STR(store reg)/LDR(load reg)以及STM(store multiple)/LDM(load multiple)</p>
+
+        <h4 id="①STR-LDR模式"   >
+          <a href="#①STR-LDR模式" class="heading-link"><i class="fas fa-link"></i></a><a href="#①STR-LDR模式" class="headerlink" title="①STR/LDR模式"></a>①STR/LDR模式</h4>
+      
+        <h5 id="STR-Ra-Rb-："   >
+          <a href="#STR-Ra-Rb-：" class="heading-link"><i class="fas fa-link"></i></a><a href="#STR-Ra-Rb-：" class="headerlink" title="STR Ra [Rb]："></a>STR Ra [Rb]：</h5>
+      <p>Ra中的数据存储到Rb指向的内存中</p>
+
+        <h5 id="LDR-Ra-Rb"   >
+          <a href="#LDR-Ra-Rb" class="heading-link"><i class="fas fa-link"></i></a><a href="#LDR-Ra-Rb" class="headerlink" title="LDR Ra [Rb]"></a>LDR Ra [Rb]</h5>
+      <p>Rb指向的内存中的值加载到Ra中</p>
+<p>此外还有如下情形</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">STR  R0,[R1, #12]  // R0 --&gt; [R1+12]</span><br><span class="line">LDR  R4,[R5, R6]  // R4 &lt;-- [R5+R6]</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h4 id="②STM-LDM模式"   >
+          <a href="#②STM-LDM模式" class="heading-link"><i class="fas fa-link"></i></a><a href="#②STM-LDM模式" class="headerlink" title="②STM/LDM模式"></a>②STM/LDM模式</h4>
+      
+        <h5 id="STM-R0-R4-R5"   >
+          <a href="#STM-R0-R4-R5" class="heading-link"><i class="fas fa-link"></i></a><a href="#STM-R0-R4-R5" class="headerlink" title="STM R0, {R4,R5}"></a>STM R0, {R4,R5}</h5>
+      <p>R4的值传送给R0+x对应的内存单元，然后R5的值传给R0+x+x对应的内存单元</p>
+<p>这个x即由后缀决定，分别有以下几种</p>
+<ul>
+<li><p>DB(Decrease Before)：每次传送前R0加上x，x为负数</p>
+</li>
+<li><p>DA(Decrease After)：每次传送后R0加上x，x为负数</p>
+</li>
+<li><p>IB(Increase Before)：每次传送前R0加上x，x为正数</p>
+</li>
+<li><p>IA(Increase After)：每次传送后R0加上x，x为正数</p>
+</li>
+</ul>
+<p>而X则在不同的CPU位数下不同，32为4，64则为8。</p>
+<p>此外堆栈的增长方向可以不同，也可以在不同情形下作为后缀，效果一样的</p>
+<ul>
+<li>FD(Full Descent)：满递减堆栈</li>
+<li>FA(Full Ascent)：满递增堆栈</li>
+<li>ED(Empty Descent)：空递减堆栈</li>
+<li>EA(Empty Ascent)：空递增堆栈</li>
+</ul>
+<p>满则代表栈指针指向栈顶，空则代表栈指针不指向栈顶</p>
+
+        <h3 id="3-跳转指令"   >
+          <a href="#3-跳转指令" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-跳转指令" class="headerlink" title="(3)跳转指令"></a>(3)跳转指令</h3>
+      
+        <h4 id="①分支跳转-Branch"   >
+          <a href="#①分支跳转-Branch" class="heading-link"><i class="fas fa-link"></i></a><a href="#①分支跳转-Branch" class="headerlink" title="①分支跳转(Branch)"></a>①分支跳转(Branch)</h4>
+      
+        <h5 id="B"   >
+          <a href="#B" class="heading-link"><i class="fas fa-link"></i></a><a href="#B" class="headerlink" title="B"></a>B</h5>
+      <p>无条件跳转</p>
+
+        <h5 id="BX-lt-Rm-gt"   >
+          <a href="#BX-lt-Rm-gt" class="heading-link"><i class="fas fa-link"></i></a><a href="#BX-lt-Rm-gt" class="headerlink" title="BX &lt;Rm&gt;"></a>BX &lt;Rm&gt;</h5>
+      <p>由寄存器给出地址</p>
+<p>若 Rm 的 bit[0] 为1，切换到 Thumb 指令执行；</p>
+<p>若 Rm 的 bit[0] 为0，切换到 ARM 指令执行。</p>
+
+        <h5 id="BL"   >
+          <a href="#BL" class="heading-link"><i class="fas fa-link"></i></a><a href="#BL" class="headerlink" title="BL"></a>BL</h5>
+      <p>类似于Call，会存入返回地址到LR寄存器</p>
+
+        <h5 id="BLX-BLR"   >
+          <a href="#BLX-BLR" class="heading-link"><i class="fas fa-link"></i></a><a href="#BLX-BLR" class="headerlink" title="BLX/BLR"></a>BLX/BLR</h5>
+      <p>即类似对应组合</p>
+
+        <h4 id="②条件跳转"   >
+          <a href="#②条件跳转" class="heading-link"><i class="fas fa-link"></i></a><a href="#②条件跳转" class="headerlink" title="②条件跳转"></a>②条件跳转</h4>
+      <p>依据CPSR寄存器下的ALU状态标志位</p>
+<p>CPSR寄存器包含下面的ALU状态标志：</p>
+<p>　　N　 Set when the result of the operation was Negative(结果为负数)</p>
+<p>　　Z    Set when the result of the operation was Zero(结果为0)</p>
+<p>　　C    Set when the operation result in a Carry(发生进位，或借位)</p>
+<p>　　V    Set when the operation caused oVerflow(操作造成溢出)</p>
+<p>　　Q    ARM architecture v5E only sticky flag</p>
+<p>还有BEQ、BNE</p>
+
+        <h1 id="三、MIPS"   >
+          <a href="#三、MIPS" class="heading-link"><i class="fas fa-link"></i></a><a href="#三、MIPS" class="headerlink" title="三、MIPS"></a>三、MIPS</h1>
+      <p>主要介绍mipsel架构的，小端序，大端的mips很少考到，而且也基本都是大同小异</p>
+
+        <h2 id="1-寄存器关系-1"   >
+          <a href="#1-寄存器关系-1" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-寄存器关系-1" class="headerlink" title="1.寄存器关系"></a>1.寄存器关系</h2>
+      <div class="table-container"><table>
+<thead>
+<tr>
+<th align="left">REGISTER</th>
+<th align="left">NAME</th>
+<th align="left">USAGE</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">$0</td>
+<td align="left">$zero</td>
+<td align="left">常量0(constant value 0)</td>
+</tr>
+<tr>
+<td align="left">$1</td>
+<td align="left">$at</td>
+<td align="left">保留给汇编器(Reserved for assembler)</td>
+</tr>
+<tr>
+<td align="left">$2-$3</td>
+<td align="left">$v0 - $v1</td>
+<td align="left">函数调用返回值(values for results and expression evaluation)</td>
+</tr>
+<tr>
+<td align="left">$4-$7</td>
+<td align="left">$a0-$a3</td>
+<td align="left">函数调用参数(arguments)</td>
+</tr>
+<tr>
+<td align="left">$8-$15</td>
+<td align="left">$t0-$t7</td>
+<td align="left">暂时的(或随便用的)</td>
+</tr>
+<tr>
+<td align="left">$16-$23</td>
+<td align="left">$s0-$s7</td>
+<td align="left">保存的(或如果用，需要SAVE/RESTORE的)(saved)</td>
+</tr>
+<tr>
+<td align="left">$24-$25</td>
+<td align="left">$t8-$t9</td>
+<td align="left">暂时的(或随便用的)</td>
+</tr>
+<tr>
+<td align="left">$28</td>
+<td align="left">$gp</td>
+<td align="left">全局指针(Global Pointer)</td>
+</tr>
+<tr>
+<td align="left">$29</td>
+<td align="left">$sp</td>
+<td align="left">堆栈指针(Stack Pointer)</td>
+</tr>
+<tr>
+<td align="left">$30</td>
+<td align="left">$fp</td>
+<td align="left">帧指针(Frame Pointer)</td>
+</tr>
+</tbody></table></div>
+<p>说明</p>
+
+        <h3 id="1-0"   >
+          <a href="#1-0" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-0" class="headerlink" title="(1)$0"></a>(1)$0</h3>
+      <p>即$zero,该寄存器总是返回零，为0这个有用常数提供了一个简洁的编码形式。</p>
+<figure class="highlight mipsasm"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">move </span>$<span class="built_in">t0</span>,$<span class="built_in">t1</span></span><br><span class="line"><span class="comment">#实际为  </span></span><br><span class="line"><span class="keyword">add </span>$<span class="built_in">t0</span>,$<span class="number">0</span>,$<span class="built_in">t1</span></span><br></pre></td></tr></table></div></figure>
+
+<p>使用伪指令可以简化任务，汇编程序提供了比硬件更丰富的指令集。</p>
+
+        <h3 id="2-1"   >
+          <a href="#2-1" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-1" class="headerlink" title="(2)$1"></a>(2)$1</h3>
+      <p>即 $at，该寄存器为汇编保留，由于I型指令的立即数字段只有16位，在加载大常数时，编译器或汇编程序需要把大常数拆开，然后重新组合到寄存器里。比如加载一个32位立即数需要 <code>lui</code>（装入高位立即数）和<code>addi</code>两条指令。像MIPS程序拆散和重装大常数由汇编程序来完成，汇编程序必需一个临时寄存器来重组大常数，这也是为汇编保留$at的原因之一。</p>
+
+        <h3 id="3-2-3-v0-v1"   >
+          <a href="#3-2-3-v0-v1" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-2-3-v0-v1" class="headerlink" title="(3)$2..$3:($v0-$v1)"></a>(3)$2..$3:($v0-$v1)</h3>
+      <p>用于子程序的非浮点结果或返回值，对于子程序如何传递参数及如何返回，MIPS范围有一套约定，堆栈中少数几个位置处的内容装入CPU寄存器，其相应内存位置保留未做定义，当这两个寄存器不够存放返回值时，编译器通过内存来完成。</p>
+
+        <h3 id="4-4-7-a0-a3"   >
+          <a href="#4-4-7-a0-a3" class="heading-link"><i class="fas fa-link"></i></a><a href="#4-4-7-a0-a3" class="headerlink" title="(4)$4..$7:($a0-$a3)"></a>(4)$4..$7:($a0-$a3)</h3>
+      <p>用来传递前四个参数给子程序，不够的用堆栈。a0-a3和v0-v1以及ra一起来支持子程序／过程调用，分别用以传递参数，返回结果和存放返回地址。当需要使用更多的寄存器时，就需要堆栈（stack)了,MIPS编译器总是为参数在堆栈中留有空间以防有参数需要存储。</p>
+
+        <h3 id="5-8-15-t0-t7"   >
+          <a href="#5-8-15-t0-t7" class="heading-link"><i class="fas fa-link"></i></a><a href="#5-8-15-t0-t7" class="headerlink" title="(5)$8..$15:($t0-$t7)"></a>(5)$8..$15:($t0-$t7)</h3>
+      <p>临时寄存器，子程序可以使用它们而不用保留。</p>
+
+        <h3 id="6-16-23-s0-s7"   >
+          <a href="#6-16-23-s0-s7" class="heading-link"><i class="fas fa-link"></i></a><a href="#6-16-23-s0-s7" class="headerlink" title="(6)$16..$23:($s0-$s7)"></a>(6)$16..$23:($s0-$s7)</h3>
+      <p>保存寄存器，在过程调用过程中需要保留（被调用者保存和恢复，还包括$fp和$ra），MIPS提供了临时寄存器和保存寄存器，这样就减少了寄存器溢出（spilling,即将不常用的变量放到存储器的过程),编译器在编译一个叶（leaf)过程（不调用其它过程的过程）的时候，总是在临时寄存器分配完了才使用需要保存的寄存器。</p>
+
+        <h3 id="7-24-25-t8-t9"   >
+          <a href="#7-24-25-t8-t9" class="heading-link"><i class="fas fa-link"></i></a><a href="#7-24-25-t8-t9" class="headerlink" title="(7)$24..$25:($t8-$t9)"></a>(7)$24..$25:($t8-$t9)</h3>
+      <p>同($t0-$t7) $26..$27:($k0,$k1)为操作系统／异常处理保留，至少要预留一个。 异常（或中断）是一种不需要在程序中显示调用的过程。MIPS有个叫异常程序计数器（exception program counter,EPC)的寄存器，属于CP0寄存器，用于保存造成异常的那条指令的地址。查看控制寄存器的唯一方法是把它复制到通用寄存器里，指令<code>mfc0</code>(move from system control)可以将EPC中的地址复制到某个通用寄存器中，通过跳转语句（<code>jr</code>)，程序可以返回到造成异常的那条指令处继续执行。MIPS程序员都必须保留两个寄存器$k0和$k1，供操作系统使用。<br>发生异常时，这两个寄存器的值不会被恢复，编译器也不使用k0和k1,异常处理函数可以将返回地址放到这两个中的任何一个，然后使用jr跳转到造成异常的指令处继续执行。</p>
+
+        <h3 id="8-28-gp"   >
+          <a href="#8-28-gp" class="heading-link"><i class="fas fa-link"></i></a><a href="#8-28-gp" class="headerlink" title="(8)$28:($gp)"></a>(8)$28:($gp)</h3>
+      <p>为了简化静态数据的访问，MIPS软件保留了一个寄存器：全局指针gp(global pointer,$gp)，全局指针指向静态数据区中的运行时决定的地址，在存取位于gp值上下32KB范围内的数据时，只需要一条以gp为基指针的指令即可。在编译时，数据须在以gp为基指针的64KB范围内。</p>
+
+        <h3 id="9-29-sp"   >
+          <a href="#9-29-sp" class="heading-link"><i class="fas fa-link"></i></a><a href="#9-29-sp" class="headerlink" title="(9)$29:($sp)"></a>(9)$29:($sp)</h3>
+      <p>MIPS硬件并不直接支持堆栈，你可以把它用于别的目的，但为了使用别人的程序或让别人使用你的程序，还是要遵守这个约定的，但这和硬件没有关系。</p>
+
+        <h3 id="10-30-fp"   >
+          <a href="#10-30-fp" class="heading-link"><i class="fas fa-link"></i></a><a href="#10-30-fp" class="headerlink" title="(10)$30:($fp)"></a>(10)$30:($fp)</h3>
+      <p>GNU MIPS C编译器使用了帧指针(frame pointer),而SGI的C编译器没有使用，而把这个寄存器当作保存寄存器使用（$s8),这节省了调用和返回开销，但增加了代码生成的复杂性。</p>
+
+        <h3 id="11-31-ra"   >
+          <a href="#11-31-ra" class="heading-link"><i class="fas fa-link"></i></a><a href="#11-31-ra" class="headerlink" title="(11)$31:($ra)"></a>(11)$31:($ra)</h3>
+      <p>存放返回地址，MIPS有个<code>jal</code>(jump-and-link,跳转并 链接)指令，在跳转到某个地址时，把下一条指令的地址放到$ra中。用于支持子程序，例如调用程序把参数放到$a0~$a3,然后<code>jal X</code>跳到X过程，被调过程完成后把结果放到$v0,$v1,然后使用<code>jr $ra</code>返回。</p>
+
+        <h2 id="2-汇编指令-1"   >
+          <a href="#2-汇编指令-1" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-汇编指令-1" class="headerlink" title="2.汇编指令"></a>2.汇编指令</h2>
+      
+        <h3 id="1-不同类型的指令"   >
+          <a href="#1-不同类型的指令" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-不同类型的指令" class="headerlink" title="(1)不同类型的指令"></a>(1)不同类型的指令</h3>
+      
+        <h4 id="R型指令：操作寄存器"   >
+          <a href="#R型指令：操作寄存器" class="heading-link"><i class="fas fa-link"></i></a><a href="#R型指令：操作寄存器" class="headerlink" title="R型指令：操作寄存器"></a>R型指令：操作寄存器</h4>
+      <p>常见指令：<code>add</code>, <code>sub</code>, <code>and</code>, <code>or</code>, <code>nor</code>, <code>slt</code>, <code>sll</code>, <code>srl</code>, <code>jr</code></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20211230150231733.png" alt="image-20211230150231733"></p>
+<ul>
+<li>opcod：操作码 </li>
+<li>rs：源寄存器的数量 </li>
+<li>rt：源寄存器的数量 </li>
+<li>rd：目标寄存器的编号</li>
+<li>sham：移位量（操作移位的位数）</li>
+<li>Func: 函数（操作码扩展） </li>
+</ul>
+<p>Sham仅用于操作偏移量的指令（例如<code>stl</code>）</p>
+
+        <h4 id="I型指令：操作常量"   >
+          <a href="#I型指令：操作常量" class="heading-link"><i class="fas fa-link"></i></a><a href="#I型指令：操作常量" class="headerlink" title="I型指令：操作常量"></a>I型指令：操作常量</h4>
+      <p>常见指令：<code>addi</code>, <code>lw</code>, <code>sw</code>, <code>lh</code>, <code>sh</code>, <code>lb</code>, <code>lbu</code>, <code>sb</code>, <code>ll</code>, <code>sc</code>, <code>lui</code>, <code>andi</code>, <code>ori</code>, <code>beq</code>, <code>bne</code>, <code>slti</code>, <code>sltiu</code></p>
+<ul>
+<li>opcod：操作码</li>
+<li>rs：源寄存器的数量</li>
+<li>rd：源或目标寄存器的数量</li>
+<li>imd: 立即值</li>
+</ul>
+
+        <h4 id="J型指令：跳跃寻址"   >
+          <a href="#J型指令：跳跃寻址" class="heading-link"><i class="fas fa-link"></i></a><a href="#J型指令：跳跃寻址" class="headerlink" title="J型指令：跳跃寻址"></a>J型指令：跳跃寻址</h4>
+      <p>处理器直接跳跃到给定的地址，执行所在地址的指令</p>
+<p>常见指令：<code>j</code>, <code>jal</code></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20211230150255746.png" alt="image-20211230150255746"></p>
+<ul>
+<li>Opcod：操作码</li>
+<li>Imd：立即值</li>
+</ul>
+
+        <h3 id="2-常用指令"   >
+          <a href="#2-常用指令" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-常用指令" class="headerlink" title="(2)常用指令"></a>(2)常用指令</h3>
+      <p>其中<code>i</code>表示立即数相关，<code>u</code>表示无符号相关。</p>
+
+        <h4 id="①load-store-指令"   >
+          <a href="#①load-store-指令" class="heading-link"><i class="fas fa-link"></i></a><a href="#①load-store-指令" class="headerlink" title="①load/store 指令"></a>①load/store 指令</h4>
+      
+        <h5 id="la"   >
+          <a href="#la" class="heading-link"><i class="fas fa-link"></i></a><a href="#la" class="headerlink" title="la"></a>la</h5>
+      <p>将地址或者标签存入一个寄存器 eg:<code>la $t0,val_1</code>复制val_l的地址到$t0中，val_1是一个Label</p>
+
+        <h5 id="li"   >
+          <a href="#li" class="heading-link"><i class="fas fa-link"></i></a><a href="#li" class="headerlink" title="li"></a>li</h5>
+      <p>将立即数存入通用寄存器 eg:<code>li $t1, 40</code> $t1 = 40</p>
+
+        <h5 id="lw"   >
+          <a href="#lw" class="heading-link"><i class="fas fa-link"></i></a><a href="#lw" class="headerlink" title="lw"></a>lw</h5>
+      <p>从指定的地址加载一个word类型的值到一个寄存器 eg:<code>lw $s0, 0($sp) $s0=MEM[$sp+0]</code></p>
+
+        <h5 id="sw"   >
+          <a href="#sw" class="heading-link"><i class="fas fa-link"></i></a><a href="#sw" class="headerlink" title="sw"></a>sw</h5>
+      <p>将寄存器的值，存于指定的地址word类型 eg:<code>sw $a0, 0($sp) MEM[$sp+0] = $a0</code></p>
+
+        <h5 id="move"   >
+          <a href="#move" class="heading-link"><i class="fas fa-link"></i></a><a href="#move" class="headerlink" title="move"></a>move</h5>
+      <p>寄存器传值 eg：<code>move $t5, $t2 $t5 = $t2</code></p>
+
+        <h4 id="②算数指令"   >
+          <a href="#②算数指令" class="heading-link"><i class="fas fa-link"></i></a><a href="#②算数指令" class="headerlink" title="②算数指令"></a>②算数指令</h4>
+      <p>算数指令的所有操作都是寄存器，不能是 RAM 地址或间接寻址。且操作数大小都是 word（4byte）</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">add $t0, $t1, $t2;		$t0=$t1+$t2;	带符号数相加</span><br><span class="line">sub $t0, $t1, $t2;		$t0=$t1-$t2;	带符号数相减</span><br><span class="line">addi $t0, $t1, 5;		$t0=$t1+5;		有立即数的加法</span><br><span class="line">addu $t0, $t1, $t2;		$t0=$t1+$t2;	无符号数的加法</span><br><span class="line">subu $t0, $t1, $t2;		$t0=$t1-$t2;	带符号数相减</span><br><span class="line">mult $t3, $t3;			(HI, LO) = $t3 * $t4</span><br><span class="line">div $t5, $t6;			$Hi=$t5 mod $t6</span><br><span class="line">mfhi $t0;				$t0 = $Hi</span><br><span class="line">mflo $t1;				$t1 = $Lo</span><br></pre></td></tr></table></div></figure>
+
+
+        <h4 id="③syscall"   >
+          <a href="#③syscall" class="heading-link"><i class="fas fa-link"></i></a><a href="#③syscall" class="headerlink" title="③syscall"></a>③syscall</h4>
+      <p>产生一个软化中断，实现系统调用；系统调用号存放在 $v0 中，参数在 $a0~$a3 中；</p>
+<p>返回值在 $v0 中，如果出错，在 $a3 中返回错误号；在编写 shellcode 时，用到该指令机制</p>
+<p>Write(1, “ABCn”, 5) 实现如下</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">addiu $sp, $sp, -32;</span><br><span class="line">li $a0, 1;</span><br><span class="line">lui $t6, 0x4142;</span><br><span class="line">ori $t6, $t6, 0x430a;</span><br><span class="line">sw  $t6, $0($sp);</span><br><span class="line">addiu $a1, $sp, 0;</span><br><span class="line">li $a2, 5;</span><br><span class="line">li $v0, 4004;</span><br><span class="line">syscall;</span><br></pre></td></tr></table></div></figure>
+
+
+        <h4 id="④分支跳转指令"   >
+          <a href="#④分支跳转指令" class="heading-link"><i class="fas fa-link"></i></a><a href="#④分支跳转指令" class="headerlink" title="④分支跳转指令"></a>④分支跳转指令</h4>
+      <p>分支跳转指令本身可以通过比较两个寄存器决定如何跳转；如果想要实现与立即数的比较跳转，需要结合类跳转指令实现</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">b target;				无条件跳转到target处</span><br><span class="line">beq $t0, $t1, target;	如果&quot;$t0 == $t1”，跳转到target</span><br><span class="line">blt $t0, $t1, target;	如果“$t0 &lt; $t1”，跳转到target</span><br><span class="line">ble $t0, $t1, target;	如果“$t0 &lt;= $t1” 跳转到target</span><br><span class="line">bgt;</span><br><span class="line">blt;</span><br><span class="line">bne;					类比上</span><br></pre></td></tr></table></div></figure>
+
+
+        <h4 id="⑤跳转指令"   >
+          <a href="#⑤跳转指令" class="heading-link"><i class="fas fa-link"></i></a><a href="#⑤跳转指令" class="headerlink" title="⑤跳转指令"></a>⑤跳转指令</h4>
+      <figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">j target;			无条件跳转target</span><br><span class="line">jr $t3;				跳转到$t3指向的地址处(Jump Register)</span><br><span class="line">jal target;			跳转到target，并保存返回地址到$ra中</span><br></pre></td></tr></table></div></figure>
+
+
+        <h4 id="⑥子函数的调用"   >
+          <a href="#⑥子函数的调用" class="heading-link"><i class="fas fa-link"></i></a><a href="#⑥子函数的调用" class="headerlink" title="⑥子函数的调用"></a>⑥子函数的调用</h4>
+      <figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jal   sub_routine_label;复制当前PC的值到$ra中，（当前PC值就是返回地址）程序跳转到sub_routine_label</span><br></pre></td></tr></table></div></figure>
+
+
+        <h4 id="⑦子函数的返回"   >
+          <a href="#⑦子函数的返回" class="heading-link"><i class="fas fa-link"></i></a><a href="#⑦子函数的返回" class="headerlink" title="⑦子函数的返回"></a>⑦子函数的返回</h4>
+      <figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jr    $ra;如果子函数重复嵌套，则将$ra的值保存在堆栈中，因为$ra总是保存当前执行的子函数的返回地址</span><br></pre></td></tr></table></div></figure>
+
+
+
+<p>以上大多参考如下</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://valeeraz.github.io/2020/05/08/architecture-mips/" >MIPS汇编语言入门 - Sylvain’s Blog (valeeraz.github.io)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/259594" >2021第四届强网拟态防御积分赛工控pwn eserver WP - 安全客，安全资讯平台 (anquanke.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+
+        <h2 id="3-流水线特点"   >
+          <a href="#3-流水线特点" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-流水线特点" class="headerlink" title="3.流水线特点"></a>3.流水线特点</h2>
+      <p>以下指令的，strchr 函数的参数来自 $s0 而不是 $s2</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mov $a0, $s2;</span><br><span class="line">jalr strchr;</span><br><span class="line">move $a0, $s0;</span><br></pre></td></tr></table></div></figure>
+
+
+        <h2 id="🔺注：流水线"   >
+          <a href="#🔺注：流水线" class="heading-link"><i class="fas fa-link"></i></a><a href="#🔺注：流水线" class="headerlink" title="🔺注：流水线"></a>🔺注：流水线</h2>
+      <p>即跳转之前会先一步加载下一条指令，所以在寻找ROP时，注意看下一步指令都是什么，不然跳转过去参数或者栈帧都有可能会出错的。</p>
+<p>但是因为通常PWN题的MIPS通常是用qemu的user模式运行的，这个可能导致指令流水有时候表现不出来，所以不没有调用函数sleep(1)去将数据区刷新到指令区域也是可以拿到shell的；但是如果题目使用system模式部署，添加调用函数刷新数据区域再跳转到shellcode就很必要了，但如果是ROP来getshell倒是不用刷新数据。</p>
+</div><footer class="post-footer"><div class="post-ending ending"><div class="ending__text">------ END ------</div></div><div class="post-copyright copyright"><div class="copyright-author"><span class="copyright-author__name">Author: </span><span class="copyright-author__value"><a href="http://PIG-007.github.io">PIG-007</a></span></div><div class="copyright-link"><span class="copyright-link__name">Link: </span><span class="copyright-link__value"><a href="http://pig-007.github.io/2021/11/02/%E6%B1%87%E7%BC%96/">http://pig-007.github.io/2021/11/02/%E6%B1%87%E7%BC%96/</a></span></div><div class="copyright-notice"><span class="copyright-notice__name">Copyright: </span><span class="copyright-notice__value">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" rel="external nofollow" target="_blank">BY-NC-SA</a> unless stating additionally</span></div></div><div class="post-tags"><span class="post-tags-item"><span class="post-tags-item__icon"><i class="fas fa-tag"></i></span><a class="post-tags-item__link" href="http://pig-007.github.io/tags/%E6%B1%87%E7%BC%96/">汇编</a></span></div><nav class="post-paginator paginator"><div class="paginator-prev"><a class="paginator-prev__link" href="/2021/11/08/%E9%99%87%E5%8E%9F%E6%88%98%E7%96%AB/"><span class="paginator-prev__icon"><i class="fas fa-angle-left"></i></span><span class="paginator-prev__text">陇原战疫WP</span></a></div><div class="paginator-next"><a class="paginator-next__link" href="/2021/11/02/%E5%BC%82%E6%9E%84%E4%BB%8E0%E5%BC%80%E5%A7%8B/"><span class="paginator-prev__text">Arm从0开始</span><span class="paginator-next__icon"><i class="fas fa-angle-right"></i></span></a></div></nav></footer></div></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><div class="sidebar-nav"><span class="sidebar-nav-toc current">Catalog</span><span class="sidebar-nav-ov">Overview</span></div><section class="sidebar-toc"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-text">
+          前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81X86"><span class="toc-text">
+          一、X86</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E6%B1%87%E7%BC%96%E6%8C%87%E4%BB%A4"><span class="toc-text">
+          1.汇编指令</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E8%B7%B3%E8%BD%AC"><span class="toc-text">
+          (1)跳转</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%A0%87%E5%BF%97%E4%BD%8D"><span class="toc-text">
+          (2)标志位</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%AF%84%E5%AD%98%E5%99%A8"><span class="toc-text">
+          2.寄存器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E4%BC%A0%E5%8F%82"><span class="toc-text">
+          (1)传参</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%A0%88%E6%8C%87%E9%92%88"><span class="toc-text">
+          (2)栈指针</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81ARM"><span class="toc-text">
+          二、ARM</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%AF%84%E5%AD%98%E5%99%A8%E5%85%B3%E7%B3%BB"><span class="toc-text">
+          1.寄存器关系</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%B1%87%E7%BC%96%E6%8C%87%E4%BB%A4"><span class="toc-text">
+          2.汇编指令</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%AF%84%E5%AD%98%E5%99%A8%E4%BC%A0%E9%80%81MOV"><span class="toc-text">
+          (1)寄存器传送MOV</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%AF%84%E5%AD%98%E5%99%A8-%E5%86%85%E5%AD%98%E4%BC%A0%E9%80%81"><span class="toc-text">
+          (2)寄存器-内存传送</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A0STR-LDR%E6%A8%A1%E5%BC%8F"><span class="toc-text">
+          ①STR&#x2F;LDR模式</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#STR-Ra-Rb-%EF%BC%9A"><span class="toc-text">
+          STR Ra [Rb]：</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#LDR-Ra-Rb"><span class="toc-text">
+          LDR Ra [Rb]</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A1STM-LDM%E6%A8%A1%E5%BC%8F"><span class="toc-text">
+          ②STM&#x2F;LDM模式</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#STM-R0-R4-R5"><span class="toc-text">
+          STM R0, {R4,R5}</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E8%B7%B3%E8%BD%AC%E6%8C%87%E4%BB%A4"><span class="toc-text">
+          (3)跳转指令</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A0%E5%88%86%E6%94%AF%E8%B7%B3%E8%BD%AC-Branch"><span class="toc-text">
+          ①分支跳转(Branch)</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#B"><span class="toc-text">
+          B</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#BX-lt-Rm-gt"><span class="toc-text">
+          BX &lt;Rm&gt;</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#BL"><span class="toc-text">
+          BL</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#BLX-BLR"><span class="toc-text">
+          BLX&#x2F;BLR</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A1%E6%9D%A1%E4%BB%B6%E8%B7%B3%E8%BD%AC"><span class="toc-text">
+          ②条件跳转</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81MIPS"><span class="toc-text">
+          三、MIPS</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%AF%84%E5%AD%98%E5%99%A8%E5%85%B3%E7%B3%BB-1"><span class="toc-text">
+          1.寄存器关系</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-0"><span class="toc-text">
+          (1)$0</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1"><span class="toc-text">
+          (2)$1</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-3-v0-v1"><span class="toc-text">
+          (3)$2..$3:($v0-$v1)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-7-a0-a3"><span class="toc-text">
+          (4)$4..$7:($a0-$a3)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-8-15-t0-t7"><span class="toc-text">
+          (5)$8..$15:($t0-$t7)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-16-23-s0-s7"><span class="toc-text">
+          (6)$16..$23:($s0-$s7)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-24-25-t8-t9"><span class="toc-text">
+          (7)$24..$25:($t8-$t9)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-28-gp"><span class="toc-text">
+          (8)$28:($gp)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-29-sp"><span class="toc-text">
+          (9)$29:($sp)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-30-fp"><span class="toc-text">
+          (10)$30:($fp)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-31-ra"><span class="toc-text">
+          (11)$31:($ra)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%B1%87%E7%BC%96%E6%8C%87%E4%BB%A4-1"><span class="toc-text">
+          2.汇编指令</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E4%B8%8D%E5%90%8C%E7%B1%BB%E5%9E%8B%E7%9A%84%E6%8C%87%E4%BB%A4"><span class="toc-text">
+          (1)不同类型的指令</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#R%E5%9E%8B%E6%8C%87%E4%BB%A4%EF%BC%9A%E6%93%8D%E4%BD%9C%E5%AF%84%E5%AD%98%E5%99%A8"><span class="toc-text">
+          R型指令：操作寄存器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#I%E5%9E%8B%E6%8C%87%E4%BB%A4%EF%BC%9A%E6%93%8D%E4%BD%9C%E5%B8%B8%E9%87%8F"><span class="toc-text">
+          I型指令：操作常量</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#J%E5%9E%8B%E6%8C%87%E4%BB%A4%EF%BC%9A%E8%B7%B3%E8%B7%83%E5%AF%BB%E5%9D%80"><span class="toc-text">
+          J型指令：跳跃寻址</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4"><span class="toc-text">
+          (2)常用指令</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A0load-store-%E6%8C%87%E4%BB%A4"><span class="toc-text">
+          ①load&#x2F;store 指令</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#la"><span class="toc-text">
+          la</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#li"><span class="toc-text">
+          li</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#lw"><span class="toc-text">
+          lw</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#sw"><span class="toc-text">
+          sw</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#move"><span class="toc-text">
+          move</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A1%E7%AE%97%E6%95%B0%E6%8C%87%E4%BB%A4"><span class="toc-text">
+          ②算数指令</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A2syscall"><span class="toc-text">
+          ③syscall</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A3%E5%88%86%E6%94%AF%E8%B7%B3%E8%BD%AC%E6%8C%87%E4%BB%A4"><span class="toc-text">
+          ④分支跳转指令</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A4%E8%B7%B3%E8%BD%AC%E6%8C%87%E4%BB%A4"><span class="toc-text">
+          ⑤跳转指令</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A5%E5%AD%90%E5%87%BD%E6%95%B0%E7%9A%84%E8%B0%83%E7%94%A8"><span class="toc-text">
+          ⑥子函数的调用</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A6%E5%AD%90%E5%87%BD%E6%95%B0%E7%9A%84%E8%BF%94%E5%9B%9E"><span class="toc-text">
+          ⑦子函数的返回</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E6%B5%81%E6%B0%B4%E7%BA%BF%E7%89%B9%E7%82%B9"><span class="toc-text">
+          3.流水线特点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%94%BA%E6%B3%A8%EF%BC%9A%E6%B5%81%E6%B0%B4%E7%BA%BF"><span class="toc-text">
+          🔺注：流水线</span></a></li></ol></li></ol></section><!-- ov = overview--><section class="sidebar-ov hide"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">The way forward</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">118</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">62</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">60</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section><div class="sidebar-reading"><div class="sidebar-reading-info"><span class="sidebar-reading-info__text">You have read </span><span class="sidebar-reading-info__num">0</span><span class="sidebar-reading-info__perc">%</span></div><div class="sidebar-reading-line"></div></div></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2022</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
+  var isXML = true;
+  var search_path = 'search.json';
+
+  if (!search_path) {
+    search_path = 'search.xml';
+  } else if (/json$/i.test(search_path)) {
+    isXML = false;
+  }
+
+  var path = '/' + search_path;
+  $.ajax({
+    url: path,
+    dataType: isXML ? 'xml' : 'json',
+    async: true,
+    success: function (res) {
+      var datas = isXML ? $('entry', res).map(function () {
+        // 将 XML 转为 JSON
+        return {
+          title: $('title', this).text(),
+          content: $('content', this).text(),
+          url: $('url', this).text()
+        };
+      }).get() : res;
+      var $input = $('.search-input input');
+      var $result = $('.search-results');
+      // 搜索对象（标题、内容）的权重，影响显示顺序
+      var WEIGHT = { title: 100, content: 1 };
+      var searchPost = function () {
+        var searchText = $input.val().toLowerCase().trim();
+        // 根据空白字符分隔关键字
+        var keywords = searchText.split(/[\s]+/);
+        // 搜索结果
+        var matchPosts = [];
+
+        // 有多个关键字时，将原文字整个保存下来
+        if (keywords.length > 1) {
+          keywords.push(searchText);
+        }
+        // 防止未输入字符时搜索
+        if (searchText.length > 0) {
+          datas.forEach(function (data) {
+            var isMatch  = false;
+            // 没有标题的文章使用预设的 i18n 变量代替
+            var title = (data.title && data.title.trim()) || '[ Untitled ]';
+            var titleLower = title && title.toLowerCase();
+            // 删除 HTML 标签 和 所有空白字符
+            var content = data.content && data.content.replace(/<[^>]+>/g, '');
+            var contentLower = content && content.toLowerCase();
+            // 删除重复的 /
+            var postURL = data.url && decodeURI(data.url).replace(/\/{2,}/g, '/');
+            // 标题中匹配到的关键词
+            var titleHitSlice = [];
+            // 内容中匹配到的关键词
+            var contentHitSlice = [];
+
+            keywords.forEach(function (keyword) {
+              /**
+              * 获取匹配的关键词的索引
+              * @param {String} keyword 要匹配的关键字
+              * @param {String} text 原文字
+              * @param {Boolean} caseSensitive 是否区分大小写
+              * @param {Number} weight 匹配对象的权重。权重大的优先显示
+              * @return {Array}
+              */
+              function getIndexByword (word, text, caseSensitive, weight) {
+                if (!word || !text) {
+                  return [];
+                };
+
+                var startIndex = 0; // 每次匹配的开始索引
+                var index = -1;     // 匹配到的索引值
+                var result = [];    // 匹配结果
+
+                if (!caseSensitive) {
+                  word = word.toLowerCase();
+                  text = text.toLowerCase();
+                }
+
+                while((index = text.indexOf(word, startIndex)) !== -1) {
+                  var hasMatch = false;
+                  // 索引位置相同的关键词，保留长度较长的
+                  titleHitSlice.forEach(function (hit) {
+                    if (hit.index === index && hit.word.length < word.length) {
+                      hit.word = word;
+                      hasMatch = true;
+                    }
+                  });
+                  startIndex = index + word.length;
+                  !hasMatch && result.push({ index: index, word: word, weight: weight });
+                }
+                return result;
+              }
+              titleHitSlice = titleHitSlice.concat(getIndexByword(keyword, titleLower, false, WEIGHT.title));
+              contentHitSlice = contentHitSlice.concat(getIndexByword(keyword, contentLower, false, WEIGHT.content));
+            });
+
+            var hitTitle = titleHitSlice.length;
+            var hitContent = contentHitSlice.length;
+
+            if (hitTitle > 0 || hitContent > 0) {
+              isMatch = true;
+            }
+            if (isMatch) {
+              ;[titleHitSlice, contentHitSlice].forEach(function (hit) {
+                // 按照匹配文字的索引的递增顺序排序
+                hit.sort(function (left, right) {
+                  return left.index - right.index;
+                });
+              });
+              /**
+              * 给文本中匹配到的关键词添加标记，从而进行高亮显示
+              * @param {String} text 原文本
+              * @param {Array} hitSlice 匹配项的索引信息
+              * @param {Number} start 开始索引
+              * @param {Number} end 结束索引
+              * @return {String}
+              */
+              function highlightKeyword (text, hitSlice, start, end) {
+                if (!text || !hitSlice || !hitSlice.length) {
+                  return;
+                }
+
+                var result = '';
+                var startIndex = start;
+                var endIndex = end;
+                hitSlice.forEach(function (hit) {
+                  if (hit.index < startIndex) {
+                    return;
+                  }
+
+                  var hitWordEnd = hit.index + hit.word.length;
+                  result += text.slice(startIndex, hit.index);
+                  result += '<b>' + text.slice(hit.index, hitWordEnd) + '</b>';
+                  startIndex = hitWordEnd;
+                });
+                result += text.slice(startIndex, endIndex);
+                return result;
+              }
+
+              var postData = {};
+              // 文章总的搜索权重
+              var postWeight = titleHitSlice.length * WEIGHT.title + contentHitSlice.length * WEIGHT.content;
+              // 标记匹配关键词后的标题
+              var postTitle = highlightKeyword(title, titleHitSlice, 0, title.length) || title;
+              // 标记匹配关键词后的内容
+              var postContent;
+              // 显示内容的长度
+              var SHOW_WORD_LENGTH = 200;
+              // 命中关键词前的字符显示长度
+              var SHOW_WORD_FRONT_LENGTH = 20;
+              var SHOW_WORD_END_LENGTH = SHOW_WORD_LENGTH - SHOW_WORD_FRONT_LENGTH;
+
+              // 截取匹配的第一个字符，前后共 200 个字符来显示
+              if (contentHitSlice.length > 0) {
+                var firstIndex = contentHitSlice[0].index;
+                var start = firstIndex > SHOW_WORD_FRONT_LENGTH ? firstIndex - SHOW_WORD_FRONT_LENGTH : 0;
+                var end = firstIndex + SHOW_WORD_END_LENGTH;
+                postContent = highlightKeyword(content, contentHitSlice, start, end);
+              } else { // 未匹配到内容，直接截取前 200 个字符来显示
+                postContent = content.slice(0, SHOW_WORD_LENGTH);
+              }
+              postData.title = postTitle;
+              postData.content = postContent;
+              postData.url = postURL;
+              postData.weight = postWeight;
+              matchPosts.push(postData);
+            }
+          });
+        }
+
+        var resultInnerHtml = '';
+        if (matchPosts.length) {
+          // 按权重递增的顺序排序，使权重大的优先显示
+          matchPosts.sort(function (left, right) {
+            return right.weight - left.weight;
+          });
+          resultInnerHtml += '<ul>';
+          matchPosts.forEach(function (post) {
+            resultInnerHtml += '<li><a class="search-results-title" href="' + post.url + '">';
+            resultInnerHtml += post.title;
+            resultInnerHtml += '</a><div class="search-results-content">';
+            resultInnerHtml += post.content;
+            resultInnerHtml += '</div></li>';
+          });
+          resultInnerHtml += '</ul>';
+        } else {
+          resultInnerHtml += '<div class="search-results-none"><i class="far fa-meh"></i></div>';
+        }
+        $result.html(resultInnerHtml);
+      };
+      $input.on('input', searchPost);
+      $input.on('keyup', function (e) {
+        if (e.keyCode === Stun.utils.codeToKeyCode('Enter')) {
+          searchPost();
+        }
+      });
+    }
+  });
+}
+
+function closeSearch () {
+  $('body').css({ overflow: 'auto' });
+  $('.search-popup').css({ display: 'none' });
+  $('.search-mask').css({ display: 'none' });
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  Stun.utils.pjaxReloadLocalSearch = function () {
+    $('.header-nav-search').on('click', function (e) {
+      e.stopPropagation();
+      $('body').css('overflow', 'hidden');
+      $('.search-popup')
+        .velocity('stop')
+        .velocity('transition.expandIn', {
+          duration: 300,
+          complete: function () {
+            $('.search-popup input').focus();
+          }
+        });
+      $('.search-mask')
+        .velocity('stop')
+        .velocity('transition.fadeIn', {
+          duration: 300
+        });
+
+      initSearch();
+    });
+    $('.search-mask, .search-close').on('click', function () {
+      closeSearch();
+    });
+    $(document).on('keydown', function (e) {
+      // Escape <=> 27
+      if (e.keyCode === Stun.utils.codeToKeyCode('Escape')) {
+        closeSearch();
+      }
+    });
+  };
+
+  Stun.utils.pjaxReloadLocalSearch();
+}, false);
+
+function safeOpenUrl(url) {
+  var newTab = window.open();
+  newTab.opener = null;
+  newTab.location = url;
+}
+
+function extSearch(engine) {
+  var engines = {
+    google: 'https://www.google.com/search?q=',
+    bing: 'https://cn.bing.com/search?q=',
+    baidu: 'https://www.baidu.com/s?ie=UTF-8&wd=',
+  };
+  var host = window.location.host;
+  var query = $('.search-input input').val().toLowerCase().trim();
+  var uri = engines[engine] + query + ' site:' + host;
+
+  if (query) {
+    safeOpenUrl(uri);
+  } else {
+    Stun.utils.popAlert('warning', 'Please enter characters');
+  }
+}
+
+var assistSearchList = window.CONFIG.assistSearch;
+
+if (Array.isArray(assistSearchList)) {
+  assistSearchList.forEach(function (name) {
+    document.querySelector('.search-btns-item--' + name).addEventListener('click', function () {
+      extSearch(name);
+    }, false);
+  });
+}</script><script src="/js/utils.js?v=2.6.2"></script><script src="/js/stun-boot.js?v=2.6.2"></script><script src="/js/scroll.js?v=2.6.2"></script><script src="/js/header.js?v=2.6.2"></script><script src="/js/sidebar.js?v=2.6.2"></script><script type="application/json" src="/search.json"></script><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"superSample":2,"width":150,"height":300,"position":"left","hOffset":0,"vOffset":-80},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body></html>

