@@ -1,9 +1,9 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta name="description" content="一、main_arena总概 1.arena:堆内存本身 (1)主线程的main_arena:由sbrk函数创建。 ①最开始调用sbrk函数创建大小为(128 KB + chunk_size) align 4KB 的空间作为 heap ②当不够用时，用sbrk或者mmap增加heap大小。 (2)其它线程的per thread arena:由mmap创建。 ①最开始调用 mmap 映射一块大小为H">
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta name="description" content="一、main_arena总概                           1.arena:       堆内存本身                     (1)主线程的main_arena:       由sbrk函数创建。  最开始调用sbrk函数创建大小为(128 KB + chunk_size) align 4KB 的空间作为 heap  当">
 <meta property="og:type" content="article">
 <meta property="og:title" content="堆前置知识总结">
 <meta property="og:url" content="http://pig-007.github.io/2021/08/19/%E5%A0%86%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/index.html">
 <meta property="og:site_name" content="PIG-007">
-<meta property="og:description" content="一、main_arena总概 1.arena:堆内存本身 (1)主线程的main_arena:由sbrk函数创建。 ①最开始调用sbrk函数创建大小为(128 KB + chunk_size) align 4KB 的空间作为 heap ②当不够用时，用sbrk或者mmap增加heap大小。 (2)其它线程的per thread arena:由mmap创建。 ①最开始调用 mmap 映射一块大小为H">
+<meta property="og:description" content="一、main_arena总概                           1.arena:       堆内存本身                     (1)主线程的main_arena:       由sbrk函数创建。  最开始调用sbrk函数创建大小为(128 KB + chunk_size) align 4KB 的空间作为 heap  当">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs1.png">
 <meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs2.png">
@@ -14,7 +14,7 @@
 <meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsSnipaste_2021-08-08_23-01-51.png">
 <meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs1.jpg">
 <meta property="article:published_time" content="2021-08-19T05:08:42.000Z">
-<meta property="article:modified_time" content="2021-08-19T08:00:55.519Z">
+<meta property="article:modified_time" content="2022-03-22T12:27:10.389Z">
 <meta property="article:author" content="PIG-007">
 <meta property="article:tag" content="Heap-Knowledge">
 <meta name="twitter:card" content="summary">
@@ -42,20 +42,54 @@ var CONFIG = {
   sourcePath: {"js":"js","css":"css","images":"images"},
 };
 
-window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content" id="content"><!-- Just used to judge whether it is an article page--><div id="is-post"></div><div class="post"><header class="post-header"><h1 class="post-title">堆前置知识总结</h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2021-08-19</span></span></div></header><div class="post-body"><p>一、main_arena总概</p>
-<p>1.arena:堆内存本身</p>
-<p>(1)主线程的main_arena:由sbrk函数创建。</p>
-<p>①最开始调用sbrk函数创建大小为(128 KB + chunk_size) align 4KB 的空间作为 heap</p>
-<p>②当不够用时，用sbrk或者mmap增加heap大小。</p>
-<p>(2)其它线程的per thread arena:由mmap创建。</p>
-<p>①最开始调用 mmap 映射一块大小为HEAP_MAX_SIZE（32 位系统上默认为 1MB，64 位系统上默认为 64MB）的空间作为 sub-heap。</p>
-<p>②当不够用时，会调用 mmap 映射一块新的 sub-heap，也就是增加 top chunk 的大小，每次 heap 增加的值都会对齐到4KB。</p>
-<p>2.malloc_state:管理arena的一个结构，包括堆状态信息，bins链表等等</p>
-<p>(1)main_arena对应的malloc_state存储在glibc的全局变量中</p>
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content" id="content"><!-- Just used to judge whether it is an article page--><div id="is-post"></div><div class="post"><header class="post-header"><h1 class="post-title">堆前置知识总结</h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2021-08-19</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2022-03-22</span></span></div></header><div class="post-body">
+        <h1 id="一、main-arena总概"   >
+          <a href="#一、main-arena总概" class="heading-link"><i class="fas fa-link"></i></a><a href="#一、main-arena总概" class="headerlink" title="一、main_arena总概"></a>一、main_arena总概</h1>
+      
+        <h2 id="1-arena"   >
+          <a href="#1-arena" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-arena" class="headerlink" title="1.arena:"></a>1.arena:</h2>
+      <p>堆内存本身</p>
+
+        <h3 id="1-主线程的main-arena"   >
+          <a href="#1-主线程的main-arena" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-主线程的main-arena" class="headerlink" title="(1)主线程的main_arena:"></a>(1)主线程的main_arena:</h3>
+      <p>由sbrk函数创建。</p>
+<ul>
+<li><p>最开始调用sbrk函数创建大小为(128 KB + chunk_size) align 4KB 的空间作为 heap</p>
+</li>
+<li><p>当t不够用时，用sbrk或者mmap增加heap大小。</p>
+</li>
+</ul>
+
+        <h3 id="2-其它线程的per-thread-arena"   >
+          <a href="#2-其它线程的per-thread-arena" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-其它线程的per-thread-arena" class="headerlink" title="(2)其它线程的per thread arena:"></a>(2)其它线程的per thread arena:</h3>
+      <p>由mmap创建。</p>
+<ul>
+<li><p>最开始调用 mmap 映射一块大小为HEAP_MAX_SIZE（32 位系统上默认为 1MB，64 位系统上默认为 64MB）的空间作为 sub-heap。</p>
+</li>
+<li><p>当不够用时，会调用 mmap 映射一块新的 sub-heap，也就是增加 top chunk 的大小，每次 heap 增加的值都会对齐到4KB。</p>
+</li>
+</ul>
+
+        <h2 id="2-malloc-state"   >
+          <a href="#2-malloc-state" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-malloc-state" class="headerlink" title="2.malloc_state:"></a>2.malloc_state:</h2>
+      <p>管理arena的一个结构，包括堆状态信息，bins链表等等</p>
+
+        <h3 id="1-main-arena"   >
+          <a href="#1-main-arena" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-main-arena" class="headerlink" title="(1)main_arena"></a>(1)main_arena</h3>
+      <p>对应的malloc_state结构的全局指针存储在glibc的全局变量中</p>
 <p>(如果可以泄露malloc_state结构体的地址，那么就可以泄露glibc的地址)</p>
-<p>(2)per thread arena对应的malloc_state存储在各自本身的arena</p>
-<p>3.bins:用链表结构管理空闲的chunk块，通过free释放进入的chunk块(垃圾桶)</p>
-<p>4.chunks:一般意义上的堆内存块</p>
+
+        <h3 id="2-per-thread-arena"   >
+          <a href="#2-per-thread-arena" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-per-thread-arena" class="headerlink" title="(2)per thread arena"></a>(2)per thread arena</h3>
+      <p>对应的malloc_state存储在各自本身的arena</p>
+
+        <h2 id="3-bins"   >
+          <a href="#3-bins" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-bins" class="headerlink" title="3.bins:"></a>3.bins:</h2>
+      <p>用链表结构管理空闲的chunk块，通过free释放进入的chunk块(垃圾桶)</p>
+
+        <h2 id="4-chunks"   >
+          <a href="#4-chunks" class="heading-link"><i class="fas fa-link"></i></a><a href="#4-chunks" class="headerlink" title="4.chunks:"></a>4.chunks:</h2>
+      <p>一般意义上的堆内存块</p>
 <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">malloc_state</span>&#123;</span></span><br><span class="line"><span class="keyword">mutex_t</span> mutex;<span class="comment">//(相当于多线程的互斥锁)</span></span><br><span class="line"><span class="keyword">int</span> flags;<span class="comment">//(记录分配器的一些标志，bit0 用于标识分配区是否包含至少一个 fast bin chunk，bit1 用于标识分配区是否能返回连续的虚拟地址空间。)</span></span><br><span class="line">mfastbinptr fastbinsY[NFASTBINS];<span class="comment">//(一个数组，里面的元素是各个不同大小的fastbins的首地址)</span></span><br><span class="line">mchunkptr top;<span class="comment">//(top chunk的首地址)</span></span><br><span class="line">mchunkptr last_remainder;<span class="comment">//(某些情况下切割剩下来的堆块)</span></span><br><span class="line">mchunkptr bins[NBINS*<span class="number">2</span><span class="number">-2</span>];</span><br><span class="line">.......................................................</span><br><span class="line"><span class="keyword">unsigned</span> <span class="keyword">int</span> binmap[BINMAPSIZE];<span class="comment">//(以bit为单位的数组，共128bit，16个字节，4个int，由于bin的数量为128，对于这里面的128bit，为0表该bin没用有空闲块，为1表有空闲块。通过四个int的大小可以找出不同index的bin中是否有空闲块。这个在某些时候会用到。)</span></span><br><span class="line">......<span class="comment">//后面还有，不太重要</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
 
 <p>▲内存中的堆情况：</p>
@@ -101,133 +135,280 @@ window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></he
 </tr>
 </tbody></table></div>
 <p>低地址————————————————————- ——————&gt;高地址</p>
-<p>由sbrk创建的main_arena</p>
-<p>(1)可以把bin也当作一个chunk，不同Bins管理结构不同，有单向链表管理和双向链表管理。</p>
-<p>(2)top里的bk保存Topchunk的首地址。</p>
+<p>由sbrk创建的main_arena:</p>
+<ul>
+<li><p>可以把bin也当作一个chunk，不同Bins管理结构不同，有单向链表管理和双向链表管理。</p>
+</li>
+<li><p>top里的bk保存Topchunk的首地址。</p>
+</li>
+</ul>
 <p>(bk和fd只用于Bins链表中，allocated_chunk中是属于用户可以使用的内容)</p>
-<p>二、chunk结构：</p>
-<p>1.在使用中的allocated_chunk和未被使用的free_chunk：</p>
-<p>(1)allocated_chunk：</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs1.png" alt="img"></p>
-<p>(2)free_chunk:</p>
-<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs2.png" alt="img"></p>
-<p>2.prev_size：8字节，保存前一个chunk的大小，在allocatedchunk中属于用户数据，参考上述的图片，free_chunk的下一个chunk的pre_size位为该free_chunk的size。</p>
-<p>3.size:8字节，保存当前chunk大小。(free和allocated都有用)一个chunk的size以0x10递增，以0x20为最小chunk。</p>
-<p>(1)malloc(0x01)：会有0x20这么大，实际用户可用数据就是0x18。size=0x21</p>
-<p>(2)malloc(0x01-0x18)：仍然0x20这么大，实际用户可用数据就是0x18。size=0x21</p>
-<p>(3)malloc(0x18)：会有0x30这么大，实际用户可用数据是0x28。size=0x31</p>
+
+        <h1 id="二、chunk结构："   >
+          <a href="#二、chunk结构：" class="heading-link"><i class="fas fa-link"></i></a><a href="#二、chunk结构：" class="headerlink" title="二、chunk结构："></a>二、chunk结构：</h1>
+      
+        <h2 id="1-chunk状态"   >
+          <a href="#1-chunk状态" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-chunk状态" class="headerlink" title="1.chunk状态"></a>1.chunk状态</h2>
+      
+        <h3 id="1-allocated-chunk："   >
+          <a href="#1-allocated-chunk：" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-allocated-chunk：" class="headerlink" title="(1)allocated_chunk："></a>(1)allocated_chunk：</h3>
+      <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs1.png" alt="img"></p>
+
+        <h3 id="2-free-chunk"   >
+          <a href="#2-free-chunk" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-free-chunk" class="headerlink" title="(2)free_chunk:"></a>(2)free_chunk:</h3>
+      <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs2.png" alt="img"></p>
+
+        <h2 id="2-prev-size："   >
+          <a href="#2-prev-size：" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-prev-size：" class="headerlink" title="2.prev_size："></a>2.prev_size：</h2>
+      <p>8字节，保存前一个chunk的大小，在allocatedchunk中属于用户数据，参考上述的图片，free_chunk的下一个chunk的pre_size位为该free_chunk的size。</p>
+
+        <h2 id="3-size"   >
+          <a href="#3-size" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-size" class="headerlink" title="3.size:"></a>3.size:</h2>
+      
+        <h3 id="1-size含义"   >
+          <a href="#1-size含义" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-size含义" class="headerlink" title="(1)size含义"></a>(1)size含义</h3>
+      <p>8字节，保存当前chunk大小。(free和allocated都有用)一个chunk的size以0x10递增，以0x20为最小chunk。</p>
+<ul>
+<li><p>malloc(0x01)：会有0x20这么大，实际用户可用数据就是0x18。size=0x21</p>
+</li>
+<li><p>malloc(0x01-0x18)：仍然0x20这么大，实际用户可用数据就是0x18。size=0x21</p>
+</li>
+<li><p>malloc(0x18)：会有0x30这么大，实际用户可用数据是0x28。size=0x31</p>
+</li>
+</ul>
 <p>所以size这个8字节内存的最低4位都不会被用到，所以malloc管理机制给最低的3位搞了个特殊形式标志位，A,M,P，分别代表不同内容。</p>
-<p>①A:NON_MAIN_ARENA，代表是否属于非main_arena，1表是，0表否。就是线程的不同。</p>
+
+        <h3 id="2-AMP标志位"   >
+          <a href="#2-AMP标志位" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-AMP标志位" class="headerlink" title="(2)AMP标志位"></a>(2)AMP标志位</h3>
+      
+        <h4 id="①A-NON-MAIN-ARENA"   >
+          <a href="#①A-NON-MAIN-ARENA" class="heading-link"><i class="fas fa-link"></i></a><a href="#①A-NON-MAIN-ARENA" class="headerlink" title="①A:NON_MAIN_ARENA"></a>①A:NON_MAIN_ARENA</h4>
+      <p>代表是否属于非main_arena，1表是，0表否。就是线程的不同。</p>
 <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> chunk_non_main_arena(p) ((p)-&gt;size &amp; NON_MAIN_ARENA)</span></span><br></pre></td></tr></table></div></figure>
 
-<p>②M:IS_MMAPPED，代表当前chunk是否是mmap出来的。</p>
+
+        <h4 id="②M-IS-MMAPPED"   >
+          <a href="#②M-IS-MMAPPED" class="heading-link"><i class="fas fa-link"></i></a><a href="#②M-IS-MMAPPED" class="headerlink" title="②M:IS_MMAPPED"></a>②M:IS_MMAPPED</h4>
+      <p>代表当前chunk是否是mmap出来的。</p>
 <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> chunk_is_mmapped(p) ((p)-&gt;size &amp; IS_MMAPPED)</span></span><br></pre></td></tr></table></div></figure>
 
-<p>③P:PREV_INUSE，代表前一个chunk是否正在被使用，处于allocated还是free。</p>
+
+        <h4 id="③P-PREV-INUSE"   >
+          <a href="#③P-PREV-INUSE" class="heading-link"><i class="fas fa-link"></i></a><a href="#③P-PREV-INUSE" class="headerlink" title="③P:PREV_INUSE"></a>③P:PREV_INUSE</h4>
+      <p>代表前一个chunk是否正在被使用，处于allocated还是free。</p>
 <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> prev_inuse(p) ((p)-&gt;size &amp; PREV_INUSE)</span></span><br></pre></td></tr></table></div></figure>
 
 <p>(标志位为1都代表是，0都代表否)</p>
-<p>三、bins结构：</p>
-<p>1.fastbins:放在struct malloc_state中的mfastbinptr fastbinsY[NFASTBINS]数组中。</p>
-<p>(1)归类方式：只使用fd位</p>
-<p>①bin的index为1，bins[0],bins[1]组成一个bin。</p>
-<p>②规定大小的chunk归到一类，但个数有限，不同版本不同，同时也可以设置其范围：</p>
+
+        <h1 id="三、bins结构："   >
+          <a href="#三、bins结构：" class="heading-link"><i class="fas fa-link"></i></a><a href="#三、bins结构：" class="headerlink" title="三、bins结构："></a>三、bins结构：</h1>
+      
+        <h2 id="1-fastbins"   >
+          <a href="#1-fastbins" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-fastbins" class="headerlink" title="1.fastbins"></a>1.fastbins</h2>
+      <p>放在struct malloc_state中的mfastbinptr fastbinsY[NFASTBINS]数组中。</p>
+
+        <h3 id="1-归类方式："   >
+          <a href="#1-归类方式：" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-归类方式：" class="headerlink" title="(1)归类方式："></a>(1)归类方式：</h3>
+      <p>只使用fd位</p>
+<ul>
+<li><p>bin的index为1，bins[0],bins[1]组成一个bin。</p>
+</li>
+<li><p>规定大小的chunk归到一类，但个数有限，不同版本不同，同时也可以设置其范围：</p>
+</li>
+</ul>
 <p>M_MXFAST即为其最大的参数，可以通过 mallopt()进行设置，但最大只能是80B。</p>
 <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs3.jpg" alt="img"></p>
-<p>(2)单向链表：</p>
-<p>▲例子：a=malloc(0x10); b=malloc(0x10); c=malloc(0x10); d=malloc(0x10)</p>
+
+        <h3 id="2-单向链表："   >
+          <a href="#2-单向链表：" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-单向链表：" class="headerlink" title="(2)单向链表："></a>(2)单向链表：</h3>
+      <p>▲例子：a=malloc(0x10); b=malloc(0x10); c=malloc(0x10); d=malloc(0x10)</p>
 <p>FastbinY,d,c,b,a</p>
-<p>①free(a)之后：</p>
+<ul>
+<li>free(a)之后：</li>
+</ul>
 <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">fastbinY[<span class="number">0x20</span>]-&gt;a;       a.fd=<span class="number">0</span></span><br></pre></td></tr></table></div></figure>
 
-<p>②free(b)之后：</p>
+<ul>
+<li>free(b)之后：</li>
+</ul>
 <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">fastbinY[<span class="number">0x20</span>]-&gt;b;       b.fd=a       a.fd=<span class="number">0</span></span><br></pre></td></tr></table></div></figure>
 
-<p>③free(c)之后：</p>
+<ul>
+<li>free(c)之后：</li>
+</ul>
 <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">fastbinY[<span class="number">0x20</span>]-&gt;c;        c.fd=b       b.fd-&gt;a;    a.fd=<span class="number">0</span></span><br></pre></td></tr></table></div></figure>
 
-<p>④free(d)之后：</p>
+<ul>
+<li>free(d)之后：</li>
+</ul>
 <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">fastbinY[<span class="number">0x20</span>]-&gt;d;       d.fd=c       c.fd-&gt;b;     b.fd-&gt;a;    a.fd=<span class="number">0</span></span><br></pre></td></tr></table></div></figure>
 
-<p>(3)后进先出：</p>
-<p>①m=malloc(0x10):      m-&gt;d</p>
-<p>②n=malloc(0x10):      n-&gt;c</p>
-<p>(4)不改变IN_USE位(p位):</p>
-<p>如果某个chunk进入到fastbin中，那么该chunk的下一个chunk的IN_USE位还是为1，不会改变成0。</p>
+
+        <h3 id="3-后进先出："   >
+          <a href="#3-后进先出：" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-后进先出：" class="headerlink" title="(3)后进先出："></a>(3)后进先出：</h3>
+      <ul>
+<li><p>m=malloc(0x10):      m-&gt;d</p>
+</li>
+<li><p>n=malloc(0x10):      n-&gt;c</p>
+</li>
+</ul>
+
+        <h3 id="4-IN-USE位"   >
+          <a href="#4-IN-USE位" class="heading-link"><i class="fas fa-link"></i></a><a href="#4-IN-USE位" class="headerlink" title="(4)IN_USE位:"></a>(4)IN_USE位:</h3>
+      <p>如果某个chunk进入到fastbin中，那么该chunk的下一个chunk的IN_USE位还是为1，不会改变成0。</p>
 <p>例子：a=malloc(0x10); b=malloc(0x10); c=malloc(0x10);</p>
-<p>①free(a)之后:     b.p=1</p>
-<p>②free(b)之后：   c.p=1;   b.p=1</p>
+<ul>
+<li><p>free(a)之后:     b.p=1</p>
+</li>
+<li><p>free(b)之后：   c.p=1;   b.p=1</p>
+</li>
+</ul>
 <p>p位不会变成0，如果该chunk进入到fastbins中。</p>
 <p>可以进行free(0),free(1),free(0)，但是不能直接free(0)两次。</p>
-<p>(5)除了malloc_consolidate函数会清空fastbins，其它的操作都不会减少fastbins中chunk的数量。</p>
-<p>2.smallbins:放在bins[2]-bins[125]中，共计62组，是一个双向链表。最大chunk的大小不超过1024字节</p>
-<p>(1)归类方式：</p>
-<p>①相同大小的chunk归到一类：大小范围[0x20,0x3f0]，0x20、0x30、….0x3f0。每组bins中的chunk大小一定。</p>
-<p>②每组bin中的chunk大小有如下关系：Chunk_size=2 * SIZE_SZ * index，index即为2-63，下图中64即为largebins的范围了。(SIZE_SZ在32，64位下分别位4，8。)</p>
+
+        <h3 id="5-注意"   >
+          <a href="#5-注意" class="heading-link"><i class="fas fa-link"></i></a><a href="#5-注意" class="headerlink" title="(5)注意"></a>(5)注意</h3>
+      <p>除了<code>malloc_consolidate</code>函数会清空fastbins，以及在tcache下存在<code>fastbin_reverseTo_tcache</code>外，其它的操作都不会减少fastbins中chunk的数量。</p>
+
+        <h2 id="2-smallbins"   >
+          <a href="#2-smallbins" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-smallbins" class="headerlink" title="2.smallbins:"></a>2.smallbins:</h2>
+      <p>放在bins[2]-bins[125]中，共计62组，是一个双向链表。最大chunk的大小不超过1024字节</p>
+
+        <h3 id="1-归类方式：-1"   >
+          <a href="#1-归类方式：-1" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-归类方式：-1" class="headerlink" title="(1)归类方式："></a>(1)归类方式：</h3>
+      <ul>
+<li><p>相同大小的chunk归到一类：大小范围[0x20,0x3f0]，0x20、0x30、….0x3f0。每组bins中的chunk大小一定。</p>
+</li>
+<li><p>每组bin中的chunk大小有如下关系：Chunk_size=2 * SIZE_SZ * index，index即为2-63，下图中64即为largebins的范围了。(SIZE_SZ在32，64位下分别位4，8。)</p>
+</li>
+</ul>
 <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs4.jpg" alt="img"></p>
-<p>(2)双向链表：</p>
-<p>▲例子：a=malloc(0x100); b=malloc(0x100); c=malloc(0x100)</p>
-<p>①free(a)之后:      smallbin,a</p>
+
+        <h3 id="2-双向链表："   >
+          <a href="#2-双向链表：" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-双向链表：" class="headerlink" title="(2)双向链表："></a>(2)双向链表：</h3>
+      <p>▲例子：a=malloc(0x100); b=malloc(0x100); c=malloc(0x100)</p>
+<ul>
+<li>free(a)之后:      smallbin,a</li>
+</ul>
 <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">smallbin.bk-&gt;a;         a.bk-&gt;smallbin;      </span><br><span class="line">samllbin.fd-&gt;a          a.fd-&gt;smallbin;</span><br></pre></td></tr></table></div></figure>
 
-<p>②free(b)之后:    smallbin,b,a</p>
+<ul>
+<li>free(b)之后:    smallbin,b,a</li>
+</ul>
 <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">smallbin.bk-&gt;a;       a.bk-&gt;b    b.bk-&gt;smallbin</span><br><span class="line">smallbin.fd-&gt;b;       b.fd-&gt;a    a.fd-&gt;smallbin</span><br></pre></td></tr></table></div></figure>
 
-<p>③free(c)之后：   smallbin,c,b,a</p>
+<ul>
+<li>free(c)之后：   smallbin,c,b,a</li>
+</ul>
 <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">smallbin.bk-&gt;a;       a.bk-&gt;b    b.bk-&gt;c    c.bk-&gt;smallbin</span><br><span class="line">smallbin.fd-&gt;c;       c.fd-&gt;b    b.fd-&gt;a    a.fd-&gt;smallbin</span><br></pre></td></tr></table></div></figure>
 
 <p>（fd,bk为bins[n]，bins[n+1]。fd和bk共同构成一个Binat。）</p>
-<p>(3)先进先出：</p>
-<p>①m=malloc(0x100):         m-&gt;a</p>
-<p>②n=malloc(0x100):         n-&gt;b</p>
-<p>(4)当有空闲chunk相邻时，Chunk会被合并成一个大chunk，这里指的是物理上的地址相邻，不是链表中相邻。通过判断当前chunk的in_use位的值来判断前一个chunk是否处于Free，如果是，那么合并。再通过当前chunk首地址加上size取得下一个chunk首地址，再将下一个chunk首地址加上它自己的size，取得下下个chunk的首地址，然后判断下下个chunk的in_use位的值看是否下个chunk处于Free，如果处于Free，则合并。</p>
-<p>3.largebins:放在bins[126]-bins[251]，共计63组，bin的index为64-126，最小chunk的大小不小于1024个字节。</p>
-<p>(1)归类方式：范围归类，例如bins[126]-bins[127]中保存chunk范围在[0x400,0x440]。且chunk在一个bin中按照从大到小排序，便于检索。其它与smallbins基本一致。</p>
-<p>①范围模式：由以下代码定义范围：</p>
+
+        <h3 id="3-先进先出："   >
+          <a href="#3-先进先出：" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-先进先出：" class="headerlink" title="(3)先进先出："></a>(3)先进先出：</h3>
+      <ul>
+<li><p>m=malloc(0x100):         m-&gt;a</p>
+</li>
+<li><p>n=malloc(0x100):         n-&gt;b</p>
+</li>
+</ul>
+
+        <h2 id="3-largebins"   >
+          <a href="#3-largebins" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-largebins" class="headerlink" title="3.largebins"></a>3.largebins</h2>
+      <p>放在bins[126]-bins[251]，共计63组，bin的index为64-126，最小chunk的大小不小于1024个字节。</p>
+
+        <h3 id="1-归类方式：-2"   >
+          <a href="#1-归类方式：-2" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-归类方式：-2" class="headerlink" title="(1)归类方式："></a>(1)归类方式：</h3>
+      <p>范围归类，例如bins[126]-bins[127]中保存chunk范围在[0x400,0x440]。且chunk在一个bin中按照从大到小排序，便于检索。其它与smallbins基本一致。</p>
+
+        <h4 id="①范围模式："   >
+          <a href="#①范围模式：" class="heading-link"><i class="fas fa-link"></i></a><a href="#①范围模式：" class="headerlink" title="①范围模式："></a>①范围模式：</h4>
+      <p>由以下代码定义范围：</p>
 <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> largebin_index_64(sz)                                               </span></span><br><span class="line">  (((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">6</span>) &lt;= <span class="number">48</span>) ?  <span class="number">48</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">6</span>) :</span><br><span class="line">   ((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">9</span>) &lt;= <span class="number">20</span>) ?  <span class="number">91</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">9</span>) :</span><br><span class="line">   ((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">12</span>) &lt;= <span class="number">10</span>) ? <span class="number">110</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">12</span>) :</span><br><span class="line">   ((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">15</span>) &lt;= <span class="number">4</span>) ? <span class="number">119</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">15</span>) :</span><br><span class="line">   ((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">18</span>) &lt;= <span class="number">2</span>) ? <span class="number">124</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">18</span>) :</span><br><span class="line">   <span class="number">126</span>)</span><br></pre></td></tr></table></div></figure>
 
-<p>②范围具体实例：</p>
-<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">size                           index</span><br><span class="line">[<span class="number">0x400</span> , <span class="number">0x440</span>)                <span class="number">64</span></span><br><span class="line">[<span class="number">0x440</span> , <span class="number">0x480</span>)                <span class="number">65</span></span><br><span class="line">[<span class="number">0x480</span> , <span class="number">0x4C0</span>)                <span class="number">66</span></span><br><span class="line">[<span class="number">0x4C0</span> , <span class="number">0x500</span>)                <span class="number">67</span></span><br><span class="line">[<span class="number">0x500</span> , <span class="number">0x540</span>)                <span class="number">68</span></span><br><span class="line">等差 <span class="number">0x40</span>      …</span><br><span class="line">[<span class="number">0xC00</span> , <span class="number">0xC40</span>)                <span class="number">96</span></span><br><span class="line">[<span class="number">0xC40</span> , <span class="number">0xE00</span>)                <span class="number">97</span></span><br><span class="line">[<span class="number">0xE00</span> , <span class="number">0x1000</span>)               <span class="number">98</span></span><br><span class="line">[<span class="number">0x1000</span> , <span class="number">0x1200</span>)              <span class="number">99</span></span><br><span class="line">[<span class="number">0x1200</span> , <span class="number">0x1400</span>)              <span class="number">100</span></span><br><span class="line">[<span class="number">0x1400</span> , <span class="number">0x1600</span>)              <span class="number">101</span></span><br><span class="line">等差 <span class="number">0x200</span>    …</span><br><span class="line">[<span class="number">0x2800</span> , <span class="number">0x2A00</span>)              <span class="number">111</span></span><br><span class="line">[<span class="number">0x2A00</span> , <span class="number">0x3000</span>)              <span class="number">112</span></span><br><span class="line">[<span class="number">0x3000</span> , <span class="number">0x4000</span>)              <span class="number">113</span></span><br><span class="line">[<span class="number">0x4000</span> , <span class="number">0x5000</span>)              <span class="number">114</span></span><br><span class="line">等差 <span class="number">0x1000</span> …</span><br><span class="line">[<span class="number">0x9000</span> , <span class="number">0xA000</span>)              <span class="number">119</span></span><br><span class="line">[<span class="number">0xA000</span> , <span class="number">0x10000</span>)             <span class="number">120</span></span><br><span class="line">[<span class="number">0x10000</span> , <span class="number">0x18000</span>)            <span class="number">121</span></span><br><span class="line">[<span class="number">0x18000</span> , <span class="number">0x20000</span>)            <span class="number">122</span></span><br><span class="line">[<span class="number">0x20000</span> , <span class="number">0x28000</span>)            <span class="number">123</span></span><br><span class="line">[<span class="number">0x28000</span> , <span class="number">0x40000</span>)            <span class="number">124</span></span><br><span class="line">[<span class="number">0x40000</span> , <span class="number">0x80000</span>)            <span class="number">125</span></span><br><span class="line">[<span class="number">0x80000</span> , …. )                <span class="number">126</span></span><br></pre></td></tr></table></div></figure>
 
-<p>(2)双向链表，但是有两种排列方式：</p>
-<p>①取用排列：</p>
-<p>首先依据fd_nextsize，bk_nextsize两个指针大小找到适合的，然后按照正常的FIFO先进先出原则，通过fd,bk来排列。</p>
-<p>②大小排列：</p>
-<p>每个进入largebin的chunk</p>
+        <h4 id="②范围具体实例："   >
+          <a href="#②范围具体实例：" class="heading-link"><i class="fas fa-link"></i></a><a href="#②范围具体实例：" class="headerlink" title="②范围具体实例："></a>②范围具体实例：</h4>
+      <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">size                           index</span><br><span class="line">[<span class="number">0x400</span> , <span class="number">0x440</span>)                <span class="number">64</span></span><br><span class="line">[<span class="number">0x440</span> , <span class="number">0x480</span>)                <span class="number">65</span></span><br><span class="line">[<span class="number">0x480</span> , <span class="number">0x4C0</span>)                <span class="number">66</span></span><br><span class="line">[<span class="number">0x4C0</span> , <span class="number">0x500</span>)                <span class="number">67</span></span><br><span class="line">[<span class="number">0x500</span> , <span class="number">0x540</span>)                <span class="number">68</span></span><br><span class="line">等差 <span class="number">0x40</span>      …</span><br><span class="line">[<span class="number">0xC00</span> , <span class="number">0xC40</span>)                <span class="number">96</span></span><br><span class="line">[<span class="number">0xC40</span> , <span class="number">0xE00</span>)                <span class="number">97</span></span><br><span class="line">[<span class="number">0xE00</span> , <span class="number">0x1000</span>)               <span class="number">98</span></span><br><span class="line">[<span class="number">0x1000</span> , <span class="number">0x1200</span>)              <span class="number">99</span></span><br><span class="line">[<span class="number">0x1200</span> , <span class="number">0x1400</span>)              <span class="number">100</span></span><br><span class="line">[<span class="number">0x1400</span> , <span class="number">0x1600</span>)              <span class="number">101</span></span><br><span class="line">等差 <span class="number">0x200</span>    …</span><br><span class="line">[<span class="number">0x2800</span> , <span class="number">0x2A00</span>)              <span class="number">111</span></span><br><span class="line">[<span class="number">0x2A00</span> , <span class="number">0x3000</span>)              <span class="number">112</span></span><br><span class="line">[<span class="number">0x3000</span> , <span class="number">0x4000</span>)              <span class="number">113</span></span><br><span class="line">[<span class="number">0x4000</span> , <span class="number">0x5000</span>)              <span class="number">114</span></span><br><span class="line">等差 <span class="number">0x1000</span> …</span><br><span class="line">[<span class="number">0x9000</span> , <span class="number">0xA000</span>)              <span class="number">119</span></span><br><span class="line">[<span class="number">0xA000</span> , <span class="number">0x10000</span>)             <span class="number">120</span></span><br><span class="line">[<span class="number">0x10000</span> , <span class="number">0x18000</span>)            <span class="number">121</span></span><br><span class="line">[<span class="number">0x18000</span> , <span class="number">0x20000</span>)            <span class="number">122</span></span><br><span class="line">[<span class="number">0x20000</span> , <span class="number">0x28000</span>)            <span class="number">123</span></span><br><span class="line">[<span class="number">0x28000</span> , <span class="number">0x40000</span>)            <span class="number">124</span></span><br><span class="line">[<span class="number">0x40000</span> , <span class="number">0x80000</span>)            <span class="number">125</span></span><br><span class="line">[<span class="number">0x80000</span> , …. )                <span class="number">126</span></span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="2-双向链表：-1"   >
+          <a href="#2-双向链表：-1" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-双向链表：-1" class="headerlink" title="(2)双向链表："></a>(2)双向链表：</h3>
+      
+        <h4 id="①取用排列："   >
+          <a href="#①取用排列：" class="heading-link"><i class="fas fa-link"></i></a><a href="#①取用排列：" class="headerlink" title="①取用排列："></a>①取用排列：</h4>
+      <p>首先依据fd_nextsize，bk_nextsize两个指针大小找到适合的，然后按照正常的FIFO先进先出原则，通过fd,bk来排列。</p>
+
+        <h4 id="②大小排列："   >
+          <a href="#②大小排列：" class="heading-link"><i class="fas fa-link"></i></a><a href="#②大小排列：" class="headerlink" title="②大小排列："></a>②大小排列：</h4>
+      <p>每个进入largebin的chunk</p>
 <p>其chunk_addr+0x20处即为其fd_nextsize指针，chunk_addr+0x28处为其bk_nextsize指针。</p>
 <p>然后通过fd_nextsize，bk_nextsize两个指针依据从大至小的顺序排列：</p>
 <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs5.png" alt="img"></p>
 <p>(这张图片我也忘记从哪里整的了…侵删)</p>
 <p>其中size顺序为：D&gt;C&gt;B&gt;A，但是释放顺序却不一定是这样的。设置这个的原因是当申请特定大小的堆块时，可以据此来快速查找，提升性能。</p>
-<p>(3)特殊解链：</p>
-<p>由于largebin中会存在fd_nextsize指针和bk_nextsize指针，所以通常的largebin_attack就是针对这个进行利用的。</p>
+
+        <h3 id="3-特殊解链："   >
+          <a href="#3-特殊解链：" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-特殊解链：" class="headerlink" title="(3)特殊解链："></a>(3)特殊解链：</h3>
+      <p>由于largebin中会存在fd_nextsize指针和bk_nextsize指针，所以通常的largebin_attack就是针对这个进行利用的。</p>
 <p>借用星阑科技的一张图说明一切：</p>
 <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs6.jpg" alt="img"></p>
-<p>4.unsortedbins:bins[0]和bins[1]中，bins[0]为fd，bins[1]为bk，bin的index为1，双链表结构。</p>
-<p>(1)归类方式：只有一个bin，存放所有不满足fastbin，未被整理的chunk。</p>
-<p>(2)双向链表：</p>
-<p>a=malloc(0x100); b=malloc(0x100); c=malloc(0x100)</p>
-<p>①free(a)之后:      unsortedbin,a</p>
+
+        <h2 id="4-unsortedbins"   >
+          <a href="#4-unsortedbins" class="heading-link"><i class="fas fa-link"></i></a><a href="#4-unsortedbins" class="headerlink" title="4.unsortedbins"></a>4.unsortedbins</h2>
+      <p>bins[0]和bins[1]中，bins[0]为fd，bins[1]为bk，bin的index为1，双链表结构。</p>
+
+        <h3 id="1-归类方式：-3"   >
+          <a href="#1-归类方式：-3" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-归类方式：-3" class="headerlink" title="(1)归类方式："></a>(1)归类方式：</h3>
+      <p>只有一个bin，存放所有不满足fastbin，未被整理的chunk。</p>
+
+        <h3 id="2-双向链表：-2"   >
+          <a href="#2-双向链表：-2" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-双向链表：-2" class="headerlink" title="(2)双向链表："></a>(2)双向链表：</h3>
+      <p>a=malloc(0x100); b=malloc(0x100); c=malloc(0x100)</p>
+<ul>
+<li>free(a)之后:      unsortedbin,a</li>
+</ul>
 <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">unsortedbin.bk-&gt;a;  a.bk-&gt;unsortedbin;</span><br><span class="line">unsortedbin.fd-&gt;a;  a.fd-&gt;unsortedbin;</span><br></pre></td></tr></table></div></figure>
 
-<p>②free(b)之后:    unsortedbin,b,a</p>
+<ul>
+<li>free(b)之后:    unsortedbin,b,a</li>
+</ul>
 <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">unsortedbin.bk-&gt;a;  a.bk-&gt;b     b.bk-&gt;unsortedbin</span><br><span class="line">unsortedbin.fd-&gt;b;  b.fd-&gt;a     a.fd-&gt;unsortedbin</span><br></pre></td></tr></table></div></figure>
 
-<p>③free(c)之后：   unsortedbin,c,b,a</p>
+<ul>
+<li>free(c)之后：   unsortedbin,c,b,a</li>
+</ul>
 <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">unsortedbin.bk-&gt;a;  a.bk-&gt;b     b.bk-&gt;c     c.bk-&gt;unsortedbin</span><br><span class="line">unsortedbin.fd-&gt;c;  c.fd-&gt;b     b.fd-&gt;a     a.fd-&gt;unsortedbin</span><br></pre></td></tr></table></div></figure>
 
-<p>(3)先进先出：</p>
-<p>①m=malloc(0x100):         m-&gt;a</p>
-<p>②n=malloc(0x100):         n-&gt;b</p>
+
+        <h3 id="3-先进先出：-1"   >
+          <a href="#3-先进先出：-1" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-先进先出：-1" class="headerlink" title="(3)先进先出："></a>(3)先进先出：</h3>
+      <ul>
+<li><p>m=malloc(0x100):         m-&gt;a</p>
+</li>
+<li><p>n=malloc(0x100):         n-&gt;b</p>
+</li>
+</ul>
 <p>▲依据fd来遍历：</p>
 <p>如果fd链顺序为A-&gt;B-&gt;C</p>
 <p>那么解链顺序一定是先解C，再解B，再解A。</p>
-<p>5、Tcache机制：从libc-2.26及以后都有:先进后出，最大为0x410</p>
-<p>(1)结构：</p>
-<p>①2.29以下，无key字段的tcache，结构大小为0x240，包括chunk头则占据0x250:</p>
+
+        <h2 id="5、Tcache机制："   >
+          <a href="#5、Tcache机制：" class="heading-link"><i class="fas fa-link"></i></a><a href="#5、Tcache机制：" class="headerlink" title="5、Tcache机制："></a>5、Tcache机制：</h2>
+      <p>从libc-2.26及以后都有:先进后出，最大为0x410</p>
+
+        <h3 id="1-结构："   >
+          <a href="#1-结构：" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-结构：" class="headerlink" title="(1)结构："></a>(1)结构：</h3>
+      
+        <h4 id="①2-29以下"   >
+          <a href="#①2-29以下" class="heading-link"><i class="fas fa-link"></i></a><a href="#①2-29以下" class="headerlink" title="①2.29以下"></a>①2.29以下</h4>
+      <p>无key字段的tcache，结构大小为0x240，包括chunk头则占据0x250:</p>
 <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">tcache_perthread_struct</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">  <span class="keyword">char</span> counts[TCACHE_MAX_BINS];<span class="comment">//0x40</span></span><br><span class="line">  tcache_entry *entries[TCACHE_MAX_BINS];<span class="comment">//0x40</span></span><br><span class="line">&#125; tcache_perthread_struct;</span><br></pre></td></tr></table></div></figure>
 
-<p>A.counts:是个数组，总共64个字节，对应tcache的64个bin，每个字节代表对应bin中存在chunk的个数，所以每个字节都会小于8，一般使用</p>
+
+        <h5 id="counts"   >
+          <a href="#counts" class="heading-link"><i class="fas fa-link"></i></a><a href="#counts" class="headerlink" title="counts:"></a>counts:</h5>
+      <p>是个数组，总共64个字节，对应tcache的64个bin，每个字节代表对应bin中存在chunk的个数，所以每个字节都会小于8，一般使用</p>
 <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line">tc_idx = csize2tidx (size);</span><br><span class="line">tcache-&gt;counts[tc_idx]</span><br></pre></td></tr></table></div></figure>
 
 <p>来访问索引对应bin的count。</p>
@@ -235,74 +416,197 @@ window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></he
 <p>从0x55555555b010至0x55555555b04f都是counts这个数组的范围。</p>
 <p>▲由于使用tcache时，不会检查tcache-&gt;counts[tc_idx]的大小是否处在[0,7]的范围，所以如果我们可以将对应bin的count改成[0,7]之外的数，这样下回再free该bin对应大小的chunk时，就不会将该chunk置入tcache中，使得tcache不满也能不进入tcache。</p>
 <p>B.entries：是个bin指针数组，共64个指针数组，每个指针8个字节，总计大小0x200字节，指针指向对应的bin中第一个chunk的首地址，这个首地址不是chunk头的首地址，而是对应数据的首地址。如果该bin为空，则该指针也为空。一般会使用tcache-&gt;entries[tc_idx] != NULL来判断是否为空。</p>
-<p>②2.29及以上，在entry中增加了key字段，结构体大小为0x290，count由原来的一个字节变为两个字节</p>
+
+        <h4 id="②2-29及以上"   >
+          <a href="#②2-29及以上" class="heading-link"><i class="fas fa-link"></i></a><a href="#②2-29及以上" class="headerlink" title="②2.29及以上"></a>②2.29及以上</h4>
+      <p>在entry中增加了key字段，结构体大小为0x290，count由原来的一个字节变为两个字节</p>
 <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">#注释头</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">tcache_entry</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">tcache_entry</span> *<span class="title">next</span>;</span></span><br><span class="line">  <span class="comment">/* This field exists to detect double frees.  */</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">tcache_perthread_struct</span> *<span class="title">key</span>;</span> <span class="comment">/* 新增指针 */</span></span><br><span class="line">&#125; tcache_entry;</span><br></pre></td></tr></table></div></figure>
 
-<p>(2)类似于一个比较大的fastbins。总共64个bin。</p>
-<p>(3)归类方式：</p>
-<p>相同大小的chunk归到一类：大小范围[0x20,0x410]。每组bins中的chunk大小一定。且一组bin中最多只能有7个chunk，如果free某大小bin的chunk数量超过7，那么多余的chunk会按照没有tcache机制来free。</p>
-<p>(4).单向链表：</p>
-<p>▲例子：a=malloc(0x10); b=malloc(0x10); c=malloc(0x10); d=malloc(0x10)</p>
+
+        <h3 id="2-个数"   >
+          <a href="#2-个数" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-个数" class="headerlink" title="(2)个数"></a>(2)个数</h3>
+      <p>类似于一个比较大的fastbins。总共64个bin。</p>
+
+        <h3 id="3-归类方式："   >
+          <a href="#3-归类方式：" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-归类方式：" class="headerlink" title="(3)归类方式："></a>(3)归类方式：</h3>
+      <p>相同大小的chunk归到一类：大小范围[0x20,0x410]。每组bins中的chunk大小一定。且一组bin中最多只能有7个chunk，如果free某大小bin的chunk数量超过7，那么多余的chunk会按照没有tcache机制来free。</p>
+
+        <h3 id="4-单向链表："   >
+          <a href="#4-单向链表：" class="heading-link"><i class="fas fa-link"></i></a><a href="#4-单向链表：" class="headerlink" title="(4)单向链表："></a>(4)单向链表：</h3>
+      <p>▲例子：a=malloc(0x10); b=malloc(0x10); c=malloc(0x10); d=malloc(0x10)</p>
 <p>FastbinY,d,c,b,a</p>
-<p>①free(a)之后：tcachebins[0x20]-&gt;a;  a.fd=0</p>
-<p>②free(b)之后：tcachebins[0x20]-&gt;b;  b.fd=a   a.fd=0</p>
-<p>③free(c)之后：tcachebins[0x20]-&gt;c;  c.fd=b    b.fd-&gt;a;  a.fd=0</p>
-<p>④free(d)之后：tcachebins[0x20]-&gt;d;  d.fd=c    c.fd-&gt;b;  b.fd-&gt;a;  a.fd=0</p>
+<ul>
+<li><p>free(a)之后：tcachebins[0x20]-&gt;a;  a.fd=0</p>
+</li>
+<li><p>free(b)之后：tcachebins[0x20]-&gt;b;  b.fd=a   a.fd=0</p>
+</li>
+<li><p>free(c)之后：tcachebins[0x20]-&gt;c;  c.fd=b    b.fd-&gt;a;  a.fd=0</p>
+</li>
+<li><p>free(d)之后：tcachebins[0x20]-&gt;d;  d.fd=c    c.fd-&gt;b;  b.fd-&gt;a;  a.fd=0</p>
+</li>
+</ul>
 <p>★但是这里的fd指向的是chunk内容地址，而不是其它的bins中的fd指向的是chunk头地址。</p>
-<p>(5)后进先出，与fastbins类似。且tcache的优先级最高。</p>
-<p>(6)特殊：</p>
-<p>①当tcache某个bin被填满之后，再free相同大小的bin放到fastbin中或者smallbins中，之后连续申请7个该大小的chunk，那么tcache中的这个bin就会被清空。之后再申请该大小的chunk就会从fastbins或者smallbins中找，如果找到了，那么返回该chunk的同时，会将该大小的fastbin或者smallbin中所有的chunk都移动到对应大小的tcache的bin中，直至填满7个。(移动时仍旧遵循先进后出的原则，所以移动之后chunk顺序会发生颠倒)</p>
-<p>②libc-2.26中存在tcache poisoning漏洞，即可以连续free(chunk)多次。</p>
+
+        <h3 id="5-后进先出"   >
+          <a href="#5-后进先出" class="heading-link"><i class="fas fa-link"></i></a><a href="#5-后进先出" class="headerlink" title="(5)后进先出"></a>(5)后进先出</h3>
+      <p>与fastbins类似。且tcache的优先级最高。</p>
+
+        <h3 id="6-特殊："   >
+          <a href="#6-特殊：" class="heading-link"><i class="fas fa-link"></i></a><a href="#6-特殊：" class="headerlink" title="(6)特殊："></a>(6)特殊：</h3>
+      <ul>
+<li><p>当tcache某个bin被填满之后，再free相同大小的bin放到fastbin中或者smallbins中，之后连续申请7个该大小的chunk，那么tcache中的这个bin就会被清空。之后再申请该大小的chunk就会从fastbins或者smallbins中找，如果找到了，那么返回该chunk的同时，会将该大小的fastbin或者smallbin中所有的chunk都移动到对应大小的tcache的bin中，直至填满7个。(移动时仍旧遵循先进后出的原则，所以移动之后chunk顺序会发生颠倒)</p>
+</li>
+<li><p>libc-2.26中存在tcache poisoning漏洞，即可以连续free(chunk)多次。</p>
+</li>
+</ul>
 <p>假如chunk0,chunk1，然后free(chunk0)两次，这样tcache bin中就是：</p>
-<p>chunk0.fd -&gt;chunk0，即chunk0-&gt;chunk0</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">chunk0.fd -&gt;chunk0，即chunk0-&gt;chunk0</span><br></pre></td></tr></table></div></figure>
+
 <p>那么第一次申请回chunk0，修改fd为fakechunk，tcache bin中就是：</p>
-<p>chunk0.fd-&gt;fakechunk，即chunk0-&gt;fakechunk</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">chunk0.fd-&gt;fakechunk，即chunk0-&gt;fakechunk</span><br></pre></td></tr></table></div></figure>
+
 <p>之后再申请回chunk0，再申请一次就是fakechunk了，实现任意地址修改。</p>
 <p>★这个漏洞在libc2.27中就被修复了。</p>
-<p>③从tcache中申请Chunk的时候不会检查size位，不需要构造字节错误。</p>
-<p>(7)2.31下新增stash机制：</p>
-<p>在 Fastbins 处理过程中新增了一个 Stash 机制，每次从 Fastbins 取 Chunk 的时候会把剩下的 Chunk 全部依次放进对应的 tcache，直到 Fastbins 空或是 tcache 满。</p>
-<p>(8)2.32下新增fd异或机制：</p>
-<p>会将fd异或上某个值。这个具体看其他文章吧，我自己调试大多都是异或heap_base/0x1000，比较奇怪，具体题目具体分析。</p>
-<p>6.Topchunk:不属于任何Bin，在arena中属于最高地址，没有其它空闲块时，topchunk就会被用于分配。</p>
-<p>7.last_remainder:当请求small chunk大小内存时，如果发生分裂，则剩余的chunk保存为last_remainder，放入unsortedbin中。</p>
+<ul>
+<li>从tcache中申请Chunk的时候不会检查size位，不需要构造字节错位。</li>
+</ul>
+
+        <h3 id="7-2-31下新增stash机制："   >
+          <a href="#7-2-31下新增stash机制：" class="heading-link"><i class="fas fa-link"></i></a><a href="#7-2-31下新增stash机制：" class="headerlink" title="(7)2.31下新增stash机制："></a>(7)2.31下新增stash机制：</h3>
+      <p>在 Fastbins 处理过程中新增了一个 Stash 机制，每次从 Fastbins 取 Chunk 的时候会把剩下的 Chunk 全部依次放进对应的 tcache，直到 Fastbins 空或是 tcache 满。</p>
+
+        <h3 id="8-2-32下新增fd异或机制："   >
+          <a href="#8-2-32下新增fd异或机制：" class="heading-link"><i class="fas fa-link"></i></a><a href="#8-2-32下新增fd异或机制：" class="headerlink" title="(8)2.32下新增fd异或机制："></a>(8)2.32下新增fd异或机制：</h3>
+      <p>会将fd异或上某个值，这个具体看其他文章吧。</p>
+
+        <h2 id="6-Topchunk"   >
+          <a href="#6-Topchunk" class="heading-link"><i class="fas fa-link"></i></a><a href="#6-Topchunk" class="headerlink" title="6.Topchunk:"></a>6.Topchunk:</h2>
+      <p>不属于任何Bin，在arena中属于最高地址，没有其它空闲块时，topchunk就会被用于分配。</p>
+
+        <h2 id="7-last-remainder"   >
+          <a href="#7-last-remainder" class="heading-link"><i class="fas fa-link"></i></a><a href="#7-last-remainder" class="headerlink" title="7.last_remainder:"></a>7.last_remainder:</h2>
+      <p>当请求small chunk大小内存时，如果发生分裂，则剩余的chunk保存为last_remainder，放入unsortedbin中。</p>
 <p>▲没有tcache的malloc和free流程：</p>
-<p>四、malloc流程：</p>
-<p>★如果是多线程情况下，那么会先进行分配区的加锁，这里就可能存在条件竞争漏洞。</p>
-<p>1.如果size在fastbins的范围内，则先在fastbins中查找，找到则结束，没找到就去unsortedbins中找。</p>
-<p>2.如果size不在fastbins范围中，而在smallbins范围中，则查找smallbins（在2.23下如果发现smallbin链表未初始化，则会调用malloc_consolidate函数，但是实际情况在申请chunk之前都已经初始化过了，所以这个不怎么重要if (victim == 0) /* initialization check */ malloc_consolidate (av); 而且这个操作从2.27开始已经没有了，如果能够让smallbin不初始化，或者将main_arena+0x88设置为0），此时若smallbin找到结束，没找到去unsortedbins中找</p>
-<p>3.如果size不在fastbins，smallbins范围中，那一定在largebins中，那么先调用malloc_consolidate函数将所有的fastbin中的chunk取出来，合并相邻的freechunk，放到unsortedbin中，或者与topchunk合并。再去largebins中找，找到结束，没找到就去unsortedbins中找。</p>
-<p>4.unsortedbins中查找：</p>
-<p>(1)如果unsortedbin中只有last_reaminder，且分配的size小于last_remainder，且要求的size范围为smallbin的范围，则分裂，将分裂之后的一个合适的chunk给用户，剩余的chunk变成新的last_remainder进入unsortedbin中。如果大于last_remainder，或者分配的size范围为largebin的范围，则将last_remainder整理至对应bin中，跳至第5步。</p>
-<p>(2)如果unsortedbin中不只一个chunk，则先整理，遍历unsortedbins。如果遇到精确大小，直接返回给用户，接着整理完。如果一直没遇到过，则该过程中所有遇到的chunk都会被整理到对应的fastbins，smallbins，largebins中去。</p>
-<p>5.unsortedbins中还是找不到，则：</p>
-<p>(1)若当前size最开始判断是处于smallbins范围内，则再去smallbins找，这回不找精确大小，找最接近略大于size的一个固定大小的chunk给分裂，将符合size的chunk返回给用户，剩下的扔给unsortedbins，作为新的last_remainder。</p>
-<p>(2)若当前size最开始判断处于largebins范围内，则去largebins中找，和步骤(1)类似。</p>
-<p>(3)若当前size大于largebins中最大的chunk大小，那么就去topchunk来分割使用。</p>
-<p>6.topchunk分割：</p>
-<p>(1)topchunk空间够，则直接分割。</p>
-<p>(2)topchunk空间不够，那么再调用malloc_consolidate函数进行整理一下，然后利用brk或者mmap进行再拓展。</p>
-<p>①brk扩展：当申请的size小于128K时，使用该扩展。向高地址拓展新的topchunk，一般加0x21000，之后从新的topchunk再分配，旧的topchun进入unsortedbin中。</p>
-<p>②mmap扩展：申请的size大于等于mmap分配阈值(最开始为128k)时，使用该扩展，但是这种扩展申请到的chunk，在释放时会调用munmap函数直接被返回给操作系统，而不会进入bins中。所以如果用指针再引用该chunk块时，就会造成segmentation fault错误。</p>
+
+        <h1 id="四、malloc流程："   >
+          <a href="#四、malloc流程：" class="heading-link"><i class="fas fa-link"></i></a><a href="#四、malloc流程：" class="headerlink" title="四、malloc流程："></a>四、malloc流程：</h1>
+      <p>★如果是多线程情况下，那么会先进行分配区的加锁，这里就可能存在条件竞争漏洞。</p>
+<ul>
+<li><p>如果size在fastbins的范围内，则先在fastbins中查找，找到则结束，没找到就去unsortedbins中找。</p>
+</li>
+<li><p>如果size不在fastbins范围中，而在smallbins范围中，则查找smallbins（在2.23下如果发现smallbin链表未初始化，则会调用<strong>malloc_consolidate</strong>函数，但是实际情况在申请chunk之前都已经初始化过了，所以这个不怎么重要</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">if (victim == 0) /* initialization check */ malloc_consolidate (av); </span><br></pre></td></tr></table></div></figure>
+
+<p>而且这个操作从2.27开始已经没有了，如果能够让smallbin不初始化，或者将main_arena+0x88设置为0），此时若smallbin找到结束，没找到去unsortedbins中找</p>
+</li>
+<li><p>如果size不在fastbins，smallbins范围中，那一定在largebins中，那么先调用<strong>malloc_consolidate</strong>函数将所有的fastbin中的chunk取出来，合并相邻的freechunk，放到unsortedbin中，或者与topchunk合并。再去largebins中找，找到结束，没找到就去unsortedbins中找。</p>
+</li>
+<li><p>unsortedbins中查找：</p>
+<ul>
+<li>如果unsortedbin中只有last_reaminder，且分配的size小于last_remainder，且要求的size范围为smallbin的范围，则分裂，将分裂之后的一个合适的chunk给用户，剩余的chunk变成新的last_remainder进入unsortedbin中。如果大于last_remainder，或者分配的size范围为largebin的范围，则将last_remainder整理至对应bin中，跳至第5步。</li>
+<li>如果unsortedbin中不只一个chunk，则先整理，遍历unsortedbins。如果遇到精确大小，直接返回给用户，接着整理完。如果一直没遇到过，则该过程中所有遇到的chunk都会被整理到对应的fastbins，smallbins，largebins中去。</li>
+</ul>
+</li>
+<li><p>unsortedbins中找不到，则：</p>
+<ul>
+<li>若当前size最开始判断是处于smallbins范围内，则再去smallbins找，这回不找精确大小，找最接近略大于size的一个固定大小的chunk给分裂，将符合size的chunk返回给用户，剩下的扔给unsortedbins，作为新的last_remainder。</li>
+<li>若当前size最开始判断处于largebins范围内，则去largebins中找，和步骤(1)类似。</li>
+<li>若当前size大于largebins中最大的chunk大小，那么就去topchunk来分割使用。</li>
+</ul>
+</li>
+<li><p>topchunk分割：</p>
+<ul>
+<li>topchunk空间够，则直接分割。</li>
+<li>topchunk空间不够，那么再调用malloc_consolidate函数进行整理一下，然后利用brk或者mmap进行再拓展。<ul>
+<li>brk扩展：当申请的size小于128K时，使用该扩展。向高地址拓展新的topchunk，一般加0x21000，之后从新的topchunk再分配，旧的topchun进入unsortedbin中。</li>
+<li>mmap扩展：申请的size大于等于mmap分配阈值(最开始为128k)时，使用该扩展，但是这种扩展申请到的chunk，在释放时会调用munmap函数直接被返回给操作系统，而不会进入bins中。所以如果用指针再引用该chunk块时，就会造成segmentation fault错误。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
 <p>▲当ptmalloc munmap chunk时，如果回收的chunk空间大小大于mmap分配阈值的当前值，并且小于DEFAULT_MMAP_THRESHOLD_MAX（32位系统默认为512KB，64位系统默认为32MB），ptmalloc会把mmap分配阈值调整为当前回收的chunk的大小，并将mmap收缩阈值（mmap trim threshold）设置为mmap分配阈值的2倍。这就是ptmalloc的对mmap分配阈值的动态调整机制，该机制是默认开启的，当然也可以用mallopt()关闭该机制</p>
 <p>▲如果将 M_MMAP_MAX 设置为 0，ptmalloc 将不会使用 mmap 分配大块内存。</p>
-<p>五、free流程：</p>
-<p>★多线程情况下，free()函数同样首先需要获取分配区的锁，来保证线程安全。</p>
-<p>1.首先判断该chunk是否为mmaped chunk，如果是，则调用 munmap()释放mmaped chunk，解除内存空间映射，该该空间不再有效。同时满足条件则调整mmap阈值。</p>
-<p>2.如果size位于fastbins范围内，直接放到fastbins中。</p>
-<p>(这里有点争议，在《glibc内存管理ptmalloc源代码分析.pdf》一书中，写到：</p>
-<p>如果执行到这一步，说明释放了一个与top chunk相邻的chunk。则无论它有多大，都将它与top chunk合并，并更新top chunk的大小等信息。</p>
-<p>但是实际测试，如果size位于fastbins范围内，则不管是否与topchunk相邻，都直接放到fastbin中，测试环境是libc2.23，内核版本是Linux version 5.10.13，也可能是某些参数的问题把，具体题目分析就好了。)</p>
-<p>3.如果size不在fastbins范围内，则进行判断：</p>
-<p>(1)先判断前一个chunk_before，如果chunk_before是free状态的，那么就将前一个chunk从其对应的bins中取出来(unlink)，然后合并这两个chunk和chunk_before。</p>
-<p>由于还没有进入链表结构中，所以这里寻找chunk_before地址是通过当前地址减去当前chunk的presize内容，得到chunk_before的地址，从而获取其in_use位。</p>
-<p>这也是presize唯一的用途，所以在堆溢出中，可以只要不进行free，presize可以任意修改。</p>
-<p>(这里如果chunk_before是位于fastbins中则没办法合并，因为在fastbins中的in_use位不会被改变，永远是1，在判断时始终认为该chunk是处于allocated状态的)</p>
-<p>(2)再判断后一个chunk，如果后一个chunk是free状态，那么如步骤(1)，合并，之后将合并和的chunk放入到unsortedbins中去。如果后一个chunk就是topchunk，那么直接将这个chunk和topchunk合并完事。</p>
-<p>之后将合并之后的chunk进行判断，(这里也可能不发生合并，但依旧会进行判断)如果size大于FASTBIN_CONSOLIDATION_THRESHOLD(0x10000)，那么就调用malloc_consolidate函数进行整理fastbins，然后给到unsortedbins中，等待malloc时进行整理。</p>
+
+        <h1 id="五、free流程："   >
+          <a href="#五、free流程：" class="heading-link"><i class="fas fa-link"></i></a><a href="#五、free流程：" class="headerlink" title="五、free流程："></a>五、free流程：</h1>
+      <p>★多线程情况下，free()函数同样首先需要获取分配区的锁，来保证线程安全。</p>
+<ul>
+<li><p>首先判断该chunk是否为mmaped chunk，如果是，则调用 munmap()释放mmaped chunk，解除内存空间映射，该该空间不再有效。同时满足条件则调整mmap阈值。</p>
+</li>
+<li><p>如果size位于fastbins范围内，直接放到fastbins中。</p>
+</li>
+<li><p>如果size不在fastbins范围内，则进行判断：</p>
+<ul>
+<li>先判断前一个chunk_before，如果chunk_before是free状态的，那么就将前一个chunk从其对应的bins中取出来(unlink)，然后合并这两个chunk和chunk_before。由于还没有进入链表结构中，所以这里寻找chunk_before地址是通过当前地址减去当前chunk的presize内容，得到chunk_before的地址，从而获取其in_use位。</li>
+<li>这也是presize唯一的用途，所以在堆溢出中，只要不进行free，presize可以任意修改。(这里如果chunk_before是位于fastbins中则没办法合并，因为在fastbins中的in_use位不会被改变，永远是1，在判断时始终认为该chunk是处于allocated状态的)</li>
+<li>再判断后一个chunk，如果后一个chunk是free状态，那么如步骤(1)，合并，之后将合并和的chunk放入到unsortedbins中去。如果后一个chunk就是topchunk，那么直接将这个chunk和topchunk合并完事。</li>
+<li>之后将合并之后的chunk进行判断，(这里也可能不发生合并，但依旧会进行判断)如果size大于<code>FASTBIN_CONSOLIDATION_THRESHOLD</code>(0x10000)，那么就调用<strong>malloc_consolidate</strong>函数进行整理fastbins，然后给到unsortedbins中，等待malloc时进行整理。</li>
+</ul>
+</li>
+</ul>
 <p>▲32位与64位区别，差不多其实，对于0x8和0x10的变化而已：</p>
 <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs1.jpg" alt="img"></p>
-</div><footer class="post-footer"><div class="post-ending ending"><div class="ending__text">------ END ------</div></div><div class="post-copyright copyright"><div class="copyright-author"><span class="copyright-author__name">Author: </span><span class="copyright-author__value"><a href="http://PIG-007.github.io">PIG-007</a></span></div><div class="copyright-link"><span class="copyright-link__name">Link: </span><span class="copyright-link__value"><a href="http://pig-007.github.io/2021/08/19/%E5%A0%86%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/">http://pig-007.github.io/2021/08/19/%E5%A0%86%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/</a></span></div><div class="copyright-notice"><span class="copyright-notice__name">Copyright: </span><span class="copyright-notice__value">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" rel="external nofollow" target="_blank">BY-NC-SA</a> unless stating additionally</span></div></div><div class="post-tags"><span class="post-tags-item"><span class="post-tags-item__icon"><i class="fas fa-tag"></i></span><a class="post-tags-item__link" href="http://pig-007.github.io/tags/Heap-Knowledge/">Heap-Knowledge</a></span></div><nav class="post-paginator paginator"><div class="paginator-prev"><a class="paginator-prev__link" href="/2021/08/19/Seccomp_Before/"><span class="paginator-prev__icon"><i class="fas fa-angle-left"></i></span><span class="paginator-prev__text">Seccomp_Before</span></a></div><div class="paginator-next"><a class="paginator-next__link" href="/2021/08/18/TSCTF2019%20%E8%96%9B%E5%AE%9A%E8%B0%94%E7%9A%84%E5%A0%86%E5%9D%97-HeapSpray/"><span class="paginator-prev__text">TSCTF2019 薛定谔的堆块-HeapSpray</span><span class="paginator-next__icon"><i class="fas fa-angle-right"></i></span></a></div></nav></footer></div></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><div class="sidebar-nav"><span class="sidebar-nav-toc current">Catalog</span><span class="sidebar-nav-ov">Overview</span></div><section class="sidebar-toc"></section><!-- ov = overview--><section class="sidebar-ov hide"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">The way forward</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">118</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">62</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">60</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section><div class="sidebar-reading"><div class="sidebar-reading-info"><span class="sidebar-reading-info__text">You have read </span><span class="sidebar-reading-info__num">0</span><span class="sidebar-reading-info__perc">%</span></div><div class="sidebar-reading-line"></div></div></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2022</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
+</div><footer class="post-footer"><div class="post-ending ending"><div class="ending__text">------ END ------</div></div><div class="post-copyright copyright"><div class="copyright-author"><span class="copyright-author__name">Author: </span><span class="copyright-author__value"><a href="http://PIG-007.github.io">PIG-007</a></span></div><div class="copyright-link"><span class="copyright-link__name">Link: </span><span class="copyright-link__value"><a href="http://pig-007.github.io/2021/08/19/%E5%A0%86%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/">http://pig-007.github.io/2021/08/19/%E5%A0%86%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/</a></span></div><div class="copyright-notice"><span class="copyright-notice__name">Copyright: </span><span class="copyright-notice__value">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" rel="external nofollow" target="_blank">BY-NC-SA</a> unless stating additionally</span></div></div><div class="post-tags"><span class="post-tags-item"><span class="post-tags-item__icon"><i class="fas fa-tag"></i></span><a class="post-tags-item__link" href="http://pig-007.github.io/tags/Heap-Knowledge/">Heap-Knowledge</a></span></div><nav class="post-paginator paginator"><div class="paginator-prev"><a class="paginator-prev__link" href="/2021/08/19/Seccomp_Before/"><span class="paginator-prev__icon"><i class="fas fa-angle-left"></i></span><span class="paginator-prev__text">Seccomp_Before</span></a></div><div class="paginator-next"><a class="paginator-next__link" href="/2021/08/18/TSCTF2019%20%E8%96%9B%E5%AE%9A%E8%B0%94%E7%9A%84%E5%A0%86%E5%9D%97-HeapSpray/"><span class="paginator-prev__text">TSCTF2019 薛定谔的堆块-HeapSpray</span><span class="paginator-next__icon"><i class="fas fa-angle-right"></i></span></a></div></nav></footer></div></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><div class="sidebar-nav"><span class="sidebar-nav-toc current">Catalog</span><span class="sidebar-nav-ov">Overview</span></div><section class="sidebar-toc"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81main-arena%E6%80%BB%E6%A6%82"><span class="toc-text">
+          一、main_arena总概</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-arena"><span class="toc-text">
+          1.arena:</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E4%B8%BB%E7%BA%BF%E7%A8%8B%E7%9A%84main-arena"><span class="toc-text">
+          (1)主线程的main_arena:</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%85%B6%E5%AE%83%E7%BA%BF%E7%A8%8B%E7%9A%84per-thread-arena"><span class="toc-text">
+          (2)其它线程的per thread arena:</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-malloc-state"><span class="toc-text">
+          2.malloc_state:</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-main-arena"><span class="toc-text">
+          (1)main_arena</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-per-thread-arena"><span class="toc-text">
+          (2)per thread arena</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-bins"><span class="toc-text">
+          3.bins:</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-chunks"><span class="toc-text">
+          4.chunks:</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81chunk%E7%BB%93%E6%9E%84%EF%BC%9A"><span class="toc-text">
+          二、chunk结构：</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-chunk%E7%8A%B6%E6%80%81"><span class="toc-text">
+          1.chunk状态</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-allocated-chunk%EF%BC%9A"><span class="toc-text">
+          (1)allocated_chunk：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-free-chunk"><span class="toc-text">
+          (2)free_chunk:</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-prev-size%EF%BC%9A"><span class="toc-text">
+          2.prev_size：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-size"><span class="toc-text">
+          3.size:</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-size%E5%90%AB%E4%B9%89"><span class="toc-text">
+          (1)size含义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-AMP%E6%A0%87%E5%BF%97%E4%BD%8D"><span class="toc-text">
+          (2)AMP标志位</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A0A-NON-MAIN-ARENA"><span class="toc-text">
+          ①A:NON_MAIN_ARENA</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A1M-IS-MMAPPED"><span class="toc-text">
+          ②M:IS_MMAPPED</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A2P-PREV-INUSE"><span class="toc-text">
+          ③P:PREV_INUSE</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81bins%E7%BB%93%E6%9E%84%EF%BC%9A"><span class="toc-text">
+          三、bins结构：</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-fastbins"><span class="toc-text">
+          1.fastbins</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%BD%92%E7%B1%BB%E6%96%B9%E5%BC%8F%EF%BC%9A"><span class="toc-text">
+          (1)归类方式：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%8D%95%E5%90%91%E9%93%BE%E8%A1%A8%EF%BC%9A"><span class="toc-text">
+          (2)单向链表：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%90%8E%E8%BF%9B%E5%85%88%E5%87%BA%EF%BC%9A"><span class="toc-text">
+          (3)后进先出：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-IN-USE%E4%BD%8D"><span class="toc-text">
+          (4)IN_USE位:</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E6%B3%A8%E6%84%8F"><span class="toc-text">
+          (5)注意</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-smallbins"><span class="toc-text">
+          2.smallbins:</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%BD%92%E7%B1%BB%E6%96%B9%E5%BC%8F%EF%BC%9A-1"><span class="toc-text">
+          (1)归类方式：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%8F%8C%E5%90%91%E9%93%BE%E8%A1%A8%EF%BC%9A"><span class="toc-text">
+          (2)双向链表：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%85%88%E8%BF%9B%E5%85%88%E5%87%BA%EF%BC%9A"><span class="toc-text">
+          (3)先进先出：</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-largebins"><span class="toc-text">
+          3.largebins</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%BD%92%E7%B1%BB%E6%96%B9%E5%BC%8F%EF%BC%9A-2"><span class="toc-text">
+          (1)归类方式：</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A0%E8%8C%83%E5%9B%B4%E6%A8%A1%E5%BC%8F%EF%BC%9A"><span class="toc-text">
+          ①范围模式：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A1%E8%8C%83%E5%9B%B4%E5%85%B7%E4%BD%93%E5%AE%9E%E4%BE%8B%EF%BC%9A"><span class="toc-text">
+          ②范围具体实例：</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%8F%8C%E5%90%91%E9%93%BE%E8%A1%A8%EF%BC%9A-1"><span class="toc-text">
+          (2)双向链表：</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A0%E5%8F%96%E7%94%A8%E6%8E%92%E5%88%97%EF%BC%9A"><span class="toc-text">
+          ①取用排列：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A1%E5%A4%A7%E5%B0%8F%E6%8E%92%E5%88%97%EF%BC%9A"><span class="toc-text">
+          ②大小排列：</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E7%89%B9%E6%AE%8A%E8%A7%A3%E9%93%BE%EF%BC%9A"><span class="toc-text">
+          (3)特殊解链：</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-unsortedbins"><span class="toc-text">
+          4.unsortedbins</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%BD%92%E7%B1%BB%E6%96%B9%E5%BC%8F%EF%BC%9A-3"><span class="toc-text">
+          (1)归类方式：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%8F%8C%E5%90%91%E9%93%BE%E8%A1%A8%EF%BC%9A-2"><span class="toc-text">
+          (2)双向链表：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%85%88%E8%BF%9B%E5%85%88%E5%87%BA%EF%BC%9A-1"><span class="toc-text">
+          (3)先进先出：</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5%E3%80%81Tcache%E6%9C%BA%E5%88%B6%EF%BC%9A"><span class="toc-text">
+          5、Tcache机制：</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E7%BB%93%E6%9E%84%EF%BC%9A"><span class="toc-text">
+          (1)结构：</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A02-29%E4%BB%A5%E4%B8%8B"><span class="toc-text">
+          ①2.29以下</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#counts"><span class="toc-text">
+          counts:</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A12-29%E5%8F%8A%E4%BB%A5%E4%B8%8A"><span class="toc-text">
+          ②2.29及以上</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E4%B8%AA%E6%95%B0"><span class="toc-text">
+          (2)个数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%BD%92%E7%B1%BB%E6%96%B9%E5%BC%8F%EF%BC%9A"><span class="toc-text">
+          (3)归类方式：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E5%8D%95%E5%90%91%E9%93%BE%E8%A1%A8%EF%BC%9A"><span class="toc-text">
+          (4)单向链表：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E5%90%8E%E8%BF%9B%E5%85%88%E5%87%BA"><span class="toc-text">
+          (5)后进先出</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-%E7%89%B9%E6%AE%8A%EF%BC%9A"><span class="toc-text">
+          (6)特殊：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-31%E4%B8%8B%E6%96%B0%E5%A2%9Estash%E6%9C%BA%E5%88%B6%EF%BC%9A"><span class="toc-text">
+          (7)2.31下新增stash机制：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-32%E4%B8%8B%E6%96%B0%E5%A2%9Efd%E5%BC%82%E6%88%96%E6%9C%BA%E5%88%B6%EF%BC%9A"><span class="toc-text">
+          (8)2.32下新增fd异或机制：</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-Topchunk"><span class="toc-text">
+          6.Topchunk:</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-last-remainder"><span class="toc-text">
+          7.last_remainder:</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9B%9B%E3%80%81malloc%E6%B5%81%E7%A8%8B%EF%BC%9A"><span class="toc-text">
+          四、malloc流程：</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%94%E3%80%81free%E6%B5%81%E7%A8%8B%EF%BC%9A"><span class="toc-text">
+          五、free流程：</span></a></li></ol></section><!-- ov = overview--><section class="sidebar-ov hide"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">The way forward</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">119</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">63</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">61</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section><div class="sidebar-reading"><div class="sidebar-reading-info"><span class="sidebar-reading-info__text">You have read </span><span class="sidebar-reading-info__num">0</span><span class="sidebar-reading-info__perc">%</span></div><div class="sidebar-reading-line"></div></div></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2022</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
   var isXML = true;
   var search_path = 'search.json';
 
