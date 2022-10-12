@@ -1,0 +1,427 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta name="description" content="一、简单测试       1234567891011int main(int argc, char const *argv[])&amp;#123;    int a;    char buf[0x20];    read(0,&amp;a,4);    if(a &#x3D;&#x3D; 0x1234)&amp;#123;        printf(&quot;You get it!\n&amp;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AFL">
+<meta property="og:url" content="http://pig-007.github.io/2022/09/30/AFL/index.html">
+<meta property="og:site_name" content="PIG-007">
+<meta property="og:description" content="一、简单测试       1234567891011int main(int argc, char const *argv[])&amp;#123;    int a;    char buf[0x20];    read(0,&amp;a,4);    if(a &#x3D;&#x3D; 0x1234)&amp;#123;        printf(&quot;You get it!\n&amp;">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220930135610901.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220930140345079.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220930141806144.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220930142125276.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220930142617012.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220930143810066.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220930194310537.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220930142948733.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220930144540473.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220930144649388.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220930144817799.png">
+<meta property="article:published_time" content="2022-09-30T02:25:33.000Z">
+<meta property="article:modified_time" content="2022-10-12T12:25:31.982Z">
+<meta property="article:author" content="PIG-007">
+<meta property="article:tag" content="AFL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220930135610901.png"><title>AFL | PIG-007</title><link ref="canonical" href="http://pig-007.github.io/2022/09/30/AFL/"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.12.1/css/all.min.css" type="text/css"><link rel="stylesheet" href="/css/index.css?v=2.6.2"><script>var Stun = window.Stun || {};
+var CONFIG = {
+  root: '/',
+  algolia: undefined,
+  assistSearch: undefined,
+  fontIcon: {"prompt":{"success":"fas fa-check-circle","info":"fas fa-arrow-circle-right","warning":"fas fa-exclamation-circle","error":"fas fa-times-circle"},"copyBtn":"fas fa-copy"},
+  sidebar: {"offsetTop":"20px","tocMaxDepth":6},
+  header: {"enable":true,"showOnPost":true,"scrollDownIcon":false},
+  postWidget: {"endText":true},
+  nightMode: {"enable":true},
+  back2top: {"enable":true},
+  codeblock: {"style":"default","highlight":"light","wordWrap":true},
+  reward: false,
+  fancybox: false,
+  zoomImage: {"gapAside":"20px"},
+  galleryWaterfall: undefined,
+  lazyload: false,
+  pjax: undefined,
+  externalLink: {"icon":{"enable":true,"name":"fas fa-external-link-alt"}},
+  shortcuts: undefined,
+  prompt: {"copyButton":"Copy","copySuccess":"Copy Success","copyError":"Copy Error"},
+  sourcePath: {"js":"js","css":"css","images":"images"},
+};
+
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content" id="content"><!-- Just used to judge whether it is an article page--><div id="is-post"></div><div class="post"><header class="post-header"><h1 class="post-title">AFL</h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2022-09-30</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2022-10-12</span></span></div></header><div class="post-body">
+        <h1 id="一、简单测试"   >
+          <a href="#一、简单测试" class="heading-link"><i class="fas fa-link"></i></a><a href="#一、简单测试" class="headerlink" title="一、简单测试"></a>一、简单测试</h1>
+      <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> <span class="keyword">const</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> a;</span><br><span class="line">    <span class="keyword">char</span> buf[<span class="number">0x20</span>];</span><br><span class="line">    read(<span class="number">0</span>,&amp;a,<span class="number">4</span>);</span><br><span class="line">    <span class="keyword">if</span>(a == <span class="number">0x1234</span>)&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;You get it!\n&quot;</span>);</span><br><span class="line">        read(<span class="number">0</span>,buf,<span class="number">0x60</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+
+        <h2 id="1-基础尝试"   >
+          <a href="#1-基础尝试" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-基础尝试" class="headerlink" title="1.基础尝试"></a>1.基础尝试</h2>
+      
+        <h3 id="1-白盒"   >
+          <a href="#1-白盒" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-白盒" class="headerlink" title="(1)白盒"></a>(1)白盒</h3>
+      
+        <h4 id="①基础"   >
+          <a href="#①基础" class="heading-link"><i class="fas fa-link"></i></a><a href="#①基础" class="headerlink" title="①基础"></a>①基础</h4>
+      <p>首先使用简单的<code>afl-clang-fast</code>来编译</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">afl-clang-fast ./test.c -z execstack -fno-stack-protector -no-pie -z norelro -o afl_test</span><br></pre></td></tr></table></div></figure>
+
+<p>然后跑起来，速度大约是<code>11.6k</code></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220930135610901.png" alt="image-20220930135610901"></p>
+<p>大概跑了6分钟，出现了第一个crash，查看一下，是大小为0x76</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220930140345079.png" alt="image-20220930140345079"></p>
+<p>然后蒸馏一下<code>afl-tmin -i inputSeed -o outSeed programer</code> </p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220930141806144.png" alt="image-20220930141806144"></p>
+<p>大小变为了<code>0x2d</code>，减去开始的4个字节，为<code>0x29</code>，再看看IDA反汇编出来的</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220930142125276.png" alt="image-20220930142125276"></p>
+<p>可以看到确实距离<code>rbp</code>为<code>0x28</code>，多溢出一个字节就可以覆盖到<code>rbp</code>了。</p>
+<p>此外设置的标志<code>int v4</code>也在<code>buf</code>上面，而非正常编译的先声明的更靠近栈底。</p>
+<p>另外实际<code>gdb</code>调试的，其<code>main</code>函数栈不再是通过<code>leave ret</code>来返回了，而是直接<code>add rsp 0x38</code>，而<code>rbp</code>为0</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220930142617012.png" alt="image-20220930142617012"></p>
+<p><code>main</code>函数实际的返回地址距离<code>buf</code>为<code>0x28</code>倒是也能说的过去，就是不知道为什么要这么做。</p>
+
+        <h4 id="②尝试-AFL-INIT"   >
+          <a href="#②尝试-AFL-INIT" class="heading-link"><i class="fas fa-link"></i></a><a href="#②尝试-AFL-INIT" class="headerlink" title="②尝试__AFL_INIT()"></a>②尝试__AFL_INIT()</h4>
+      <p>在源码中加入<code>__AFL_INIT()</code>，参考：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/213431" >sakuraのAFL源码全注释（二）-安全客 - 安全资讯平台 (anquanke.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/254167#h2-3" >AFL-Training学习记录-安全客 - 安全资讯平台 (anquanke.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p><code>sakura师傅</code>介绍说，目的是为了在某些情况下可以减少操作系统、链接与libc内部执行程序的成本</p>
+<p><code>iskindar师傅</code>介绍说，这是采用<code>Deferred initialization</code>的方式来提高AFL的性能，大概提高1.5x，最合适的地方是放在<code>read</code>函数前。也就是下面这几行代码。</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> __AFL_HAVE_MANUAL_CONTROL</span></span><br><span class="line">  __AFL_INIT();</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br></pre></td></tr></table></div></figure>
+
+<p>放入进去</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> <span class="keyword">const</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> a;</span><br><span class="line">    <span class="keyword">char</span> buf[<span class="number">0x20</span>];</span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> __AFL_HAVE_MANUAL_CONTROL</span></span><br><span class="line">    __AFL_INIT();</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">    read(<span class="number">0</span>,&amp;a,<span class="number">4</span>);</span><br><span class="line">    <span class="keyword">if</span>(a == <span class="number">0x1234</span>)&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;You get it!\n&quot;</span>);</span><br><span class="line">    <span class="meta">#<span class="meta-keyword">ifdef</span> __AFL_HAVE_MANUAL_CONTROL</span></span><br><span class="line">        __AFL_INIT();</span><br><span class="line">    <span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">        read(<span class="number">0</span>,buf,<span class="number">0x60</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></div></figure>
+
+<p>之后正常编译</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">afl-clang-fast ./test.c -z execstack -fno-stack-protector -no-pie -z norelro -o afl_test</span><br></pre></td></tr></table></div></figure>
+
+<p>也相差无几，可能是程序太小，相关的<code>libc</code>库调用太少吧</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220930143810066.png" alt="image-20220930143810066"></p>
+<p>发现crash之后蒸馏得到的和不加<code>__AFL_INIT()</code>是一样的。</p>
+
+        <h4 id="③尝试-AFL-LOOP-1000"   >
+          <a href="#③尝试-AFL-LOOP-1000" class="heading-link"><i class="fas fa-link"></i></a><a href="#③尝试-AFL-LOOP-1000" class="headerlink" title="③尝试__AFL_LOOP(1000)"></a>③尝试__AFL_LOOP(1000)</h4>
+      <p><code>persistent</code>模式，常常用来<code>fuzz</code>某些无状态的<code>API</code></p>
+<p><code>iskindar师傅</code>介绍说，对于一些无状态的<code>API</code>库，可以复用进程来测试多个测试样例，从而减少fork系统调用的使用，进而减少OS的开销。</p>
+<ul>
+<li>状态：指的是交互过程中保存的会话信息，比如<code>cookie、session</code>等</li>
+</ul>
+<p>那么无状态的<code>API</code>指的就是在这个<code>API</code>里没有保存状态了。</p>
+<p>先不使用<code>__AFL_LOOP</code></p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;noStateAPI.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> <span class="keyword">const</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> a;</span><br><span class="line">    <span class="keyword">char</span> buf[<span class="number">0x60</span>];</span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> __AFL_HAVE_MANUAL_CONTROL</span></span><br><span class="line">   __AFL_INIT();</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">    read(<span class="number">0</span>,&amp;a,<span class="number">4</span>);</span><br><span class="line">    <span class="comment">//read(0,buf,0x60);</span></span><br><span class="line">    vul(&amp;a,buf);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>库如下</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;noStateAPI.h&quot;</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">vul</span><span class="params">(<span class="keyword">int</span>* flag,<span class="keyword">char</span>* data)</span></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> buf[<span class="number">0x20</span>];</span><br><span class="line">    <span class="keyword">if</span>(*flag == <span class="number">0x1234</span>)&#123;</span><br><span class="line">        <span class="comment">//strcpy(buf,data);</span></span><br><span class="line">        read(<span class="number">0</span>,buf,<span class="number">0x60</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>编译加<code>FUZZ</code></p>
+<figure class="highlight shell"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">afl-clang-fast ./testNoLoopAPI.c ./noStateAPI.c -z execstack -fno-stack-protector -no-pie -z norelro -o afl_API_noLoop_test</span><br><span class="line">afl-fuzz -i otherIn -o afl_API_noLoop_out ./afl_API_noLoop_test</span><br></pre></td></tr></table></div></figure>
+
+<p>开始运行之后会有<code>(odd, check syntax!)</code>，但是运行一段时间后就没有了，不太知道为啥</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220930194310537.png" alt="image-20220930194310537"></p>
+<p>最后大概五六分钟也能得到<code>crash</code></p>
+<p>加入<code>__AFL_LOOP</code></p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;noStateAPI.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> <span class="keyword">const</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> a;</span><br><span class="line">    <span class="keyword">char</span> buf[<span class="number">0x60</span>];</span><br><span class="line">    </span><br><span class="line">    read(<span class="number">0</span>,&amp;a,<span class="number">4</span>);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> __AFL_HAVE_MANUAL_CONTROL</span></span><br><span class="line">    <span class="keyword">while</span> (__AFL_LOOP(<span class="number">1000</span>)) &#123;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">        vul(&amp;a,buf);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> __AFL_HAVE_MANUAL_CONTROL</span></span><br><span class="line">    &#125;   </span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>然后编译<code>FUZZ</code></p>
+<figure class="highlight shell"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">afl-clang-fast ./testAPI.c ./noStateAPI.c -z execstack -fno-stack-protector -no-pie -z norelro -o afl_API_test</span><br><span class="line">afl-fuzz -i otherIn -o afl_API_out ./afl_API_test</span><br></pre></td></tr></table></div></figure>
+
+<p>但是这个跑一个小时都没出结果，很奇怪，不知道为什么，难道说有<code>read</code>或者有比对值的代码</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(*flag == <span class="number">0x1234</span>)&#123;</span><br><span class="line">    <span class="comment">//strcpy(buf,data);</span></span><br><span class="line">    read(<span class="number">0</span>,buf,<span class="number">0x60</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>就代表是有状态的<code>API</code>吗</p>
+
+        <h3 id="2-黑盒"   >
+          <a href="#2-黑盒" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-黑盒" class="headerlink" title="(2)黑盒"></a>(2)黑盒</h3>
+      <p>此外使用正常的<code>gcc</code>编译后，采用黑盒测试时</p>
+<figure class="highlight shell"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">afl-fuzz -Q -i in -o hei_out ./test</span><br></pre></td></tr></table></div></figure>
+
+<p>速度下降一大截</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220930142948733.png" alt="image-20220930142948733"></p>
+<p>不过还是能够发现<code>crash</code>，大概跑了十五六分钟。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220930144540473.png" alt="image-20220930144540473"></p>
+<p>可以看到大小是<code>0x4f</code>，减去标志的4个字节即为<code>0x4b</code>，与期待的大概<code>0x39</code>字节还是相差一点</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220930144649388.png" alt="image-20220930144649388"></p>
+<p>此外黑盒好像没办法蒸馏</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220930144817799.png" alt="image-20220930144817799"></p>
+
+        <h1 id="二、变异策略"   >
+          <a href="#二、变异策略" class="heading-link"><i class="fas fa-link"></i></a><a href="#二、变异策略" class="headerlink" title="二、变异策略"></a>二、变异策略</h1>
+      <p>详见：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="http://rk700.github.io/2018/01/04/afl-mutations/" >AFL文件变异一览 - 记事本 (rk700.github.io)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+</div><footer class="post-footer"><div class="post-ending ending"><div class="ending__text">------ END ------</div></div><div class="post-copyright copyright"><div class="copyright-author"><span class="copyright-author__name">Author: </span><span class="copyright-author__value"><a href="http://PIG-007.github.io">PIG-007</a></span></div><div class="copyright-link"><span class="copyright-link__name">Link: </span><span class="copyright-link__value"><a href="http://pig-007.github.io/2022/09/30/AFL/">http://pig-007.github.io/2022/09/30/AFL/</a></span></div><div class="copyright-notice"><span class="copyright-notice__name">Copyright: </span><span class="copyright-notice__value">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" rel="external nofollow" target="_blank">BY-NC-SA</a> unless stating additionally</span></div></div><div class="post-tags"><span class="post-tags-item"><span class="post-tags-item__icon"><i class="fas fa-tag"></i></span><a class="post-tags-item__link" href="http://pig-007.github.io/tags/AFL/">AFL</a></span></div><nav class="post-paginator paginator"><div class="paginator-next"><a class="paginator-next__link" href="/2022/09/20/Leecode%E5%88%B7%E9%A2%98/"><span class="paginator-prev__text">算法笔记</span><span class="paginator-next__icon"><i class="fas fa-angle-right"></i></span></a></div></nav></footer></div></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><div class="sidebar-nav"><span class="sidebar-nav-toc current">Catalog</span><span class="sidebar-nav-ov">Overview</span></div><section class="sidebar-toc"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E7%AE%80%E5%8D%95%E6%B5%8B%E8%AF%95"><span class="toc-text">
+          一、简单测试</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%9F%BA%E7%A1%80%E5%B0%9D%E8%AF%95"><span class="toc-text">
+          1.基础尝试</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E7%99%BD%E7%9B%92"><span class="toc-text">
+          (1)白盒</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A0%E5%9F%BA%E7%A1%80"><span class="toc-text">
+          ①基础</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A1%E5%B0%9D%E8%AF%95-AFL-INIT"><span class="toc-text">
+          ②尝试__AFL_INIT()</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A2%E5%B0%9D%E8%AF%95-AFL-LOOP-1000"><span class="toc-text">
+          ③尝试__AFL_LOOP(1000)</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E9%BB%91%E7%9B%92"><span class="toc-text">
+          (2)黑盒</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%8F%98%E5%BC%82%E7%AD%96%E7%95%A5"><span class="toc-text">
+          二、变异策略</span></a></li></ol></section><!-- ov = overview--><section class="sidebar-ov hide"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">The way forward</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">122</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">68</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">64</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section><div class="sidebar-reading"><div class="sidebar-reading-info"><span class="sidebar-reading-info__text">You have read </span><span class="sidebar-reading-info__num">0</span><span class="sidebar-reading-info__perc">%</span></div><div class="sidebar-reading-line"></div></div></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2022</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
+  var isXML = true;
+  var search_path = 'search.json';
+
+  if (!search_path) {
+    search_path = 'search.xml';
+  } else if (/json$/i.test(search_path)) {
+    isXML = false;
+  }
+
+  var path = '/' + search_path;
+  $.ajax({
+    url: path,
+    dataType: isXML ? 'xml' : 'json',
+    async: true,
+    success: function (res) {
+      var datas = isXML ? $('entry', res).map(function () {
+        // 将 XML 转为 JSON
+        return {
+          title: $('title', this).text(),
+          content: $('content', this).text(),
+          url: $('url', this).text()
+        };
+      }).get() : res;
+      var $input = $('.search-input input');
+      var $result = $('.search-results');
+      // 搜索对象（标题、内容）的权重，影响显示顺序
+      var WEIGHT = { title: 100, content: 1 };
+      var searchPost = function () {
+        var searchText = $input.val().toLowerCase().trim();
+        // 根据空白字符分隔关键字
+        var keywords = searchText.split(/[\s]+/);
+        // 搜索结果
+        var matchPosts = [];
+
+        // 有多个关键字时，将原文字整个保存下来
+        if (keywords.length > 1) {
+          keywords.push(searchText);
+        }
+        // 防止未输入字符时搜索
+        if (searchText.length > 0) {
+          datas.forEach(function (data) {
+            var isMatch  = false;
+            // 没有标题的文章使用预设的 i18n 变量代替
+            var title = (data.title && data.title.trim()) || '[ Untitled ]';
+            var titleLower = title && title.toLowerCase();
+            // 删除 HTML 标签 和 所有空白字符
+            var content = data.content && data.content.replace(/<[^>]+>/g, '');
+            var contentLower = content && content.toLowerCase();
+            // 删除重复的 /
+            var postURL = data.url && decodeURI(data.url).replace(/\/{2,}/g, '/');
+            // 标题中匹配到的关键词
+            var titleHitSlice = [];
+            // 内容中匹配到的关键词
+            var contentHitSlice = [];
+
+            keywords.forEach(function (keyword) {
+              /**
+              * 获取匹配的关键词的索引
+              * @param {String} keyword 要匹配的关键字
+              * @param {String} text 原文字
+              * @param {Boolean} caseSensitive 是否区分大小写
+              * @param {Number} weight 匹配对象的权重。权重大的优先显示
+              * @return {Array}
+              */
+              function getIndexByword (word, text, caseSensitive, weight) {
+                if (!word || !text) {
+                  return [];
+                };
+
+                var startIndex = 0; // 每次匹配的开始索引
+                var index = -1;     // 匹配到的索引值
+                var result = [];    // 匹配结果
+
+                if (!caseSensitive) {
+                  word = word.toLowerCase();
+                  text = text.toLowerCase();
+                }
+
+                while((index = text.indexOf(word, startIndex)) !== -1) {
+                  var hasMatch = false;
+                  // 索引位置相同的关键词，保留长度较长的
+                  titleHitSlice.forEach(function (hit) {
+                    if (hit.index === index && hit.word.length < word.length) {
+                      hit.word = word;
+                      hasMatch = true;
+                    }
+                  });
+                  startIndex = index + word.length;
+                  !hasMatch && result.push({ index: index, word: word, weight: weight });
+                }
+                return result;
+              }
+              titleHitSlice = titleHitSlice.concat(getIndexByword(keyword, titleLower, false, WEIGHT.title));
+              contentHitSlice = contentHitSlice.concat(getIndexByword(keyword, contentLower, false, WEIGHT.content));
+            });
+
+            var hitTitle = titleHitSlice.length;
+            var hitContent = contentHitSlice.length;
+
+            if (hitTitle > 0 || hitContent > 0) {
+              isMatch = true;
+            }
+            if (isMatch) {
+              ;[titleHitSlice, contentHitSlice].forEach(function (hit) {
+                // 按照匹配文字的索引的递增顺序排序
+                hit.sort(function (left, right) {
+                  return left.index - right.index;
+                });
+              });
+              /**
+              * 给文本中匹配到的关键词添加标记，从而进行高亮显示
+              * @param {String} text 原文本
+              * @param {Array} hitSlice 匹配项的索引信息
+              * @param {Number} start 开始索引
+              * @param {Number} end 结束索引
+              * @return {String}
+              */
+              function highlightKeyword (text, hitSlice, start, end) {
+                if (!text || !hitSlice || !hitSlice.length) {
+                  return;
+                }
+
+                var result = '';
+                var startIndex = start;
+                var endIndex = end;
+                hitSlice.forEach(function (hit) {
+                  if (hit.index < startIndex) {
+                    return;
+                  }
+
+                  var hitWordEnd = hit.index + hit.word.length;
+                  result += text.slice(startIndex, hit.index);
+                  result += '<b>' + text.slice(hit.index, hitWordEnd) + '</b>';
+                  startIndex = hitWordEnd;
+                });
+                result += text.slice(startIndex, endIndex);
+                return result;
+              }
+
+              var postData = {};
+              // 文章总的搜索权重
+              var postWeight = titleHitSlice.length * WEIGHT.title + contentHitSlice.length * WEIGHT.content;
+              // 标记匹配关键词后的标题
+              var postTitle = highlightKeyword(title, titleHitSlice, 0, title.length) || title;
+              // 标记匹配关键词后的内容
+              var postContent;
+              // 显示内容的长度
+              var SHOW_WORD_LENGTH = 200;
+              // 命中关键词前的字符显示长度
+              var SHOW_WORD_FRONT_LENGTH = 20;
+              var SHOW_WORD_END_LENGTH = SHOW_WORD_LENGTH - SHOW_WORD_FRONT_LENGTH;
+
+              // 截取匹配的第一个字符，前后共 200 个字符来显示
+              if (contentHitSlice.length > 0) {
+                var firstIndex = contentHitSlice[0].index;
+                var start = firstIndex > SHOW_WORD_FRONT_LENGTH ? firstIndex - SHOW_WORD_FRONT_LENGTH : 0;
+                var end = firstIndex + SHOW_WORD_END_LENGTH;
+                postContent = highlightKeyword(content, contentHitSlice, start, end);
+              } else { // 未匹配到内容，直接截取前 200 个字符来显示
+                postContent = content.slice(0, SHOW_WORD_LENGTH);
+              }
+              postData.title = postTitle;
+              postData.content = postContent;
+              postData.url = postURL;
+              postData.weight = postWeight;
+              matchPosts.push(postData);
+            }
+          });
+        }
+
+        var resultInnerHtml = '';
+        if (matchPosts.length) {
+          // 按权重递增的顺序排序，使权重大的优先显示
+          matchPosts.sort(function (left, right) {
+            return right.weight - left.weight;
+          });
+          resultInnerHtml += '<ul>';
+          matchPosts.forEach(function (post) {
+            resultInnerHtml += '<li><a class="search-results-title" href="' + post.url + '">';
+            resultInnerHtml += post.title;
+            resultInnerHtml += '</a><div class="search-results-content">';
+            resultInnerHtml += post.content;
+            resultInnerHtml += '</div></li>';
+          });
+          resultInnerHtml += '</ul>';
+        } else {
+          resultInnerHtml += '<div class="search-results-none"><i class="far fa-meh"></i></div>';
+        }
+        $result.html(resultInnerHtml);
+      };
+      $input.on('input', searchPost);
+      $input.on('keyup', function (e) {
+        if (e.keyCode === Stun.utils.codeToKeyCode('Enter')) {
+          searchPost();
+        }
+      });
+    }
+  });
+}
+
+function closeSearch () {
+  $('body').css({ overflow: 'auto' });
+  $('.search-popup').css({ display: 'none' });
+  $('.search-mask').css({ display: 'none' });
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  Stun.utils.pjaxReloadLocalSearch = function () {
+    $('.header-nav-search').on('click', function (e) {
+      e.stopPropagation();
+      $('body').css('overflow', 'hidden');
+      $('.search-popup')
+        .velocity('stop')
+        .velocity('transition.expandIn', {
+          duration: 300,
+          complete: function () {
+            $('.search-popup input').focus();
+          }
+        });
+      $('.search-mask')
+        .velocity('stop')
+        .velocity('transition.fadeIn', {
+          duration: 300
+        });
+
+      initSearch();
+    });
+    $('.search-mask, .search-close').on('click', function () {
+      closeSearch();
+    });
+    $(document).on('keydown', function (e) {
+      // Escape <=> 27
+      if (e.keyCode === Stun.utils.codeToKeyCode('Escape')) {
+        closeSearch();
+      }
+    });
+  };
+
+  Stun.utils.pjaxReloadLocalSearch();
+}, false);
+
+function safeOpenUrl(url) {
+  var newTab = window.open();
+  newTab.opener = null;
+  newTab.location = url;
+}
+
+function extSearch(engine) {
+  var engines = {
+    google: 'https://www.google.com/search?q=',
+    bing: 'https://cn.bing.com/search?q=',
+    baidu: 'https://www.baidu.com/s?ie=UTF-8&wd=',
+  };
+  var host = window.location.host;
+  var query = $('.search-input input').val().toLowerCase().trim();
+  var uri = engines[engine] + query + ' site:' + host;
+
+  if (query) {
+    safeOpenUrl(uri);
+  } else {
+    Stun.utils.popAlert('warning', 'Please enter characters');
+  }
+}
+
+var assistSearchList = window.CONFIG.assistSearch;
+
+if (Array.isArray(assistSearchList)) {
+  assistSearchList.forEach(function (name) {
+    document.querySelector('.search-btns-item--' + name).addEventListener('click', function () {
+      extSearch(name);
+    }, false);
+  });
+}</script><script src="/js/utils.js?v=2.6.2"></script><script src="/js/stun-boot.js?v=2.6.2"></script><script src="/js/scroll.js?v=2.6.2"></script><script src="/js/header.js?v=2.6.2"></script><script src="/js/sidebar.js?v=2.6.2"></script><script type="application/json" src="/search.json"></script><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"superSample":2,"width":150,"height":300,"position":"left","hOffset":0,"vOffset":-80},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body></html>
