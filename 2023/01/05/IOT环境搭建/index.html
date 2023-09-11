@@ -1,0 +1,422 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta name="description" content="一、固件处理                           1.获取       要么提取，要么从官网下载                     2.解包       一般常用binwalk，有时候可能涉及加密、获取组件相关问题 参考：D-Link DIR-815 路由器多次溢出漏洞分析 | Lantern’s 小站">
+<meta property="og:type" content="article">
+<meta property="og:title" content="IOT环境搭建">
+<meta property="og:url" content="http://pig-007.github.io/2023/01/05/IOT%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/index.html">
+<meta property="og:site_name" content="PIG-007">
+<meta property="og:description" content="一、固件处理                           1.获取       要么提取，要么从官网下载                     2.解包       一般常用binwalk，有时候可能涉及加密、获取组件相关问题 参考：D-Link DIR-815 路由器多次溢出漏洞分析 | Lantern’s 小站">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221202190656170.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221202191218116.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221202191300164.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221207103833732.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221207103738798.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221207104046784.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221207104240311.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221207104257725.png">
+<meta property="article:published_time" content="2023-01-05T02:25:33.000Z">
+<meta property="article:modified_time" content="2023-09-11T13:05:06.788Z">
+<meta property="article:author" content="PIG-007">
+<meta property="article:tag" content="IOT">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221202190656170.png"><title>IOT环境搭建 | PIG-007</title><link ref="canonical" href="http://pig-007.github.io/2023/01/05/IOT%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.12.1/css/all.min.css" type="text/css"><link rel="stylesheet" href="/css/index.css?v=2.6.2"><script>var Stun = window.Stun || {};
+var CONFIG = {
+  root: '/',
+  algolia: undefined,
+  assistSearch: undefined,
+  fontIcon: {"prompt":{"success":"fas fa-check-circle","info":"fas fa-arrow-circle-right","warning":"fas fa-exclamation-circle","error":"fas fa-times-circle"},"copyBtn":"fas fa-copy"},
+  sidebar: {"offsetTop":"20px","tocMaxDepth":6},
+  header: {"enable":true,"showOnPost":true,"scrollDownIcon":false},
+  postWidget: {"endText":true},
+  nightMode: {"enable":true},
+  back2top: {"enable":true},
+  codeblock: {"style":"default","highlight":"light","wordWrap":true},
+  reward: false,
+  fancybox: false,
+  zoomImage: {"gapAside":"20px"},
+  galleryWaterfall: undefined,
+  lazyload: false,
+  pjax: undefined,
+  externalLink: {"icon":{"enable":true,"name":"fas fa-external-link-alt"}},
+  shortcuts: undefined,
+  prompt: {"copyButton":"Copy","copySuccess":"Copy Success","copyError":"Copy Error"},
+  sourcePath: {"js":"js","css":"css","images":"images"},
+};
+
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content" id="content"><!-- Just used to judge whether it is an article page--><div id="is-post"></div><div class="post"><header class="post-header"><h1 class="post-title">IOT环境搭建</h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2023-01-05</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2023-09-11</span></span></div></header><div class="post-body">
+        <h1 id="一、固件处理"   >
+          <a href="#一、固件处理" class="heading-link"><i class="fas fa-link"></i></a><a href="#一、固件处理" class="headerlink" title="一、固件处理"></a>一、固件处理</h1>
+      
+        <h2 id="1-获取"   >
+          <a href="#1-获取" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-获取" class="headerlink" title="1.获取"></a>1.获取</h2>
+      <p>要么提取，要么从官网下载</p>
+
+        <h2 id="2-解包"   >
+          <a href="#2-解包" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-解包" class="headerlink" title="2.解包"></a>2.解包</h2>
+      <p>一般常用<code>binwalk</code>，有时候可能涉及加密、获取组件相关问题</p>
+<p>参考：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://lantern.cool/CVE-d-link-dir-815/#%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96" >D-Link DIR-815 路由器多次溢出漏洞分析 | Lantern’s 小站</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+
+        <h1 id="二、环境搭建"   >
+          <a href="#二、环境搭建" class="heading-link"><i class="fas fa-link"></i></a><a href="#二、环境搭建" class="headerlink" title="二、环境搭建"></a>二、环境搭建</h1>
+      
+        <h2 id="1-简单启动"   >
+          <a href="#1-简单启动" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-简单启动" class="headerlink" title="1.简单启动"></a>1.简单启动</h2>
+      <p><code>IOT</code>相关的基本都是涉及嵌入式，不同架构，常见有<code>arm、mips</code>等，以<code>mips</code>为例子</p>
+<p>参考：[<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://bbs.pediy.com/thread-272318.htm#msg_header_h2_4" >原创] 从零开始复现 DIR-815 栈溢出漏洞-二进制漏洞-看雪论坛-安全社区|安全招聘|bbs.pediy.com</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>一般用<code>qemu</code>加上对应架构的**<code>linux</code>内核<strong>和</strong>文件系统**来启动，比如如下脚本</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">qemu-system-mipsel \</span><br><span class="line">    -M malta -kernel vmlinux-3.2.0-4-4kc-malta \</span><br><span class="line">    -hda debian_squeeze_mipsel_standard.qcow2 \</span><br><span class="line">    -append <span class="string">&quot;root=/dev/sda1 console=tty0&quot;</span> \</span><br><span class="line">	-nographic</span><br></pre></td></tr></table></div></figure>
+
+<p>就可以启动一个系统</p>
+
+        <h2 id="2-网络配置"   >
+          <a href="#2-网络配置" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-网络配置" class="headerlink" title="2.网络配置"></a>2.网络配置</h2>
+      <p>最好的肯定是模拟真实的环境，那模拟真实环境肯定就需要涉及到相关网络问题，这里就需要用到<code>qemu</code>一些网络的配置，参考：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://blog.csdn.net/OnlyLove_/article/details/124536607" >(46条消息) Linux 内核调试 七：qemu网络配置_lqonlylove的博客-CSDN博客_qemu 网络配置</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>结合一下，大概如下</p>
+<ul>
+<li><p>宿主机新建<code>tap</code>网络</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo ip tuntap add dev tap0 mode tap</span><br><span class="line">sudo ip link <span class="built_in">set</span> dev tap0 up</span><br><span class="line">sudo ip address add dev tap0 192.168.2.128/24</span><br></pre></td></tr></table></div></figure>
+
+<p>这样就会出现如下网络后端</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221202190656170.png" alt="image-20221202190656170"></p>
+</li>
+<li><p>然后如下启动脚本，加入网络配置</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line">qemu-system-mipsel \</span><br><span class="line">    -M malta -kernel vmlinux-3.2.0-4-4kc-malta \</span><br><span class="line">    -hda debian_squeeze_mipsel_standard.qcow2 \</span><br><span class="line">    -append <span class="string">&quot;root=/dev/sda1 console=tty0&quot;</span> \</span><br><span class="line">    -net nic -net tap,ifname=tap0,script=no,downscript=no \</span><br><span class="line">	-nographic</span><br></pre></td></tr></table></div></figure></li>
+<li><p>启动之后，在<code>qemu</code>中设置相关<code>IP</code>地址，然后启用</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ip addr add 192.168.2.129/24 dev eth0</span><br><span class="line">ip link <span class="built_in">set</span> eth0 up</span><br></pre></td></tr></table></div></figure>
+
+<p>这样就可以有<code>IP</code>地址了，当然这些<code>IP</code>地址都是自己设置的</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221202191218116.png" alt="image-20221202191218116"></p>
+<p>这样就宿主机和<code>qemu</code>虚拟机就可以连通了，之后就是相关的服务启动了</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221202191300164.png" alt="image-20221202191300164"></p>
+</li>
+</ul>
+
+        <h2 id="3-常见配置"   >
+          <a href="#3-常见配置" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-常见配置" class="headerlink" title="3.常见配置"></a>3.常见配置</h2>
+      <p>很多的<code>IOT</code>都是<code>squashfs</code>这个文件系统，<code>binwalk</code>解包出来会有一个<code>squashfs-root</code>文件夹，然后我们可以将该文件系统通过<code>scp</code>拷贝进启动的<code>qemu</code>虚拟机，之后进行简单的设置即可</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">scp -r ./squashfs-root root@ip:/root/</span><br><span class="line"></span><br><span class="line"><span class="comment">#挂载系统的proc固件目录下的proc,防止程序在访问内核信息时找不到相关的而运行错误</span></span><br><span class="line">mount --<span class="built_in">bind</span> /proc squashfs-root/proc</span><br><span class="line"></span><br><span class="line"><span class="comment">#更换一下root目录,为文件系统的相关链接库做准备</span></span><br><span class="line">chroot . bin/sh</span><br><span class="line"></span><br><span class="line"><span class="comment">#然后还需要改一下软连接、软路由啥的,比如DIR-645的漏洞,就需要创建一些软连接,如下</span></span><br><span class="line">ln -s /htdocs/cgibin /htdocs/web/hedwig.cgi</span><br><span class="line">ln -s /htdocs/cgibin /usr/sbin/phpcgi</span><br><span class="line">ln -s  /htdocs/cgibin /usr/sbin/hnap</span><br><span class="line"></span><br><span class="line"><span class="comment">#启动服务就行</span></span><br><span class="line">/usr/bin/httpd -f http_conf</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h1 id="三、CGI配置"   >
+          <a href="#三、CGI配置" class="heading-link"><i class="fas fa-link"></i></a><a href="#三、CGI配置" class="headerlink" title="三、CGI配置"></a>三、CGI配置</h1>
+      <p>很多时候的嵌入式<code>Web</code>页面都是用<code>CGI</code>的，所以可以稍微学习一下相关<code>CGI</code>。</p>
+
+        <h2 id="1-环境搭建"   >
+          <a href="#1-环境搭建" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-环境搭建" class="headerlink" title="1.环境搭建"></a>1.环境搭建</h2>
+      <p>这里就选择<code>ubuntu</code>自带的<code>mini-httpd</code>服务</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt install mini-httpd</span><br></pre></td></tr></table></div></figure>
+
+<p>然后相关的配置在<code>/etc/mini-httpd.conf</code>，主要关注如下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221207103833732.png" alt="image-20221207103833732"></p>
+<p>相关端口也是设置好</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221207103738798.png" alt="image-20221207103738798"></p>
+<p>然后需要在数据目录，即<code>/var/www/html</code>下新建<code>cgi-bin</code>目录，然后把相关<code>CGI</code>程序放到该<code>cgi-bin</code>目录下即可。</p>
+
+        <h2 id="2-启动服务"   >
+          <a href="#2-启动服务" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-启动服务" class="headerlink" title="2.启动服务"></a>2.启动服务</h2>
+      <p>如下，设置一下启动配置文件即可运行了</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo mini_httpd -C /etc/mini-httpd.conf</span><br></pre></td></tr></table></div></figure>
+
+<p>然后即可访问到默认界面</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221207104046784.png" alt="image-20221207104046784"></p>
+
+        <h2 id="3-编写CGI"   >
+          <a href="#3-编写CGI" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-编写CGI" class="headerlink" title="3.编写CGI"></a>3.编写<code>CGI</code></h2>
+      <p><code>CGI</code>和正常<code>C</code>程序是一样的，直接编译之后放到对应<code>cgi-bin</code>目录下即可，比如如下程序</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221207104240311.png" alt="image-20221207104240311"></p>
+<p>编译如下</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc ./test.c -static -o test.cgi</span><br></pre></td></tr></table></div></figure>
+
+<p>访问效果如下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221207104257725.png" alt="image-20221207104257725"></p>
+<p>这里需要注意要直接<code>printf</code>显示出来的话，需要设置相关的<code>html</code>格式，这里即可先进行了</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">printf</span>( <span class="string">&quot;Content-Type: text/plain\r\n\r\n&quot;</span> );</span><br></pre></td></tr></table></div></figure>
+
+<p>之后即可自己写一些<code>CGI</code>来玩耍了。</p>
+<p>感觉<code>CGI</code>的很多的不安全性就是在于直接运行了一个可执行程序，而该可执行程序大多都是用<code>C</code>语言编写的，安全性可想而知。</p>
+</div><footer class="post-footer"><div class="post-ending ending"><div class="ending__text">------ END ------</div></div><div class="post-copyright copyright"><div class="copyright-author"><span class="copyright-author__name">Author: </span><span class="copyright-author__value"><a href="http://PIG-007.github.io">PIG-007</a></span></div><div class="copyright-link"><span class="copyright-link__name">Link: </span><span class="copyright-link__value"><a href="http://pig-007.github.io/2023/01/05/IOT%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">http://pig-007.github.io/2023/01/05/IOT%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/</a></span></div><div class="copyright-notice"><span class="copyright-notice__name">Copyright: </span><span class="copyright-notice__value">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" rel="external nofollow" target="_blank">BY-NC-SA</a> unless stating additionally</span></div></div><div class="post-tags"><span class="post-tags-item"><span class="post-tags-item__icon"><i class="fas fa-tag"></i></span><a class="post-tags-item__link" href="http://pig-007.github.io/tags/IOT/">IOT</a></span></div><nav class="post-paginator paginator"><div class="paginator-prev"><a class="paginator-prev__link" href="/2023/03/07/VulHub%E5%88%B7%E9%A2%98/"><span class="paginator-prev__icon"><i class="fas fa-angle-left"></i></span><span class="paginator-prev__text">Vulhub刷题</span></a></div><div class="paginator-next"><a class="paginator-next__link" href="/2022/10/22/%E5%B8%B8%E8%A7%81%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%BC%8F%E6%B4%9E/"><span class="paginator-prev__text">WEB中间件漏洞</span><span class="paginator-next__icon"><i class="fas fa-angle-right"></i></span></a></div></nav></footer></div></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><div class="sidebar-nav"><span class="sidebar-nav-toc current">Catalog</span><span class="sidebar-nav-ov">Overview</span></div><section class="sidebar-toc"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%9B%BA%E4%BB%B6%E5%A4%84%E7%90%86"><span class="toc-text">
+          一、固件处理</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E8%8E%B7%E5%8F%96"><span class="toc-text">
+          1.获取</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E8%A7%A3%E5%8C%85"><span class="toc-text">
+          2.解包</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="toc-text">
+          二、环境搭建</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E7%AE%80%E5%8D%95%E5%90%AF%E5%8A%A8"><span class="toc-text">
+          1.简单启动</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E7%BD%91%E7%BB%9C%E9%85%8D%E7%BD%AE"><span class="toc-text">
+          2.网络配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%B8%B8%E8%A7%81%E9%85%8D%E7%BD%AE"><span class="toc-text">
+          3.常见配置</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81CGI%E9%85%8D%E7%BD%AE"><span class="toc-text">
+          三、CGI配置</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="toc-text">
+          1.环境搭建</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%90%AF%E5%8A%A8%E6%9C%8D%E5%8A%A1"><span class="toc-text">
+          2.启动服务</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E7%BC%96%E5%86%99CGI"><span class="toc-text">
+          3.编写CGI</span></a></li></ol></li></ol></section><!-- ov = overview--><section class="sidebar-ov hide"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">The way forward</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">133</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">83</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">73</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section><div class="sidebar-reading"><div class="sidebar-reading-info"><span class="sidebar-reading-info__text">You have read </span><span class="sidebar-reading-info__num">0</span><span class="sidebar-reading-info__perc">%</span></div><div class="sidebar-reading-line"></div></div></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2023</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
+  var isXML = true;
+  var search_path = 'search.json';
+
+  if (!search_path) {
+    search_path = 'search.xml';
+  } else if (/json$/i.test(search_path)) {
+    isXML = false;
+  }
+
+  var path = '/' + search_path;
+  $.ajax({
+    url: path,
+    dataType: isXML ? 'xml' : 'json',
+    async: true,
+    success: function (res) {
+      var datas = isXML ? $('entry', res).map(function () {
+        // 将 XML 转为 JSON
+        return {
+          title: $('title', this).text(),
+          content: $('content', this).text(),
+          url: $('url', this).text()
+        };
+      }).get() : res;
+      var $input = $('.search-input input');
+      var $result = $('.search-results');
+      // 搜索对象（标题、内容）的权重，影响显示顺序
+      var WEIGHT = { title: 100, content: 1 };
+      var searchPost = function () {
+        var searchText = $input.val().toLowerCase().trim();
+        // 根据空白字符分隔关键字
+        var keywords = searchText.split(/[\s]+/);
+        // 搜索结果
+        var matchPosts = [];
+
+        // 有多个关键字时，将原文字整个保存下来
+        if (keywords.length > 1) {
+          keywords.push(searchText);
+        }
+        // 防止未输入字符时搜索
+        if (searchText.length > 0) {
+          datas.forEach(function (data) {
+            var isMatch  = false;
+            // 没有标题的文章使用预设的 i18n 变量代替
+            var title = (data.title && data.title.trim()) || '[ Untitled ]';
+            var titleLower = title && title.toLowerCase();
+            // 删除 HTML 标签 和 所有空白字符
+            var content = data.content && data.content.replace(/<[^>]+>/g, '');
+            var contentLower = content && content.toLowerCase();
+            // 删除重复的 /
+            var postURL = data.url && decodeURI(data.url).replace(/\/{2,}/g, '/');
+            // 标题中匹配到的关键词
+            var titleHitSlice = [];
+            // 内容中匹配到的关键词
+            var contentHitSlice = [];
+
+            keywords.forEach(function (keyword) {
+              /**
+              * 获取匹配的关键词的索引
+              * @param {String} keyword 要匹配的关键字
+              * @param {String} text 原文字
+              * @param {Boolean} caseSensitive 是否区分大小写
+              * @param {Number} weight 匹配对象的权重。权重大的优先显示
+              * @return {Array}
+              */
+              function getIndexByword (word, text, caseSensitive, weight) {
+                if (!word || !text) {
+                  return [];
+                };
+
+                var startIndex = 0; // 每次匹配的开始索引
+                var index = -1;     // 匹配到的索引值
+                var result = [];    // 匹配结果
+
+                if (!caseSensitive) {
+                  word = word.toLowerCase();
+                  text = text.toLowerCase();
+                }
+
+                while((index = text.indexOf(word, startIndex)) !== -1) {
+                  var hasMatch = false;
+                  // 索引位置相同的关键词，保留长度较长的
+                  titleHitSlice.forEach(function (hit) {
+                    if (hit.index === index && hit.word.length < word.length) {
+                      hit.word = word;
+                      hasMatch = true;
+                    }
+                  });
+                  startIndex = index + word.length;
+                  !hasMatch && result.push({ index: index, word: word, weight: weight });
+                }
+                return result;
+              }
+              titleHitSlice = titleHitSlice.concat(getIndexByword(keyword, titleLower, false, WEIGHT.title));
+              contentHitSlice = contentHitSlice.concat(getIndexByword(keyword, contentLower, false, WEIGHT.content));
+            });
+
+            var hitTitle = titleHitSlice.length;
+            var hitContent = contentHitSlice.length;
+
+            if (hitTitle > 0 || hitContent > 0) {
+              isMatch = true;
+            }
+            if (isMatch) {
+              ;[titleHitSlice, contentHitSlice].forEach(function (hit) {
+                // 按照匹配文字的索引的递增顺序排序
+                hit.sort(function (left, right) {
+                  return left.index - right.index;
+                });
+              });
+              /**
+              * 给文本中匹配到的关键词添加标记，从而进行高亮显示
+              * @param {String} text 原文本
+              * @param {Array} hitSlice 匹配项的索引信息
+              * @param {Number} start 开始索引
+              * @param {Number} end 结束索引
+              * @return {String}
+              */
+              function highlightKeyword (text, hitSlice, start, end) {
+                if (!text || !hitSlice || !hitSlice.length) {
+                  return;
+                }
+
+                var result = '';
+                var startIndex = start;
+                var endIndex = end;
+                hitSlice.forEach(function (hit) {
+                  if (hit.index < startIndex) {
+                    return;
+                  }
+
+                  var hitWordEnd = hit.index + hit.word.length;
+                  result += text.slice(startIndex, hit.index);
+                  result += '<b>' + text.slice(hit.index, hitWordEnd) + '</b>';
+                  startIndex = hitWordEnd;
+                });
+                result += text.slice(startIndex, endIndex);
+                return result;
+              }
+
+              var postData = {};
+              // 文章总的搜索权重
+              var postWeight = titleHitSlice.length * WEIGHT.title + contentHitSlice.length * WEIGHT.content;
+              // 标记匹配关键词后的标题
+              var postTitle = highlightKeyword(title, titleHitSlice, 0, title.length) || title;
+              // 标记匹配关键词后的内容
+              var postContent;
+              // 显示内容的长度
+              var SHOW_WORD_LENGTH = 200;
+              // 命中关键词前的字符显示长度
+              var SHOW_WORD_FRONT_LENGTH = 20;
+              var SHOW_WORD_END_LENGTH = SHOW_WORD_LENGTH - SHOW_WORD_FRONT_LENGTH;
+
+              // 截取匹配的第一个字符，前后共 200 个字符来显示
+              if (contentHitSlice.length > 0) {
+                var firstIndex = contentHitSlice[0].index;
+                var start = firstIndex > SHOW_WORD_FRONT_LENGTH ? firstIndex - SHOW_WORD_FRONT_LENGTH : 0;
+                var end = firstIndex + SHOW_WORD_END_LENGTH;
+                postContent = highlightKeyword(content, contentHitSlice, start, end);
+              } else { // 未匹配到内容，直接截取前 200 个字符来显示
+                postContent = content.slice(0, SHOW_WORD_LENGTH);
+              }
+              postData.title = postTitle;
+              postData.content = postContent;
+              postData.url = postURL;
+              postData.weight = postWeight;
+              matchPosts.push(postData);
+            }
+          });
+        }
+
+        var resultInnerHtml = '';
+        if (matchPosts.length) {
+          // 按权重递增的顺序排序，使权重大的优先显示
+          matchPosts.sort(function (left, right) {
+            return right.weight - left.weight;
+          });
+          resultInnerHtml += '<ul>';
+          matchPosts.forEach(function (post) {
+            resultInnerHtml += '<li><a class="search-results-title" href="' + post.url + '">';
+            resultInnerHtml += post.title;
+            resultInnerHtml += '</a><div class="search-results-content">';
+            resultInnerHtml += post.content;
+            resultInnerHtml += '</div></li>';
+          });
+          resultInnerHtml += '</ul>';
+        } else {
+          resultInnerHtml += '<div class="search-results-none"><i class="far fa-meh"></i></div>';
+        }
+        $result.html(resultInnerHtml);
+      };
+      $input.on('input', searchPost);
+      $input.on('keyup', function (e) {
+        if (e.keyCode === Stun.utils.codeToKeyCode('Enter')) {
+          searchPost();
+        }
+      });
+    }
+  });
+}
+
+function closeSearch () {
+  $('body').css({ overflow: 'auto' });
+  $('.search-popup').css({ display: 'none' });
+  $('.search-mask').css({ display: 'none' });
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  Stun.utils.pjaxReloadLocalSearch = function () {
+    $('.header-nav-search').on('click', function (e) {
+      e.stopPropagation();
+      $('body').css('overflow', 'hidden');
+      $('.search-popup')
+        .velocity('stop')
+        .velocity('transition.expandIn', {
+          duration: 300,
+          complete: function () {
+            $('.search-popup input').focus();
+          }
+        });
+      $('.search-mask')
+        .velocity('stop')
+        .velocity('transition.fadeIn', {
+          duration: 300
+        });
+
+      initSearch();
+    });
+    $('.search-mask, .search-close').on('click', function () {
+      closeSearch();
+    });
+    $(document).on('keydown', function (e) {
+      // Escape <=> 27
+      if (e.keyCode === Stun.utils.codeToKeyCode('Escape')) {
+        closeSearch();
+      }
+    });
+  };
+
+  Stun.utils.pjaxReloadLocalSearch();
+}, false);
+
+function safeOpenUrl(url) {
+  var newTab = window.open();
+  newTab.opener = null;
+  newTab.location = url;
+}
+
+function extSearch(engine) {
+  var engines = {
+    google: 'https://www.google.com/search?q=',
+    bing: 'https://cn.bing.com/search?q=',
+    baidu: 'https://www.baidu.com/s?ie=UTF-8&wd=',
+  };
+  var host = window.location.host;
+  var query = $('.search-input input').val().toLowerCase().trim();
+  var uri = engines[engine] + query + ' site:' + host;
+
+  if (query) {
+    safeOpenUrl(uri);
+  } else {
+    Stun.utils.popAlert('warning', 'Please enter characters');
+  }
+}
+
+var assistSearchList = window.CONFIG.assistSearch;
+
+if (Array.isArray(assistSearchList)) {
+  assistSearchList.forEach(function (name) {
+    document.querySelector('.search-btns-item--' + name).addEventListener('click', function () {
+      extSearch(name);
+    }, false);
+  });
+}</script><script src="/js/utils.js?v=2.6.2"></script><script src="/js/stun-boot.js?v=2.6.2"></script><script src="/js/scroll.js?v=2.6.2"></script><script src="/js/header.js?v=2.6.2"></script><script src="/js/sidebar.js?v=2.6.2"></script><script type="application/json" src="/search.json"></script><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"superSample":2,"width":150,"height":300,"position":"left","hOffset":0,"vOffset":-80},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body></html>

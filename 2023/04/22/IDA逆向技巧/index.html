@@ -1,0 +1,764 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta name="description" content="一、修复switch       C++程序用IDA打开好多都不能将switch识别成功，常常需要修复：                     1.找到跳转地址       常常反汇编之后如下，这个基本就是无法识别switch的时候了 1__asm &amp;#123; jmp     rax &amp;#125;                      2.汇编修改">
+<meta property="og:type" content="article">
+<meta property="og:title" content="IDA逆向技巧">
+<meta property="og:url" content="http://pig-007.github.io/2023/04/22/IDA%E9%80%86%E5%90%91%E6%8A%80%E5%B7%A7/index.html">
+<meta property="og:site_name" content="PIG-007">
+<meta property="og:description" content="一、修复switch       C++程序用IDA打开好多都不能将switch识别成功，常常需要修复：                     1.找到跳转地址       常常反汇编之后如下，这个基本就是无法识别switch的时候了 1__asm &amp;#123; jmp     rax &amp;#125;                      2.汇编修改">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210906161913.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210906165238.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210906165539.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210906164744.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210906170243.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210906170904.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210906172736.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210906172907.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211203163504.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211203164003.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202202151145621.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202202151204618.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202202151214636.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202202151221701.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202202151250416.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203241748490.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/%E6%9C%AA%E5%91%BD%E5%90%8D%E6%96%87%E4%BB%B6%20(14).png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220423210047186.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220423212133886.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220423211833831.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/%E6%9C%AA%E5%91%BD%E5%90%8D%E6%96%87%E4%BB%B6%20(15).png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220423173148441.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220424112805438.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220424112952718.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220424113519816.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220424120832499.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220424120944256.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220424121023804.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220424143520190.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220424145337189.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220424145432745.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221128143715373.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221128143616124.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221128145817008.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221128150028794.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211201112027.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230728143855425.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191454120.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230728144000135.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230801110448511.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230726151414182.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230726151344840.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230801144313490.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230801144322604.png">
+<meta property="article:published_time" content="2023-04-22T02:25:33.000Z">
+<meta property="article:modified_time" content="2023-09-11T12:55:33.520Z">
+<meta property="article:author" content="PIG-007">
+<meta property="article:tag" content="逆向">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210906161913.png"><title>IDA逆向技巧 | PIG-007</title><link ref="canonical" href="http://pig-007.github.io/2023/04/22/IDA%E9%80%86%E5%90%91%E6%8A%80%E5%B7%A7/"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.12.1/css/all.min.css" type="text/css"><link rel="stylesheet" href="/css/index.css?v=2.6.2"><script>var Stun = window.Stun || {};
+var CONFIG = {
+  root: '/',
+  algolia: undefined,
+  assistSearch: undefined,
+  fontIcon: {"prompt":{"success":"fas fa-check-circle","info":"fas fa-arrow-circle-right","warning":"fas fa-exclamation-circle","error":"fas fa-times-circle"},"copyBtn":"fas fa-copy"},
+  sidebar: {"offsetTop":"20px","tocMaxDepth":6},
+  header: {"enable":true,"showOnPost":true,"scrollDownIcon":false},
+  postWidget: {"endText":true},
+  nightMode: {"enable":true},
+  back2top: {"enable":true},
+  codeblock: {"style":"default","highlight":"light","wordWrap":true},
+  reward: false,
+  fancybox: false,
+  zoomImage: {"gapAside":"20px"},
+  galleryWaterfall: undefined,
+  lazyload: false,
+  pjax: undefined,
+  externalLink: {"icon":{"enable":true,"name":"fas fa-external-link-alt"}},
+  shortcuts: undefined,
+  prompt: {"copyButton":"Copy","copySuccess":"Copy Success","copyError":"Copy Error"},
+  sourcePath: {"js":"js","css":"css","images":"images"},
+};
+
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content" id="content"><!-- Just used to judge whether it is an article page--><div id="is-post"></div><div class="post"><header class="post-header"><h1 class="post-title">IDA逆向技巧</h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2023-04-22</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2023-09-11</span></span></div></header><div class="post-body">
+        <h1 id="一、修复switch"   >
+          <a href="#一、修复switch" class="heading-link"><i class="fas fa-link"></i></a><a href="#一、修复switch" class="headerlink" title="一、修复switch"></a>一、修复switch</h1>
+      <p>C++程序用IDA打开好多都不能将switch识别成功，常常需要修复：</p>
+
+        <h2 id="1-找到跳转地址"   >
+          <a href="#1-找到跳转地址" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-找到跳转地址" class="headerlink" title="1.找到跳转地址"></a>1.找到跳转地址</h2>
+      <p>常常反汇编之后如下，这个基本就是无法识别switch的时候了</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">__asm &#123; jmp     rax &#125;</span><br></pre></td></tr></table></div></figure>
+
+
+        <h2 id="2-汇编修改"   >
+          <a href="#2-汇编修改" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-汇编修改" class="headerlink" title="2.汇编修改"></a>2.汇编修改</h2>
+      <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210906161913.png" alt="Snipaste_2021-09-06_16-18-58"></p>
+<p>进入到<strong>unk_41D4</strong>，里面放着对应的跳转数据</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210906165238.png" alt="image-20210906165238427"></p>
+<p>按d以4字节为一组对应修改为如下，可见跳转数量有6个</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210906165539.png" alt="image-20210906165538977"></p>
+<p>然后对应修改数据</p>
+<p><strong>Edit-&gt;Other-&gt;Specify switch idiom</strong></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210906164744.png" alt="Snipaste_2021-09-06_16-47-27"></p>
+<p>打开之后修改对应数据</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210906170243.png" alt="image-20210906170243406"></p>
+<p>其中默认跳转位置可以通过调试看输入其他的选项的跳转位置。</p>
+
+        <h1 id="二、结构体修复"   >
+          <a href="#二、结构体修复" class="heading-link"><i class="fas fa-link"></i></a><a href="#二、结构体修复" class="headerlink" title="二、结构体修复"></a>二、结构体修复</h1>
+      
+        <h2 id="1-Local-Type插入"   >
+          <a href="#1-Local-Type插入" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-Local-Type插入" class="headerlink" title="1.Local Type插入"></a>1.Local Type插入</h2>
+      <p><strong>View-&gt;Open subviews-&gt;Local_types</strong></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210906170904.png" alt="image-20210906170904828"></p>
+<p>右键Insert输入对应结构体即可</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210906172736.png" alt="image-20210906172736186"></p>
+
+        <h2 id="2-修改为指针"   >
+          <a href="#2-修改为指针" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-修改为指针" class="headerlink" title="2.修改为指针"></a>2.修改为指针</h2>
+      <p>在对应变量按y修改为对应指针</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20210906172907.png" alt="image-20210906172907718"></p>
+
+        <h1 id="三、反汇编解析错误"   >
+          <a href="#三、反汇编解析错误" class="heading-link"><i class="fas fa-link"></i></a><a href="#三、反汇编解析错误" class="headerlink" title="三、反汇编解析错误"></a>三、反汇编解析错误</h1>
+      
+        <h2 id="1-花指令"   >
+          <a href="#1-花指令" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-花指令" class="headerlink" title="1.花指令"></a>1.花指令</h2>
+      <p>IDA中调试出现如下错误，或者观察也知道</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211203163504.png" alt="image-20211203163504409"></p>
+<p>这时候可能出现花指令，使得IDA无法正常识别，再往下走IDA跳转到<code>0x40102f</code>，则证明<code>0x40102c~0x40102e</code>这三个字节码都是无效的，直接nop掉，然后<code>patch</code>之后重新打开IDA即可正常识别</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211203164003.png" alt="image-20211203164003865"></p>
+<p>以<code>2020De1CTF-mixture</code>为例，IDA打开找到zif_类函数，可以看到堆栈指针问题</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202202151145621.png" alt="image-20220215114506575"></p>
+<p>那么可能存在花指令或其他的影响，可以参考如下两种方法</p>
+
+        <h3 id="1-堆栈寄存器"   >
+          <a href="#1-堆栈寄存器" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-堆栈寄存器" class="headerlink" title="(1)堆栈寄存器"></a>(1)堆栈寄存器</h3>
+      <p>首先考虑调试看看堆栈寄存器的变化，如下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202202151204618.png" alt="image-20220215120401490"></p>
+<p>可以看到，在执行从0x122E~0x124D这个代码块之前和之后的寄存器除了rip其他都没有改变。</p>
+<p>栈环境除了rsp的值被改变了其他的没有什么影响，而对于栈来说，主要就是栈指针的移动和传入参数的压栈，首先栈指针并没有发生改变，在考虑传入参数的压栈。</p>
+<p>传入的参数为如下两个参数rdi和rsi，并且最开始的汇编代码并没有对rdi和rsi进行操作，那么这段代码块就等于无效，相当于就是一个<code>jz 0x124e</code>，那么我们直接给他nop掉即可</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202202151214636.png" alt="image-20220215121425597"></p>
+
+        <h3 id="2-看汇编"   >
+          <a href="#2-看汇编" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-看汇编" class="headerlink" title="(2)看汇编"></a>(2)看汇编</h3>
+      <p>0x122e~0x124d如下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202202151221701.png" alt="image-20220215122155647"></p>
+<p>可以发现，call l2之后，l2函数通过rax把l2函数的返回地址+8了，也就是从0x1245变成了0x124d，那么就等同于如下代码</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">.text:000000000000122E                 push    rax</span><br><span class="line">.text:000000000000122F                 xor     rax, rax</span><br><span class="line"></span><br><span class="line">.text:0000000000001236                 pop     rax</span><br><span class="line">.text:0000000000001237                 mov     [rsp+98h+arg], 0</span><br><span class="line">.text:000000000000123F                 push    rax</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">.text:000000000000124D                 pop     rax</span><br></pre></td></tr></table></div></figure>
+
+<p>这不就相当于啥也没做吗，只是有个<code>mov     [rsp+98h+arg], 0</code>操作而已，但是也不影响参数，等同没有。</p>
+<p>之后的0x131E~0x132D也是一样的错误，直接nop掉即可。之后即可正常F5</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202202151250416.png" alt="image-20220215125030353"></p>
+
+        <h1 id="四、go语言隐藏"   >
+          <a href="#四、go语言隐藏" class="heading-link"><i class="fas fa-link"></i></a><a href="#四、go语言隐藏" class="headerlink" title="四、go语言隐藏"></a>四、go语言隐藏</h1>
+      <p>虎符杯2022 gogogo</p>
+<p>现有插件或者IDA7.6对go的符号恢复是基于gopclntab段上保留的函数符号，那么如果将该段上的符号函数进行修改或者隐藏，就不太容易逆向了</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/202203241748490.png" alt="image-20220324174816395"></p>
+<p>该题就是将main.main和math.init符号表替换，然后在main.main中设置一些原本main函数输入0x12345678退出的功能，使得逆向时我们认为main.main函数就只有这个功能，并没有其他功能，导致无法进行漏洞分析，修改回来就可以了，直接改这个表<code>.gopclntab</code>即可</p>
+
+        <h1 id="五、C-逆向"   >
+          <a href="#五、C-逆向" class="heading-link"><i class="fas fa-link"></i></a><a href="#五、C-逆向" class="headerlink" title="五、C++逆向"></a>五、C++逆向</h1>
+      
+        <h2 id="1-自定义的类"   >
+          <a href="#1-自定义的类" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-自定义的类" class="headerlink" title="1.自定义的类"></a>1.自定义的类</h2>
+      <figure class="highlight c++"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span> &#123;</span></span><br><span class="line">  <span class="keyword">public</span>:</span><br><span class="line">   <span class="built_in">A</span>()&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;A::A()\n&quot;</span>);</span><br><span class="line">    id = <span class="number">42</span>;</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">a</span><span class="params">()</span></span>&#123;</span><br><span class="line">     <span class="built_in">printf</span>(<span class="string">&quot;Virtual A::a()\n&quot;</span>);</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">virtual</span> ~<span class="built_in">A</span>()&#123;</span><br><span class="line">     <span class="built_in">printf</span>(<span class="string">&quot;A::~A()\n&quot;</span>);</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">int</span> id;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">B</span> :</span> <span class="keyword">public</span> A &#123;</span><br><span class="line">  <span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">B</span>()&#123;</span><br><span class="line">      <span class="built_in">printf</span>(<span class="string">&quot;B::B()\n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">virtual</span> ~<span class="built_in">B</span>()&#123;</span><br><span class="line">      <span class="built_in">printf</span>(<span class="string">&quot;B::~B()\n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">a</span><span class="params">()</span></span>&#123;</span><br><span class="line">      <span class="built_in">printf</span>(<span class="string">&quot;Virtual B::a()\n&quot;</span>);</span><br><span class="line">      A::<span class="built_in">a</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">b</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Virtual B::b()\n&quot;</span>);</span><br><span class="line">        A::<span class="built_in">a</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="1-类的内存分布"   >
+          <a href="#1-类的内存分布" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-类的内存分布" class="headerlink" title="(1)类的内存分布"></a>(1)类的内存分布</h3>
+      
+        <h4 id="①没有父类的"   >
+          <a href="#①没有父类的" class="heading-link"><i class="fas fa-link"></i></a><a href="#①没有父类的" class="headerlink" title="①没有父类的"></a>①没有父类的</h4>
+      <p>用上述代码的<code>class A</code>来举例</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/%E6%9C%AA%E5%91%BD%E5%90%8D%E6%96%87%E4%BB%B6%20(14).png" alt="未命名文件 (14)"></p>
+<p>在调用构造函数<code>A::A()</code>之前会从堆里申请一块空间，即<code>class A</code>的空间，包括指针和成员。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220423210047186.png" alt="image-20220423210047186"></p>
+<p>在<code>A::A()</code>构造函数调用之后会初始化该堆空间，申请的堆空间如下。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220423212133886.png" alt="image-20220423212133886"></p>
+<p>然后还需要注意的是有两个函数指针，析构函数指针1和析构函数指针2，其中析构函数指针2是实际的用来释放空间的函数，即原始的析构函数，并且其中会调用到析构函数指针1，即用户自定义的析构函数相关的代码，并且地址是连在一起的，如下所示。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220423211833831.png" alt="image-20220423211833831"></p>
+
+        <h4 id="②有父类的"   >
+          <a href="#②有父类的" class="heading-link"><i class="fas fa-link"></i></a><a href="#②有父类的" class="headerlink" title="②有父类的"></a>②有父类的</h4>
+      <p>以上述代码的<code>class B</code>来举例</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/%E6%9C%AA%E5%91%BD%E5%90%8D%E6%96%87%E4%BB%B6%20(15).png" alt="未命名文件 (15)"></p>
+<p>其他的和没有父类的class也是差不多的。</p>
+
+        <h4 id="③未申请空间的类"   >
+          <a href="#③未申请空间的类" class="heading-link"><i class="fas fa-link"></i></a><a href="#③未申请空间的类" class="headerlink" title="③未申请空间的类"></a>③未申请空间的类</h4>
+      <p>比如<code>A obj_a;</code>这种写法，那么其<code>public</code>的成员会变成栈上的变量，<code>private</code>成员无法访问，访问其成员函数还是在.text段上对应的。</p>
+
+        <h3 id="2-常规写法"   >
+          <a href="#2-常规写法" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-常规写法" class="headerlink" title="(2)常规写法"></a>(2)常规写法</h3>
+      <ul>
+<li><p><code>A *point_obj_A = new A;</code> ：会调用A的构造函数</p>
+<p><code>A *point_obj_A = new(A);</code> ：同上，一样的</p>
+</li>
+<li><p><code>A obj_A;</code> ：A的构造函数调用之后，如果没有其他的操作，那么程序会自动释放该对象，调用析构函数，相当于局部变量。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220423173148441.png"></p>
+</li>
+<li><p><code>B *point_obj_b = new B;</code>会先调用A的构造函数，然后再调用B的构造函数，和前面的指针没有太多关系，直接<code>B obj_B</code>也是一样的</p>
+</li>
+<li><p><code>A *point_obj_b = new B;</code>一样的，只是将<code>point_obj_b </code>标记为类型为A的指针，但是这样的话该对象指针<code>point_obj_b</code>就不能调用到子类B的函数<code>b()</code>了。(子类指针可以调用父类的函数，但是父类指针不能调用子类的特有函数)</p>
+</li>
+</ul>
+
+        <h2 id="2-容器类Vector"   >
+          <a href="#2-容器类Vector" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-容器类Vector" class="headerlink" title="2.容器类Vector"></a>2.容器类Vector</h2>
+      
+        <h3 id="1-容器创建"   >
+          <a href="#1-容器创建" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-容器创建" class="headerlink" title="(1)容器创建"></a>(1)容器创建</h3>
+      <p>参考：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/176870" >C++逆向之容器vector篇入门 - 安全客，安全资讯平台 (anquanke.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+
+        <h4 id="①声明容器"   >
+          <a href="#①声明容器" class="heading-link"><i class="fas fa-link"></i></a><a href="#①声明容器" class="headerlink" title="①声明容器"></a>①声明容器</h4>
+      <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; test1;</span><br><span class="line"></span><br><span class="line"><span class="comment">//对应IDA代码</span></span><br><span class="line"><span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;::<span class="built_in">vector</span>(v8, argv, envp);</span><br></pre></td></tr></table></div></figure>
+
+<p>这个不造成堆空间的分配</p>
+
+        <h4 id="②声明并初始化大小"   >
+          <a href="#②声明并初始化大小" class="heading-link"><i class="fas fa-link"></i></a><a href="#②声明并初始化大小" class="headerlink" title="②声明并初始化大小"></a>②声明并初始化大小</h4>
+      <figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; <span class="title">test2</span><span class="params">(<span class="number">5</span>)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">//对应IDA代码</span></span><br><span class="line"><span class="built_in">std</span>::allocator&lt;<span class="keyword">int</span>&gt;::allocator(v13);</span><br><span class="line"><span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;::<span class="built_in">vector</span>(v9, <span class="number">5LL</span>, v13);</span><br><span class="line"><span class="built_in">std</span>::allocator&lt;<span class="keyword">int</span>&gt;::~allocator(v13);</span><br></pre></td></tr></table></div></figure>
+
+<p>这个在调用vector的构造函数时，会有堆空间的申请，用来存放容器内的数据，依据定义的大小来进行申请，比如这里就申请了5个int的变量，那么大小为5*4=20个字节，对应在堆空间里就需要申请0x20大小的堆块来存放。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220424112805438.png" alt="image-20220424112805438"></p>
+<p>使用malloc来申请</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220424112952718.png" alt="image-20220424112952718"></p>
+
+        <h4 id="③声明并初始化大小和值"   >
+          <a href="#③声明并初始化大小和值" class="heading-link"><i class="fas fa-link"></i></a><a href="#③声明并初始化大小和值" class="headerlink" title="③声明并初始化大小和值"></a>③声明并初始化大小和值</h4>
+      <p>容量+初始值模式</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; <span class="title">test3</span><span class="params">(<span class="number">10</span>,<span class="number">1</span>)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">//对应IDA代码</span></span><br><span class="line"><span class="built_in">std</span>::allocator&lt;<span class="keyword">int</span>&gt;::allocator(v12);</span><br><span class="line">v13[<span class="number">0</span>] = <span class="number">1</span>;</span><br><span class="line"><span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;::<span class="built_in">vector</span>(v10, <span class="number">10LL</span>, v13, v12);</span><br><span class="line"><span class="built_in">std</span>::allocator&lt;<span class="keyword">int</span>&gt;::~allocator(v12);</span><br></pre></td></tr></table></div></figure>
+
+<p>可以看到也是类似的，会创建一个局部变量v13作为初始值1传入vector的构造函数，并且申请堆空间后会进行初始化，所需大小为10*4=40个字节，对应0x30的堆空间，并且会初始化为1，如下所示。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220424113519816.png" alt="image-20220424113519816"></p>
+<p>相关寄存器如下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220424120832499.png" alt="image-20220424120832499"></p>
+
+        <h4 id="④使用地址进行初始化"   >
+          <a href="#④使用地址进行初始化" class="heading-link"><i class="fas fa-link"></i></a><a href="#④使用地址进行初始化" class="headerlink" title="④使用地址进行初始化"></a>④使用地址进行初始化</h4>
+      <p>Begin+End模式</p>
+<p>这里区别于之前的传值，即容量的值以及初始值的地址，取而代之的是数据的起始地址和结束地址。</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//传入test3在堆申请的存放数据的起始堆地址和结束堆地址，依据这段数据来进行初始化</span></span><br><span class="line"><span class="function"><span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; <span class="title">test5</span><span class="params">(test3.begin(), test3.end())</span></span>;</span><br><span class="line">getchar();</span><br><span class="line"></span><br><span class="line"><span class="comment">//对应的传入两个地址进行初始化，即array的相关数据处的地址</span></span><br><span class="line"><span class="keyword">int</span> <span class="built_in">array</span>[<span class="number">5</span>] = &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>&#125;;</span><br><span class="line"><span class="function"><span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; <span class="title">test6</span><span class="params">(&amp;<span class="built_in">array</span>[<span class="number">1</span>], &amp;<span class="built_in">array</span>[<span class="number">4</span>])</span></span>;</span><br><span class="line">getchar();</span><br><span class="line">----------------------------------------------------------------------</span><br><span class="line"><span class="comment">//对应IDA代码</span></span><br><span class="line"><span class="built_in">std</span>::allocator&lt;<span class="keyword">int</span>&gt;::allocator(v17, <span class="number">1LL</span>, v5);</span><br><span class="line">v6 = <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;::end(v14);</span><br><span class="line">v7 = <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;::begin(v14);</span><br><span class="line"><span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;::<span class="built_in">vector</span>&lt;__gnu_cxx::__normal_iterator&lt;<span class="keyword">int</span> *,<span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;&gt;,<span class="keyword">void</span>&gt;(v16, v7, v6, v17);</span><br><span class="line"><span class="built_in">std</span>::allocator&lt;<span class="keyword">int</span>&gt;::~allocator(v17);</span><br><span class="line">getchar();</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">v17[<span class="number">8</span>] = <span class="number">1</span>;</span><br><span class="line">v18[<span class="number">0</span>] = <span class="number">2</span>;</span><br><span class="line">v18[<span class="number">1</span>] = <span class="number">3</span>;</span><br><span class="line">v18[<span class="number">2</span>] = <span class="number">4</span>;</span><br><span class="line">v19 = <span class="number">5</span>;</span><br><span class="line"><span class="built_in">std</span>::allocator&lt;<span class="keyword">int</span>&gt;::allocator(&amp;v10, v7, v8);</span><br><span class="line"><span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;::<span class="built_in">vector</span>&lt;<span class="keyword">int</span> *,<span class="keyword">void</span>&gt;(v17, v18, &amp;v19, &amp;v10);</span><br><span class="line"><span class="built_in">std</span>::allocator&lt;<span class="keyword">int</span>&gt;::~allocator(&amp;v10);</span><br><span class="line">getchar();</span><br></pre></td></tr></table></div></figure>
+
+<p>相关寄存器如下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220424120944256.png" alt="image-20220424120944256"></p>
+<p>栈上的数组模式</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220424121023804.png" alt="image-20220424121023804"></p>
+
+        <h4 id="⑤总结"   >
+          <a href="#⑤总结" class="heading-link"><i class="fas fa-link"></i></a><a href="#⑤总结" class="headerlink" title="⑤总结"></a>⑤总结</h4>
+      <p>主要就是关注<code>vector</code>的构造函数</p>
+<ul>
+<li><p>未初始化的只有<code>vector</code>构造函数</p>
+</li>
+<li><p>初始化容量或者值的，就会调用<code>allocator</code>来为容器进行分配，并且在<code>vector</code>的构造函数调用时会从堆上分配空间。</p>
+</li>
+<li><p>在IDA中的<code>vector</code>的构造函数中</p>
+<ul>
+<li><p>参数一(RDI寄存器)：即栈上保存<code>vector</code>变量的栈地址，指向申请的堆空间地址。后面传入<code>vector</code>的析构函数进行销毁。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220424143520190.png" alt="image-20220424143520190"></p>
+<p>其中的Begin和End是有效数据的地址范围，下面的那个地址是该容器申请的堆空间的末尾地址。</p>
+</li>
+<li><p>参数二(RSI寄存器)：容量+初值模式就传入容量的值，Begin+End模式就传入Begin处的地址。</p>
+</li>
+<li><p>参数三(RDX寄存器)：容量+初值模式就传入初值的地址，Begin+End模式就传入End处的地址。没有就为<code>allocator</code>的参数。</p>
+</li>
+<li><p>参数四(RCX寄存器)：一般为<code>allocator</code>的参数，没有初值的时候就在参数三中。</p>
+</li>
+</ul>
+</li>
+<li><p>最后会自动调用析构函数，传入构造函数创建时保存堆空间指针的栈地址。</p>
+</li>
+</ul>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;::~<span class="built_in">vector</span>(v17);</span><br><span class="line"><span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;::~<span class="built_in">vector</span>(v16);</span><br><span class="line"><span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;::~<span class="built_in">vector</span>(v15);</span><br><span class="line"><span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;::~<span class="built_in">vector</span>(v14);</span><br><span class="line"><span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;::~<span class="built_in">vector</span>(v13);</span><br><span class="line"><span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;::~<span class="built_in">vector</span>(v12);</span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="2-容器操作"   >
+          <a href="#2-容器操作" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-容器操作" class="headerlink" title="(2)容器操作"></a>(2)容器操作</h3>
+      <p>主要关注<code>push_back</code>和<code>pop_back</code></p>
+<ul>
+<li><p><code>push_back</code>：</p>
+<ul>
+<li>参数一：栈上保存申请堆空间指针的栈地址</li>
+<li>参数二：要压入<code>vector</code>的值</li>
+</ul>
+<p>如果空间超过申请的堆空间大小，会free掉当前堆空间，然后malloc申请比之前大小的两倍减去0x10的大小。比如当前空间为0x50，那么扩容之后就是0x50*2-0x10的大小。</p>
+</li>
+<li><p><code>pop_back</code>：</p>
+<ul>
+<li>参数：栈上保存申请堆空间指针的栈地址</li>
+</ul>
+<p>只会修改之前提到的End地址，pop完之后如果接着pop则End会接着减少，会小于Begin的地址。</p>
+</li>
+</ul>
+<p>这里就存在漏洞了，就是如果接着pop会导致End不断减少，当小于Begin的地址时，这时候再push_back的话，就会在小于Begin地址处写入数据，导致堆块数据被重写，如下：</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; test;</span><br><span class="line"><span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>; i&lt;<span class="number">2</span>; i++)</span><br><span class="line">    test.push_back(i);</span><br><span class="line">getchar();</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>; i&lt;<span class="number">10</span>; i++)</span><br><span class="line">    test.pop_back();</span><br><span class="line">getchar();</span><br><span class="line">test.push_back(<span class="number">0x50</span>);</span><br></pre></td></tr></table></div></figure>
+
+<p>这样就会导致上一个堆块的数据被覆盖为0x50</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220424145337189.png"></p>
+<p>此时再<code>push_back(0x50)</code>，会如下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220424145432745.png" alt="image-20220424145432745"></p>
+<p>就导致漏洞产生了。</p>
+<p>相关的IDA代码如下</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;::<span class="built_in">vector</span>(v11, argv, envp);</span><br><span class="line"><span class="keyword">for</span> ( v12[<span class="number">0</span>] = <span class="number">0</span>; v12[<span class="number">0</span>] &lt;= <span class="number">1</span>; ++v12[<span class="number">0</span>] )</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;::push_back(v11, v12);</span><br><span class="line">getchar();</span><br><span class="line"><span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt;= <span class="number">9</span>; ++i )</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;::pop_back(v11);</span><br><span class="line">getchar();</span><br><span class="line">v12[<span class="number">0</span>] = <span class="number">80</span>;</span><br><span class="line"><span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;::push_back(v11, v12);</span><br></pre></td></tr></table></div></figure>
+
+<p>这个还是挺简单的，就不说了。</p>
+<p>其他的像<code>empty()</code>、<code>resize()</code>、<code>clear()</code>什么的也是类似的，不多说了。</p>
+<p>🔺注</p>
+<p>对于类<code>class</code>放入<code>vector</code>的情况，在<code>vector</code>中只会保存对象的成员变量，而它的函数指针并不会保存</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221128143715373.png" alt="image-20221128143715373"></p>
+<p>当从容器中取出来时，会通过一个函数来获取对应成员的地址，之后传入对应的函数。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221128143616124.png" alt="image-20221128143616124"></p>
+
+        <h2 id="3-容器类list"   >
+          <a href="#3-容器类list" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-容器类list" class="headerlink" title="3.容器类list"></a>3.容器类list</h2>
+      <p>常见双向循环链表管理</p>
+<p>双向循环链表，定义之后栈上只保存头节点地址和尾部节点地址</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221128145817008.png" alt="image-20221128145817008"></p>
+<p>每次申请<code>push_back</code>加入对象时都会使用<code>malloc</code>申请，创建<code>next、prev</code>指针，然后拷贝数据，将其放入双向循环链表中</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221128150028794.png" alt="image-20221128150028794"></p>
+
+        <h1 id="六、控制流去平坦化"   >
+          <a href="#六、控制流去平坦化" class="heading-link"><i class="fas fa-link"></i></a><a href="#六、控制流去平坦化" class="headerlink" title="六、控制流去平坦化"></a>六、控制流去平坦化</h1>
+      <p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/cq674350529/deflat" >cq674350529/deflat: use angr to deobfuscation (github.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/20211201112027.png" alt="image-20211201112020849"></p>
+<p>以上类型的就是平坦化之后的，需要找到函数入口进行去除，之后即可得到去除后的</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 deflat.py -f binary --addr 0x400530</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h1 id="七、去混淆"   >
+          <a href="#七、去混淆" class="heading-link"><i class="fas fa-link"></i></a><a href="#七、去混淆" class="headerlink" title="七、去混淆"></a>七、去混淆</h1>
+      
+        <h2 id="1-利用angr"   >
+          <a href="#1-利用angr" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-利用angr" class="headerlink" title="1.利用angr"></a>1.利用angr</h2>
+      <p>使用代码查找内存，找到混淆的地方，然后通过avoid来去除</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">binary = <span class="built_in">open</span>(<span class="string">&#x27;./yolomolo&#x27;</span>, <span class="string">&#x27;rb&#x27;</span>).read()</span><br><span class="line">avoids = []</span><br><span class="line">index = <span class="number">0</span></span><br><span class="line"><span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">    index = e.find(<span class="string">b&#x27;\xB9\x00\x00\x00\x00&#x27;</span>,index+<span class="number">1</span>)</span><br><span class="line">    <span class="keyword">if</span> index == -<span class="number">1</span>:</span><br><span class="line">        <span class="keyword">break</span></span><br><span class="line">    addr = <span class="number">0x400000</span> + index</span><br><span class="line">    avoids.append()</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span> (<span class="built_in">len</span>(avoids))</span><br><span class="line"><span class="built_in">print</span> (avoids)</span><br></pre></td></tr></table></div></figure>
+
+<p>查找内存中的机器码为<code>&#39;\xB9\x00\x00\x00\x00&#39;</code>的地方，即<code>mov ecx 0</code>，这个为一些混淆的标志。</p>
+<p>即找到混淆的标志点，然后通过avoid来去除。</p>
+
+        <h1 id="八、批量修改数据"   >
+          <a href="#八、批量修改数据" class="heading-link"><i class="fas fa-link"></i></a><a href="#八、批量修改数据" class="headerlink" title="八、批量修改数据"></a>八、批量修改数据</h1>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> idc_bc695 <span class="keyword">import</span>*</span><br><span class="line">addr = <span class="number">0x401807</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0x401823</span>-<span class="number">0x401807</span>):</span><br><span class="line">    PatchByte(addr +i, Byte(addr+i)^<span class="number">0x90</span>)</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h1 id="九、加密算法"   >
+          <a href="#九、加密算法" class="heading-link"><i class="fas fa-link"></i></a><a href="#九、加密算法" class="headerlink" title="九、加密算法"></a>九、加密算法</h1>
+      
+        <h2 id="1-md5"   >
+          <a href="#1-md5" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-md5" class="headerlink" title="1.md5"></a>1.md5</h2>
+      <p>标识符：0x123456789</p>
+<p>常见形式如下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230728143855425.png" alt="image-20230728143855425"></p>
+
+        <h2 id="2-AES"   >
+          <a href="#2-AES" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-AES" class="headerlink" title="2.AES:"></a>2.AES:</h2>
+      
+        <h3 id="加密流程："   >
+          <a href="#加密流程：" class="heading-link"><i class="fas fa-link"></i></a><a href="#加密流程：" class="headerlink" title="加密流程："></a>加密流程：</h3>
+      <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgs202108191454120.png" alt="image-AES"></p>
+<p>首先轮密钥加(KeyAdd)</p>
+<p>9轮循环：字节替换(substitution)、行移位(ShifRow)、列混淆(MixColumn)、轮密钥加(KeyAdd)</p>
+<p>第10轮循环：字节替换(substitution)、行移位(ShifRow)、轮密钥加(KeyAdd)</p>
+<p>第十轮没有列混淆，加密过程常见如下，函数名称是用Finger识别的</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230728144000135.png" alt="image-20230728144000135"></p>
+
+        <h3 id="密钥扩展："   >
+          <a href="#密钥扩展：" class="heading-link"><i class="fas fa-link"></i></a><a href="#密钥扩展：" class="headerlink" title="密钥扩展："></a>密钥扩展：</h3>
+      <p>先for循环4次，再for循环40次，属于密钥扩展</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230801110448511.png" alt="image-20230801110448511"></p>
+
+        <h3 id="判断模式："   >
+          <a href="#判断模式：" class="heading-link"><i class="fas fa-link"></i></a><a href="#判断模式：" class="headerlink" title="判断模式："></a>判断模式：</h3>
+      <p>如果密文的长度是16字节的整数倍，并且没有任何重复的块，那么可能是CTR或OFB模式3。<br>如果密文的长度是16字节的整数倍，并且有重复的块，那么可能是ECB或CBC模式3。ECB模式下，相同的明文块会产生相同的密文块，所以重复的块更容易被发现1。CBC模式下，相同的明文块不一定会产生相同的密文块，因为每个块都与前一个块进行异或操作1。但是如果明文中有大量的零或其他常数值，那么CBC模式下也可能出现重复的块3。<br>如果密文的长度不是16字节的整数倍，那么可能是CFB模式3。CFB模式下，可以对任意长度的明文进行加密，而不需要进行填充1。<br>参考：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://blog.csdn.net/qq_41853048/article/details/131771420" >https://blog.csdn.net/qq_41853048/article/details/131771420</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+
+        <h2 id="脚本使用"   >
+          <a href="#脚本使用" class="heading-link"><i class="fas fa-link"></i></a><a href="#脚本使用" class="headerlink" title="脚本使用"></a>脚本使用</h2>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">from</span> Crypto.Cipher <span class="keyword">import</span> AES</span><br><span class="line"><span class="keyword">from</span> binascii <span class="keyword">import</span> b2a_hex</span><br><span class="line"></span><br><span class="line">mode = AES.MODE_ECB</span><br><span class="line">key = <span class="string">b&#x27;\xcb\x8d\x49\x35\x21\xb4\x7a\x4c\xc1\xae\x7e\x62\x22\x92\x66\xce&#x27;</span></span><br><span class="line">text = <span class="string">b&#x27;\xBC\x0A\xAD\xC0\x14\x7C\x5E\xCC\xE0\xB1\x40\xBC\x9C\x51\xD5\x2B\x46\xB2\xB9\x43\x4D\xE5\x32\x4B\xAD\x7F\xB4\xB3\x9C\xDB\x4B\x5B&#x27;</span></span><br><span class="line">cryptos = AES.new(key, mode)</span><br><span class="line">cipher_text = cryptos.decrypt(text)</span><br><span class="line">t = b2a_hex(cipher_text).decode()</span><br><span class="line">t = re.findall(<span class="string">&quot;.&#123;2&#125;&quot;</span>, t)</span><br><span class="line"><span class="keyword">for</span> x <span class="keyword">in</span> t:</span><br><span class="line">    <span class="built_in">print</span>(<span class="built_in">chr</span>(<span class="built_in">int</span>(x, <span class="number">16</span>)), end=<span class="string">&quot;&quot;</span>)</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+
+
+        <h1 id="十、Z3求解"   >
+          <a href="#十、Z3求解" class="heading-link"><i class="fas fa-link"></i></a><a href="#十、Z3求解" class="headerlink" title="十、Z3求解"></a>十、Z3求解</h1>
+      <p>几个常见模板</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> z3 <span class="keyword">import</span> *</span><br><span class="line"> </span><br><span class="line">a1 = []</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">33</span>):</span><br><span class="line">    a1.append(BitVec(<span class="string">&#x27;a1%d&#x27;</span> % i, <span class="number">8</span>))</span><br><span class="line"></span><br><span class="line">    </span><br><span class="line">s = Solver()</span><br><span class="line">s.add(And((a1[<span class="number">5</span>] ^ (a1[<span class="number">8</span>] * a1[<span class="number">8</span>] - a1[<span class="number">1</span>]) ^ <span class="number">0x33</span>) == <span class="number">9600</span></span><br><span class="line">    , ((a1[<span class="number">30</span>] + a1[<span class="number">27</span>] + a1[<span class="number">24</span>] + a1[<span class="number">11</span>] - a1[<span class="number">12</span>] - a1[<span class="number">0</span>] * a1[<span class="number">15</span>] * a1[<span class="number">7</span>]) ^ <span class="number">0x64</span>) == -<span class="number">344791</span></span><br><span class="line">    , ((a1[<span class="number">8</span>] + a1[<span class="number">16</span>] * a1[<span class="number">29</span>] * a1[<span class="number">1</span>] - a1[<span class="number">25</span>]) ^ <span class="number">0x62</span>) == <span class="number">406716</span></span><br><span class="line">    , ((a1[<span class="number">4</span>] - a1[<span class="number">1</span>]) ^ (a1[<span class="number">0</span>] * a1[<span class="number">31</span>] + a1[<span class="number">28</span>] - a1[<span class="number">26</span>]) ^ a1[<span class="number">13</span>] ^ <span class="number">0x66</span>) == -<span class="number">8688</span></span><br><span class="line">    , ((a1[<span class="number">13</span>] + a1[<span class="number">18</span>] + a1[<span class="number">3</span>] * a1[<span class="number">7</span>] - a1[<span class="number">23</span>] - a1[<span class="number">3</span>]) ^ <span class="number">0x66</span>) == <span class="number">3085</span></span><br><span class="line">    , ((a1[<span class="number">18</span>] - a1[<span class="number">1</span>] * a1[<span class="number">29</span>]) ^ (a1[<span class="number">30</span>] + a1[<span class="number">22</span>] - a1[<span class="number">1</span>]) ^ a1[<span class="number">15</span>] ^ (a1[<span class="number">2</span>] * a1[<span class="number">31</span>]) ^ <span class="number">0x35</span>) == -<span class="number">16248</span></span><br><span class="line">    , ((a1[<span class="number">3</span>] * a1[<span class="number">21</span>] + a1[<span class="number">29</span>] + a1[<span class="number">25</span>] + a1[<span class="number">4</span>] * a1[<span class="number">23</span>] - a1[<span class="number">2</span>] * a1[<span class="number">7</span>] - a1[<span class="number">21</span>]) ^ <span class="number">0x65</span>) == <span class="number">4469</span></span><br><span class="line">    , ((a1[<span class="number">3</span>] + a1[<span class="number">1</span>] - a1[<span class="number">2</span>]) ^ (a1[<span class="number">23</span>] * a1[<span class="number">23</span>]) ^ <span class="number">0x61</span>) == <span class="number">2761</span></span><br><span class="line">    , ((a1[<span class="number">5</span>] * a1[<span class="number">11</span>]) ^ (a1[<span class="number">8</span>] * a1[<span class="number">21</span>]) ^ a1[<span class="number">29</span>] ^ <span class="number">0x39</span>) == <span class="number">7832</span> ))</span><br><span class="line"></span><br><span class="line">s.add(And(((a1[<span class="number">7</span>] * a1[<span class="number">11</span>] * a1[<span class="number">8</span>] + a1[<span class="number">14</span>]) ^ (a1[<span class="number">10</span>] + <span class="number">2</span> * a1[<span class="number">25</span>]) ^ (a1[<span class="number">10</span>] * a1[<span class="number">15</span>]) ^ <span class="number">0x61</span>) == <span class="number">234968</span></span><br><span class="line">    , (a1[<span class="number">8</span>] ^ (a1[<span class="number">19</span>] + a1[<span class="number">27</span>] + a1[<span class="number">19</span>] * a1[<span class="number">0</span>] + a1[<span class="number">9</span>] * a1[<span class="number">25</span>]) ^ a1[<span class="number">28</span>] ^ a1[<span class="number">7</span>] ^ <span class="number">0x30</span>) == <span class="number">11738</span></span><br><span class="line">    , ((a1[<span class="number">32</span>] - a1[<span class="number">1</span>]) ^ (a1[<span class="number">28</span>] + a1[<span class="number">14</span>] - a1[<span class="number">2</span>] * a1[<span class="number">21</span>]) ^ a1[<span class="number">21</span>] ^ <span class="number">0x38</span>) == <span class="number">3252</span></span><br><span class="line">    , ((a1[<span class="number">1</span>] * a1[<span class="number">32</span>]) ^ (a1[<span class="number">8</span>] + a1[<span class="number">0</span>] - a1[<span class="number">5</span>] - a1[<span class="number">11</span>]) ^ a1[<span class="number">21</span>] ^ (a1[<span class="number">2</span>] - a1[<span class="number">12</span>]) ^ <span class="number">0x32</span>) == -<span class="number">2673</span></span><br><span class="line">    , (a1[<span class="number">2</span>] ^ (a1[<span class="number">0</span>] + a1[<span class="number">1</span>]) ^ (a1[<span class="number">6</span>] - a1[<span class="number">19</span>] - a1[<span class="number">22</span>]) ^ <span class="number">0x64</span>) == -<span class="number">164</span></span><br><span class="line">    , ((a1[<span class="number">25</span>] - a1[<span class="number">0</span>]) ^ (a1[<span class="number">28</span>] + a1[<span class="number">4</span>] + a1[<span class="number">31</span>] * a1[<span class="number">31</span>] + a1[<span class="number">2</span>] - a1[<span class="number">32</span>]) ^ <span class="number">0x30</span>) == -<span class="number">15811</span></span><br><span class="line">    , (a1[<span class="number">6</span>] ^ (a1[<span class="number">5</span>] + a1[<span class="number">15</span>] * a1[<span class="number">32</span>] - a1[<span class="number">32</span>] * a1[<span class="number">19</span>] * a1[<span class="number">22</span>]) ^ a1[<span class="number">8</span>] ^ <span class="number">0x61</span>) == -<span class="number">167332</span></span><br><span class="line">    , ((a1[<span class="number">26</span>] + a1[<span class="number">32</span>] * a1[<span class="number">24</span>] - a1[<span class="number">10</span>]) ^ (a1[<span class="number">11</span>] * a1[<span class="number">3</span>] - a1[<span class="number">30</span>] - a1[<span class="number">27</span>] - a1[<span class="number">31</span>]) ^ <span class="number">0x64</span>) == <span class="number">3470</span></span><br><span class="line">    , ((a1[<span class="number">5</span>] * a1[<span class="number">15</span>]) ^ (a1[<span class="number">18</span>] * a1[<span class="number">25</span>] + a1[<span class="number">14</span>] + a1[<span class="number">2</span>] + a1[<span class="number">26</span>] + a1[<span class="number">27</span>]) ^ a1[<span class="number">29</span>] ^ <span class="number">0x38</span>) == <span class="number">4323</span></span><br><span class="line">    , ((a1[<span class="number">29</span>] * a1[<span class="number">8</span>] * a1[<span class="number">21</span>] * a1[<span class="number">27</span>] + a1[<span class="number">13</span>] - a1[<span class="number">7</span>]) ^ a1[<span class="number">5</span>] ^ <span class="number">0x39</span>) == <span class="number">25234850</span>))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">s.add(And(((a1[<span class="number">0</span>] * a1[<span class="number">8</span>] * a1[<span class="number">13</span>] + a1[<span class="number">6</span>] + a1[<span class="number">19</span>] * a1[<span class="number">23</span>] - a1[<span class="number">2</span>]) ^ <span class="number">0x62</span>) == <span class="number">394534</span></span><br><span class="line">    , ((a1[<span class="number">14</span>] + a1[<span class="number">30</span>] + a1[<span class="number">14</span>] - a1[<span class="number">30</span>] - a1[<span class="number">2</span>] * a1[<span class="number">30</span>] * a1[<span class="number">1</span>] * a1[<span class="number">17</span>] - a1[<span class="number">2</span>]) ^ <span class="number">0x35</span>) == -<span class="number">15531747</span></span><br><span class="line">    , ((a1[<span class="number">1</span>] * a1[<span class="number">14</span>]) ^ (a1[<span class="number">13</span>] - a1[<span class="number">27</span>] * a1[<span class="number">32</span>]) ^ <span class="number">0x33</span>) == -<span class="number">9992</span></span><br><span class="line">    , (a1[<span class="number">11</span>] ^ a1[<span class="number">25</span>] ^ a1[<span class="number">12</span>] ^ a1[<span class="number">2</span>] ^ (a1[<span class="number">11</span>] + a1[<span class="number">29</span>] - a1[<span class="number">24</span>]) ^ <span class="number">0x32</span>) == <span class="number">117</span></span><br><span class="line">    , (a1[<span class="number">2</span>] ^ (a1[<span class="number">20</span>] + a1[<span class="number">0</span>] + a1[<span class="number">8</span>] * a1[<span class="number">6</span>] * a1[<span class="number">8</span>] * a1[<span class="number">0</span>] - a1[<span class="number">19</span>]) ^ <span class="number">0x62</span>) == <span class="number">83181080</span></span><br><span class="line">    , ((a1[<span class="number">14</span>] * a1[<span class="number">32</span>] + a1[<span class="number">29</span>] + a1[<span class="number">22</span>] - a1[<span class="number">18</span>] - a1[<span class="number">1</span>]) ^ <span class="number">0x64</span>) == <span class="number">3243</span></span><br><span class="line">    , ((a1[<span class="number">18</span>] - a1[<span class="number">4</span>]) ^ (a1[<span class="number">16</span>] + a1[<span class="number">7</span>]) ^ (a1[<span class="number">14</span>] + a1[<span class="number">18</span>] - a1[<span class="number">7</span>] - a1[<span class="number">14</span>]) ^ <span class="number">0x65</span>) == -<span class="number">25</span></span><br><span class="line">    , ((a1[<span class="number">13</span>] - a1[<span class="number">7</span>]) ^ (a1[<span class="number">2</span>] - a1[<span class="number">13</span>]) ^ (a1[<span class="number">0</span>] - a1[<span class="number">4</span>] - a1[<span class="number">14</span>] - a1[<span class="number">13</span>] - a1[<span class="number">26</span>]) ^ <span class="number">0x65</span>) == -<span class="number">363</span></span><br><span class="line">    , ((a1[<span class="number">1</span>] + a1[<span class="number">10</span>] + a1[<span class="number">7</span>] * a1[<span class="number">14</span>] * a1[<span class="number">7</span>]) ^ (a1[<span class="number">17</span>] + a1[<span class="number">5</span>] * a1[<span class="number">8</span>]) ^ <span class="number">0x37</span>) == <span class="number">239501</span></span><br><span class="line">    , (a1[<span class="number">5</span>] ^ (a1[<span class="number">15</span>] * a1[<span class="number">24</span>]) ^ <span class="number">0x61</span>) == <span class="number">5026</span>))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">s.add(And((a1[<span class="number">9</span>] ^ (a1[<span class="number">28</span>] * a1[<span class="number">0</span>]) ^ (a1[<span class="number">29</span>] + a1[<span class="number">12</span>] + a1[<span class="number">16</span>]) ^ <span class="number">0x37</span>) == <span class="number">7058</span></span><br><span class="line">    , ((a1[<span class="number">6</span>] * a1[<span class="number">8</span>] + a1[<span class="number">6</span>]) ^ (a1[<span class="number">18</span>] - a1[<span class="number">7</span>]) ^ <span class="number">0x65</span>) == <span class="number">12399</span></span><br><span class="line">    , ((a1[<span class="number">12</span>] + a1[<span class="number">8</span>]) ^ (a1[<span class="number">1</span>] - a1[<span class="number">1</span>] * a1[<span class="number">32</span>] * a1[<span class="number">30</span>]) ^ <span class="number">0x30</span>) == -<span class="number">151548</span></span><br><span class="line">    , ((a1[<span class="number">4</span>] + a1[<span class="number">32</span>] * a1[<span class="number">18</span>] + a1[<span class="number">22</span>] - a1[<span class="number">12</span>] - a1[<span class="number">22</span>] - a1[<span class="number">12</span>]) ^ <span class="number">0x30</span>) == <span class="number">1624</span></span><br><span class="line">    , ((a1[<span class="number">9</span>] * a1[<span class="number">3</span>]) ^ (a1[<span class="number">26</span>] + a1[<span class="number">13</span>]) ^ a1[<span class="number">23</span>] ^ <span class="number">0x65</span>) == <span class="number">6569</span></span><br><span class="line">    , ((a1[<span class="number">17</span>] - a1[<span class="number">3</span>]) ^ (a1[<span class="number">14</span>] * a1[<span class="number">26</span>] * a1[<span class="number">11</span>] * a1[<span class="number">25</span>]) ^ <span class="number">0x61</span>) == -<span class="number">24990047</span></span><br><span class="line">    , ((a1[<span class="number">22</span>] - a1[<span class="number">0</span>]) ^ (a1[<span class="number">2</span>] - a1[<span class="number">31</span>] - a1[<span class="number">13</span>] - a1[<span class="number">5</span>] - a1[<span class="number">28</span>]) ^ <span class="number">0x65</span>) == <span class="number">372</span></span><br><span class="line">    , (a1[<span class="number">8</span>] ^ (a1[<span class="number">4</span>] * a1[<span class="number">14</span>] + a1[<span class="number">20</span>] + a1[<span class="number">19</span>] + a1[<span class="number">25</span>] + a1[<span class="number">21</span>] * a1[<span class="number">8</span>] - a1[<span class="number">1</span>]) ^ <span class="number">0x63</span>) == <span class="number">13326</span></span><br><span class="line">    , ((a1[<span class="number">8</span>] + a1[<span class="number">29</span>] - a1[<span class="number">25</span>] - a1[<span class="number">32</span>]) ^ (a1[<span class="number">24</span>] * a1[<span class="number">4</span>]) ^ <span class="number">0x62</span>) == <span class="number">3910</span></span><br><span class="line">    , ((a1[<span class="number">2</span>] * a1[<span class="number">15</span>] + a1[<span class="number">27</span>] - a1[<span class="number">30</span>] * a1[<span class="number">29</span>]) ^ <span class="number">0x37</span>) == <span class="number">1316</span>))</span><br><span class="line"></span><br><span class="line">s.add(And(((a1[<span class="number">5</span>] - a1[<span class="number">2</span>] * a1[<span class="number">24</span>]) ^ (a1[<span class="number">21</span>] - a1[<span class="number">20</span>]) ^ a1[<span class="number">7</span>] ^ <span class="number">0x64</span>) == <span class="number">3290</span></span><br><span class="line">    , ((a1[<span class="number">9</span>] * a1[<span class="number">15</span>]) ^ (a1[<span class="number">7</span>] - a1[<span class="number">14</span>]) ^ a1[<span class="number">2</span>] ^ <span class="number">0x37</span>) == -<span class="number">10137</span></span><br><span class="line">    , ((a1[<span class="number">5</span>] * a1[<span class="number">6</span>] + a1[<span class="number">26</span>]) ^ (a1[<span class="number">11</span>] + a1[<span class="number">3</span>]) ^ <span class="number">0x61</span>) == <span class="number">8601</span></span><br><span class="line">    , (a1[<span class="number">3</span>] ^ (a1[<span class="number">8</span>] + a1[<span class="number">16</span>] + a1[<span class="number">27</span>]) ^ (a1[<span class="number">28</span>] + a1[<span class="number">31</span>] * a1[<span class="number">12</span>] + a1[<span class="number">21</span>]) ^ <span class="number">0x35</span>) == <span class="number">12752</span></span><br><span class="line">    , (a1[<span class="number">2</span>] ^ (a1[<span class="number">6</span>] - a1[<span class="number">20</span>] - a1[<span class="number">8</span>] * a1[<span class="number">9</span>]) ^ (a1[<span class="number">16</span>] + a1[<span class="number">6</span>]) ^ <span class="number">0x63</span>) == -<span class="number">9964</span></span><br><span class="line">    , ((a1[<span class="number">1</span>] * a1[<span class="number">2</span>] * a1[<span class="number">32</span>]) ^ (a1[<span class="number">29</span>] + a1[<span class="number">27</span>]) ^ (a1[<span class="number">1</span>] * a1[<span class="number">18</span>] * a1[<span class="number">8</span>]) ^ <span class="number">0x35</span>) == <span class="number">283359</span>))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">7</span>):</span><br><span class="line">	s.add(a1[i] == <span class="built_in">ord</span>(<span class="string">&#x27;ESCAPE&#123;&#x27;</span>[i]))</span><br><span class="line">        </span><br><span class="line">flg = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">if</span> s.check()==sat:</span><br><span class="line">    result = s.model()</span><br><span class="line">    <span class="built_in">print</span>(result)</span><br><span class="line">    s.model().sorts()</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">33</span>):</span><br><span class="line">        flg +=  <span class="built_in">chr</span>(<span class="built_in">eval</span>(<span class="built_in">str</span>(s.model().<span class="built_in">eval</span>(a1[i]))))</span><br><span class="line">    <span class="built_in">print</span>(flg)</span><br></pre></td></tr></table></div></figure>
+
+<p>在s.add中间需要用And(xx,xxx)来进行2个条件联合约束</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> z3 <span class="keyword">import</span> *</span><br><span class="line"> </span><br><span class="line">s = Solver()</span><br><span class="line">v1 = Real(<span class="string">&#x27;v1&#x27;</span>)</span><br><span class="line">v2 = Real(<span class="string">&#x27;v2&#x27;</span>)</span><br><span class="line">v3 = Real(<span class="string">&#x27;v3&#x27;</span>)</span><br><span class="line">v4 = Real(<span class="string">&#x27;v4&#x27;</span>)</span><br><span class="line">v5 = Real(<span class="string">&#x27;v5&#x27;</span>)</span><br><span class="line">v6 = Real(<span class="string">&#x27;v6&#x27;</span>)</span><br><span class="line">v7 = Real(<span class="string">&#x27;v7&#x27;</span>)</span><br><span class="line">v8 = Real(<span class="string">&#x27;v8&#x27;</span>)</span><br><span class="line">v9 = Real(<span class="string">&#x27;v9&#x27;</span>)</span><br><span class="line">v11 = Real(<span class="string">&#x27;v11&#x27;</span>)</span><br><span class="line">s.add(-<span class="number">85</span> * v9 + <span class="number">58</span> * v8 + <span class="number">97</span> * v6 + v7 + -<span class="number">45</span> * v5 + <span class="number">84</span> * v4 + <span class="number">95</span> * v2 - <span class="number">20</span> * v1 + <span class="number">12</span> * v3 == <span class="number">12613</span>)</span><br><span class="line">s.add(</span><br><span class="line">    <span class="number">30</span> * v11 + -<span class="number">70</span> * v9 + -<span class="number">122</span> * v6 + -<span class="number">81</span> * v7 + -<span class="number">66</span> * v5 + -<span class="number">115</span> * v4 + -<span class="number">41</span> * v3 + -<span class="number">86</span> * v1 - <span class="number">15</span> * v2 - <span class="number">30</span> * v8 == -<span class="number">54400</span>)</span><br><span class="line">s.add(-<span class="number">103</span> * v11 + <span class="number">120</span> * v8 + <span class="number">108</span> * v7 + <span class="number">48</span> * v4 + -<span class="number">89</span> * v3 + <span class="number">78</span> * v1 - <span class="number">41</span> * v2 + <span class="number">31</span> * v5 - (</span><br><span class="line">            v6 * <span class="number">64</span>) - <span class="number">120</span> * v9 == -<span class="number">10283</span>)</span><br><span class="line">s.add(<span class="number">71</span> * v6 + (v7 * <span class="number">128</span>) + <span class="number">99</span> * v5 + -<span class="number">111</span> * v3 + <span class="number">85</span> * v1 + <span class="number">79</span> * v2 - <span class="number">30</span> * v4 - <span class="number">119</span> * v8 + <span class="number">48</span> * v9 - <span class="number">16</span> * v11 == <span class="number">22855</span>)</span><br><span class="line">s.add(<span class="number">5</span> * v11 + <span class="number">23</span> * v9 + <span class="number">122</span> * v8 + -<span class="number">19</span> * v6 + <span class="number">99</span> * v7 + -<span class="number">117</span> * v5 + -<span class="number">69</span> * v3 + <span class="number">22</span> * v1 - <span class="number">98</span> * v2 + <span class="number">10</span> * v4 == -<span class="number">2944</span>)</span><br><span class="line">s.add(-<span class="number">54</span> * v11 + -<span class="number">23</span> * v8 + -<span class="number">82</span> * v3 + -<span class="number">85</span> * v2 + <span class="number">124</span> * v1 - <span class="number">11</span> * v4 - <span class="number">8</span> * v5 - <span class="number">60</span> * v7 + <span class="number">95</span> * v6 + <span class="number">100</span> * v9 == -<span class="number">2222</span>)</span><br><span class="line">s.add(-<span class="number">83</span> * v11 + -<span class="number">111</span> * v7 + -<span class="number">57</span> * v2 + <span class="number">41</span> * v1 + <span class="number">73</span> * v3 - <span class="number">18</span> * v4 + <span class="number">26</span> * v5 + <span class="number">16</span> * v6 + <span class="number">77</span> * v8 - <span class="number">63</span> * v9 == -<span class="number">13258</span>)</span><br><span class="line">s.add(<span class="number">81</span> * v11 + -<span class="number">48</span> * v9 + <span class="number">66</span> * v8 + -<span class="number">104</span> * v6 + -<span class="number">121</span> * v7 + <span class="number">95</span> * v5 + <span class="number">85</span> * v4 + <span class="number">60</span> * v3 + -<span class="number">85</span> * v2 + <span class="number">80</span> * v1 == -<span class="number">1559</span>)</span><br><span class="line">s.add(<span class="number">101</span> * v11 + -<span class="number">85</span> * v9 + <span class="number">7</span> * v6 + <span class="number">117</span> * v7 + -<span class="number">83</span> * v5 + -<span class="number">101</span> * v4 + <span class="number">90</span> * v3 + -<span class="number">28</span> * v1 + <span class="number">18</span> * v2 - v8 == <span class="number">6308</span>)</span><br><span class="line">s.add(<span class="number">99</span> * v11 + -<span class="number">28</span> * v9 + <span class="number">5</span> * v8 + <span class="number">93</span> * v6 + -<span class="number">18</span> * v7 + -<span class="number">127</span> * v5 + <span class="number">6</span> * v4 + -<span class="number">9</span> * v3 + -<span class="number">93</span> * v1 + <span class="number">58</span> * v2 == -<span class="number">1697</span>)</span><br><span class="line"><span class="keyword">if</span> s.check() == sat:</span><br><span class="line">    result = s.model()</span><br><span class="line"><span class="built_in">print</span>(result)</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h1 id="TIPS"   >
+          <a href="#TIPS" class="heading-link"><i class="fas fa-link"></i></a><a href="#TIPS" class="headerlink" title="TIPS"></a>TIPS</h1>
+      
+        <h2 id="1-windows的API手册"   >
+          <a href="#1-windows的API手册" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-windows的API手册" class="headerlink" title="1.windows的API手册"></a>1.windows的API手册</h2>
+      <p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://docs.microsoft.com/zh-cn/windows/win32/apiindex/windows-api-list" >Windows API 索引 - Win32 apps | Microsoft Docs</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+
+        <h2 id="2-IDA-python"   >
+          <a href="#2-IDA-python" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-IDA-python" class="headerlink" title="2.IDA-python"></a>2.IDA-python</h2>
+      
+        <h2 id="3-GDB转储调试"   >
+          <a href="#3-GDB转储调试" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-GDB转储调试" class="headerlink" title="3.GDB转储调试"></a>3.GDB转储调试</h2>
+      <ul>
+<li>生成：<code>generate-core-file</code>生成<code>core</code>文件</li>
+<li>调试：<code>gdb programer core_file</code></li>
+</ul>
+
+        <h2 id="4-Unity游戏逆向"   >
+          <a href="#4-Unity游戏逆向" class="heading-link"><i class="fas fa-link"></i></a><a href="#4-Unity游戏逆向" class="headerlink" title="4.Unity游戏逆向"></a>4.Unity游戏逆向</h2>
+      <p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.52pojie.cn/thread-495115-1-1.html" >https://www.52pojie.cn/thread-495115-1-1.html</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+
+        <h2 id="5-最长反编译修改"   >
+          <a href="#5-最长反编译修改" class="heading-link"><i class="fas fa-link"></i></a><a href="#5-最长反编译修改" class="headerlink" title="5.最长反编译修改"></a>5.最长反编译修改</h2>
+      <p>有时候当一个函数太长，就会导致IDA反编译失败，如下所示</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230726151414182.png" alt="image-20230726151414182"></p>
+<p>这个可以通过设置IDA目录下的hexrays.cfg配置文件来设置最大反编译的代码长度，如下，将MAX_FUNCSIZE修改为1024即可</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230726151344840.png" alt="image-20230726151344840"></p>
+
+        <h2 id="6-安卓Unity"   >
+          <a href="#6-安卓Unity" class="heading-link"><i class="fas fa-link"></i></a><a href="#6-安卓Unity" class="headerlink" title="6.安卓Unity"></a>6.安卓Unity</h2>
+      <p>核心逻辑一般在bin\Data\Managed\Assembly-CSharp.dll，题目为[MRCTF2020]PixelShooter</p>
+
+        <h2 id="7-C-Net反编译"   >
+          <a href="#7-C-Net反编译" class="heading-link"><i class="fas fa-link"></i></a><a href="#7-C-Net反编译" class="headerlink" title="7.C#/.Net反编译"></a>7.C#/.Net反编译</h2>
+      <p>可以用dnspy，在github上有<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://github.com/dnSpy/dnSpy/releases" >Releases · dnSpy/dnSpy (github.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>题目见：FlareOn1-Bob_Doge，可以调试的</p>
+<ul>
+<li>右键-转到入口点</li>
+<li>开始分析</li>
+</ul>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230801144313490.png" alt="image-20230801144313490"></p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20230801144322604.png" alt="image-20230801144322604"></p>
+</div><footer class="post-footer"><div class="post-ending ending"><div class="ending__text">------ END ------</div></div><div class="post-copyright copyright"><div class="copyright-author"><span class="copyright-author__name">Author: </span><span class="copyright-author__value"><a href="http://PIG-007.github.io">PIG-007</a></span></div><div class="copyright-link"><span class="copyright-link__name">Link: </span><span class="copyright-link__value"><a href="http://pig-007.github.io/2023/04/22/IDA%E9%80%86%E5%90%91%E6%8A%80%E5%B7%A7/">http://pig-007.github.io/2023/04/22/IDA%E9%80%86%E5%90%91%E6%8A%80%E5%B7%A7/</a></span></div><div class="copyright-notice"><span class="copyright-notice__name">Copyright: </span><span class="copyright-notice__value">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" rel="external nofollow" target="_blank">BY-NC-SA</a> unless stating additionally</span></div></div><div class="post-tags"><span class="post-tags-item"><span class="post-tags-item__icon"><i class="fas fa-tag"></i></span><a class="post-tags-item__link" href="http://pig-007.github.io/tags/%E9%80%86%E5%90%91/">逆向</a></span></div><nav class="post-paginator paginator"><div class="paginator-prev"><a class="paginator-prev__link" href="/2023/09/07/LLVM%E5%AD%A6%E4%B9%A0/"><span class="paginator-prev__icon"><i class="fas fa-angle-left"></i></span><span class="paginator-prev__text">LLVM学习</span></a></div><div class="paginator-next"><a class="paginator-next__link" href="/2023/04/01/kernel%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AC%94%E8%AE%B0/"><span class="paginator-prev__text">Linux内核内存分配笔记</span><span class="paginator-next__icon"><i class="fas fa-angle-right"></i></span></a></div></nav></footer></div></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><div class="sidebar-nav"><span class="sidebar-nav-toc current">Catalog</span><span class="sidebar-nav-ov">Overview</span></div><section class="sidebar-toc"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%BF%AE%E5%A4%8Dswitch"><span class="toc-text">
+          一、修复switch</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E6%89%BE%E5%88%B0%E8%B7%B3%E8%BD%AC%E5%9C%B0%E5%9D%80"><span class="toc-text">
+          1.找到跳转地址</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%B1%87%E7%BC%96%E4%BF%AE%E6%94%B9"><span class="toc-text">
+          2.汇编修改</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E7%BB%93%E6%9E%84%E4%BD%93%E4%BF%AE%E5%A4%8D"><span class="toc-text">
+          二、结构体修复</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-Local-Type%E6%8F%92%E5%85%A5"><span class="toc-text">
+          1.Local Type插入</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E4%BF%AE%E6%94%B9%E4%B8%BA%E6%8C%87%E9%92%88"><span class="toc-text">
+          2.修改为指针</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%8F%8D%E6%B1%87%E7%BC%96%E8%A7%A3%E6%9E%90%E9%94%99%E8%AF%AF"><span class="toc-text">
+          三、反汇编解析错误</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E8%8A%B1%E6%8C%87%E4%BB%A4"><span class="toc-text">
+          1.花指令</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%A0%86%E6%A0%88%E5%AF%84%E5%AD%98%E5%99%A8"><span class="toc-text">
+          (1)堆栈寄存器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E7%9C%8B%E6%B1%87%E7%BC%96"><span class="toc-text">
+          (2)看汇编</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9B%9B%E3%80%81go%E8%AF%AD%E8%A8%80%E9%9A%90%E8%97%8F"><span class="toc-text">
+          四、go语言隐藏</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%94%E3%80%81C-%E9%80%86%E5%90%91"><span class="toc-text">
+          五、C++逆向</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E8%87%AA%E5%AE%9A%E4%B9%89%E7%9A%84%E7%B1%BB"><span class="toc-text">
+          1.自定义的类</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E7%B1%BB%E7%9A%84%E5%86%85%E5%AD%98%E5%88%86%E5%B8%83"><span class="toc-text">
+          (1)类的内存分布</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A0%E6%B2%A1%E6%9C%89%E7%88%B6%E7%B1%BB%E7%9A%84"><span class="toc-text">
+          ①没有父类的</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A1%E6%9C%89%E7%88%B6%E7%B1%BB%E7%9A%84"><span class="toc-text">
+          ②有父类的</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A2%E6%9C%AA%E7%94%B3%E8%AF%B7%E7%A9%BA%E9%97%B4%E7%9A%84%E7%B1%BB"><span class="toc-text">
+          ③未申请空间的类</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%B8%B8%E8%A7%84%E5%86%99%E6%B3%95"><span class="toc-text">
+          (2)常规写法</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%AE%B9%E5%99%A8%E7%B1%BBVector"><span class="toc-text">
+          2.容器类Vector</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%AE%B9%E5%99%A8%E5%88%9B%E5%BB%BA"><span class="toc-text">
+          (1)容器创建</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A0%E5%A3%B0%E6%98%8E%E5%AE%B9%E5%99%A8"><span class="toc-text">
+          ①声明容器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A1%E5%A3%B0%E6%98%8E%E5%B9%B6%E5%88%9D%E5%A7%8B%E5%8C%96%E5%A4%A7%E5%B0%8F"><span class="toc-text">
+          ②声明并初始化大小</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A2%E5%A3%B0%E6%98%8E%E5%B9%B6%E5%88%9D%E5%A7%8B%E5%8C%96%E5%A4%A7%E5%B0%8F%E5%92%8C%E5%80%BC"><span class="toc-text">
+          ③声明并初始化大小和值</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A3%E4%BD%BF%E7%94%A8%E5%9C%B0%E5%9D%80%E8%BF%9B%E8%A1%8C%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-text">
+          ④使用地址进行初始化</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A4%E6%80%BB%E7%BB%93"><span class="toc-text">
+          ⑤总结</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%AE%B9%E5%99%A8%E6%93%8D%E4%BD%9C"><span class="toc-text">
+          (2)容器操作</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%AE%B9%E5%99%A8%E7%B1%BBlist"><span class="toc-text">
+          3.容器类list</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E6%8E%A7%E5%88%B6%E6%B5%81%E5%8E%BB%E5%B9%B3%E5%9D%A6%E5%8C%96"><span class="toc-text">
+          六、控制流去平坦化</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E5%8E%BB%E6%B7%B7%E6%B7%86"><span class="toc-text">
+          七、去混淆</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%88%A9%E7%94%A8angr"><span class="toc-text">
+          1.利用angr</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E6%89%B9%E9%87%8F%E4%BF%AE%E6%94%B9%E6%95%B0%E6%8D%AE"><span class="toc-text">
+          八、批量修改数据</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E5%8A%A0%E5%AF%86%E7%AE%97%E6%B3%95"><span class="toc-text">
+          九、加密算法</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-md5"><span class="toc-text">
+          1.md5</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-AES"><span class="toc-text">
+          2.AES:</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%A0%E5%AF%86%E6%B5%81%E7%A8%8B%EF%BC%9A"><span class="toc-text">
+          加密流程：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%86%E9%92%A5%E6%89%A9%E5%B1%95%EF%BC%9A"><span class="toc-text">
+          密钥扩展：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%A4%E6%96%AD%E6%A8%A1%E5%BC%8F%EF%BC%9A"><span class="toc-text">
+          判断模式：</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%84%9A%E6%9C%AC%E4%BD%BF%E7%94%A8"><span class="toc-text">
+          脚本使用</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E3%80%81Z3%E6%B1%82%E8%A7%A3"><span class="toc-text">
+          十、Z3求解</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#TIPS"><span class="toc-text">
+          TIPS</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-windows%E7%9A%84API%E6%89%8B%E5%86%8C"><span class="toc-text">
+          1.windows的API手册</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-IDA-python"><span class="toc-text">
+          2.IDA-python</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-GDB%E8%BD%AC%E5%82%A8%E8%B0%83%E8%AF%95"><span class="toc-text">
+          3.GDB转储调试</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-Unity%E6%B8%B8%E6%88%8F%E9%80%86%E5%90%91"><span class="toc-text">
+          4.Unity游戏逆向</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E6%9C%80%E9%95%BF%E5%8F%8D%E7%BC%96%E8%AF%91%E4%BF%AE%E6%94%B9"><span class="toc-text">
+          5.最长反编译修改</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E5%AE%89%E5%8D%93Unity"><span class="toc-text">
+          6.安卓Unity</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-C-Net%E5%8F%8D%E7%BC%96%E8%AF%91"><span class="toc-text">
+          7.C#&#x2F;.Net反编译</span></a></li></ol></li></ol></section><!-- ov = overview--><section class="sidebar-ov hide"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">The way forward</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">133</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">83</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">73</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section><div class="sidebar-reading"><div class="sidebar-reading-info"><span class="sidebar-reading-info__text">You have read </span><span class="sidebar-reading-info__num">0</span><span class="sidebar-reading-info__perc">%</span></div><div class="sidebar-reading-line"></div></div></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2023</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
+  var isXML = true;
+  var search_path = 'search.json';
+
+  if (!search_path) {
+    search_path = 'search.xml';
+  } else if (/json$/i.test(search_path)) {
+    isXML = false;
+  }
+
+  var path = '/' + search_path;
+  $.ajax({
+    url: path,
+    dataType: isXML ? 'xml' : 'json',
+    async: true,
+    success: function (res) {
+      var datas = isXML ? $('entry', res).map(function () {
+        // 将 XML 转为 JSON
+        return {
+          title: $('title', this).text(),
+          content: $('content', this).text(),
+          url: $('url', this).text()
+        };
+      }).get() : res;
+      var $input = $('.search-input input');
+      var $result = $('.search-results');
+      // 搜索对象（标题、内容）的权重，影响显示顺序
+      var WEIGHT = { title: 100, content: 1 };
+      var searchPost = function () {
+        var searchText = $input.val().toLowerCase().trim();
+        // 根据空白字符分隔关键字
+        var keywords = searchText.split(/[\s]+/);
+        // 搜索结果
+        var matchPosts = [];
+
+        // 有多个关键字时，将原文字整个保存下来
+        if (keywords.length > 1) {
+          keywords.push(searchText);
+        }
+        // 防止未输入字符时搜索
+        if (searchText.length > 0) {
+          datas.forEach(function (data) {
+            var isMatch  = false;
+            // 没有标题的文章使用预设的 i18n 变量代替
+            var title = (data.title && data.title.trim()) || '[ Untitled ]';
+            var titleLower = title && title.toLowerCase();
+            // 删除 HTML 标签 和 所有空白字符
+            var content = data.content && data.content.replace(/<[^>]+>/g, '');
+            var contentLower = content && content.toLowerCase();
+            // 删除重复的 /
+            var postURL = data.url && decodeURI(data.url).replace(/\/{2,}/g, '/');
+            // 标题中匹配到的关键词
+            var titleHitSlice = [];
+            // 内容中匹配到的关键词
+            var contentHitSlice = [];
+
+            keywords.forEach(function (keyword) {
+              /**
+              * 获取匹配的关键词的索引
+              * @param {String} keyword 要匹配的关键字
+              * @param {String} text 原文字
+              * @param {Boolean} caseSensitive 是否区分大小写
+              * @param {Number} weight 匹配对象的权重。权重大的优先显示
+              * @return {Array}
+              */
+              function getIndexByword (word, text, caseSensitive, weight) {
+                if (!word || !text) {
+                  return [];
+                };
+
+                var startIndex = 0; // 每次匹配的开始索引
+                var index = -1;     // 匹配到的索引值
+                var result = [];    // 匹配结果
+
+                if (!caseSensitive) {
+                  word = word.toLowerCase();
+                  text = text.toLowerCase();
+                }
+
+                while((index = text.indexOf(word, startIndex)) !== -1) {
+                  var hasMatch = false;
+                  // 索引位置相同的关键词，保留长度较长的
+                  titleHitSlice.forEach(function (hit) {
+                    if (hit.index === index && hit.word.length < word.length) {
+                      hit.word = word;
+                      hasMatch = true;
+                    }
+                  });
+                  startIndex = index + word.length;
+                  !hasMatch && result.push({ index: index, word: word, weight: weight });
+                }
+                return result;
+              }
+              titleHitSlice = titleHitSlice.concat(getIndexByword(keyword, titleLower, false, WEIGHT.title));
+              contentHitSlice = contentHitSlice.concat(getIndexByword(keyword, contentLower, false, WEIGHT.content));
+            });
+
+            var hitTitle = titleHitSlice.length;
+            var hitContent = contentHitSlice.length;
+
+            if (hitTitle > 0 || hitContent > 0) {
+              isMatch = true;
+            }
+            if (isMatch) {
+              ;[titleHitSlice, contentHitSlice].forEach(function (hit) {
+                // 按照匹配文字的索引的递增顺序排序
+                hit.sort(function (left, right) {
+                  return left.index - right.index;
+                });
+              });
+              /**
+              * 给文本中匹配到的关键词添加标记，从而进行高亮显示
+              * @param {String} text 原文本
+              * @param {Array} hitSlice 匹配项的索引信息
+              * @param {Number} start 开始索引
+              * @param {Number} end 结束索引
+              * @return {String}
+              */
+              function highlightKeyword (text, hitSlice, start, end) {
+                if (!text || !hitSlice || !hitSlice.length) {
+                  return;
+                }
+
+                var result = '';
+                var startIndex = start;
+                var endIndex = end;
+                hitSlice.forEach(function (hit) {
+                  if (hit.index < startIndex) {
+                    return;
+                  }
+
+                  var hitWordEnd = hit.index + hit.word.length;
+                  result += text.slice(startIndex, hit.index);
+                  result += '<b>' + text.slice(hit.index, hitWordEnd) + '</b>';
+                  startIndex = hitWordEnd;
+                });
+                result += text.slice(startIndex, endIndex);
+                return result;
+              }
+
+              var postData = {};
+              // 文章总的搜索权重
+              var postWeight = titleHitSlice.length * WEIGHT.title + contentHitSlice.length * WEIGHT.content;
+              // 标记匹配关键词后的标题
+              var postTitle = highlightKeyword(title, titleHitSlice, 0, title.length) || title;
+              // 标记匹配关键词后的内容
+              var postContent;
+              // 显示内容的长度
+              var SHOW_WORD_LENGTH = 200;
+              // 命中关键词前的字符显示长度
+              var SHOW_WORD_FRONT_LENGTH = 20;
+              var SHOW_WORD_END_LENGTH = SHOW_WORD_LENGTH - SHOW_WORD_FRONT_LENGTH;
+
+              // 截取匹配的第一个字符，前后共 200 个字符来显示
+              if (contentHitSlice.length > 0) {
+                var firstIndex = contentHitSlice[0].index;
+                var start = firstIndex > SHOW_WORD_FRONT_LENGTH ? firstIndex - SHOW_WORD_FRONT_LENGTH : 0;
+                var end = firstIndex + SHOW_WORD_END_LENGTH;
+                postContent = highlightKeyword(content, contentHitSlice, start, end);
+              } else { // 未匹配到内容，直接截取前 200 个字符来显示
+                postContent = content.slice(0, SHOW_WORD_LENGTH);
+              }
+              postData.title = postTitle;
+              postData.content = postContent;
+              postData.url = postURL;
+              postData.weight = postWeight;
+              matchPosts.push(postData);
+            }
+          });
+        }
+
+        var resultInnerHtml = '';
+        if (matchPosts.length) {
+          // 按权重递增的顺序排序，使权重大的优先显示
+          matchPosts.sort(function (left, right) {
+            return right.weight - left.weight;
+          });
+          resultInnerHtml += '<ul>';
+          matchPosts.forEach(function (post) {
+            resultInnerHtml += '<li><a class="search-results-title" href="' + post.url + '">';
+            resultInnerHtml += post.title;
+            resultInnerHtml += '</a><div class="search-results-content">';
+            resultInnerHtml += post.content;
+            resultInnerHtml += '</div></li>';
+          });
+          resultInnerHtml += '</ul>';
+        } else {
+          resultInnerHtml += '<div class="search-results-none"><i class="far fa-meh"></i></div>';
+        }
+        $result.html(resultInnerHtml);
+      };
+      $input.on('input', searchPost);
+      $input.on('keyup', function (e) {
+        if (e.keyCode === Stun.utils.codeToKeyCode('Enter')) {
+          searchPost();
+        }
+      });
+    }
+  });
+}
+
+function closeSearch () {
+  $('body').css({ overflow: 'auto' });
+  $('.search-popup').css({ display: 'none' });
+  $('.search-mask').css({ display: 'none' });
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  Stun.utils.pjaxReloadLocalSearch = function () {
+    $('.header-nav-search').on('click', function (e) {
+      e.stopPropagation();
+      $('body').css('overflow', 'hidden');
+      $('.search-popup')
+        .velocity('stop')
+        .velocity('transition.expandIn', {
+          duration: 300,
+          complete: function () {
+            $('.search-popup input').focus();
+          }
+        });
+      $('.search-mask')
+        .velocity('stop')
+        .velocity('transition.fadeIn', {
+          duration: 300
+        });
+
+      initSearch();
+    });
+    $('.search-mask, .search-close').on('click', function () {
+      closeSearch();
+    });
+    $(document).on('keydown', function (e) {
+      // Escape <=> 27
+      if (e.keyCode === Stun.utils.codeToKeyCode('Escape')) {
+        closeSearch();
+      }
+    });
+  };
+
+  Stun.utils.pjaxReloadLocalSearch();
+}, false);
+
+function safeOpenUrl(url) {
+  var newTab = window.open();
+  newTab.opener = null;
+  newTab.location = url;
+}
+
+function extSearch(engine) {
+  var engines = {
+    google: 'https://www.google.com/search?q=',
+    bing: 'https://cn.bing.com/search?q=',
+    baidu: 'https://www.baidu.com/s?ie=UTF-8&wd=',
+  };
+  var host = window.location.host;
+  var query = $('.search-input input').val().toLowerCase().trim();
+  var uri = engines[engine] + query + ' site:' + host;
+
+  if (query) {
+    safeOpenUrl(uri);
+  } else {
+    Stun.utils.popAlert('warning', 'Please enter characters');
+  }
+}
+
+var assistSearchList = window.CONFIG.assistSearch;
+
+if (Array.isArray(assistSearchList)) {
+  assistSearchList.forEach(function (name) {
+    document.querySelector('.search-btns-item--' + name).addEventListener('click', function () {
+      extSearch(name);
+    }, false);
+  });
+}</script><script src="/js/utils.js?v=2.6.2"></script><script src="/js/stun-boot.js?v=2.6.2"></script><script src="/js/scroll.js?v=2.6.2"></script><script src="/js/header.js?v=2.6.2"></script><script src="/js/sidebar.js?v=2.6.2"></script><script type="application/json" src="/search.json"></script><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"superSample":2,"width":150,"height":300,"position":"left","hOffset":0,"vOffset":-80},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body></html>

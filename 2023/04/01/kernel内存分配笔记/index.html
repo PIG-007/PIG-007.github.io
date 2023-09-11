@@ -1,0 +1,423 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta name="description" content="前言       Linux内核的内存分配很复杂，单独开篇来慢慢记录。                     SLAB       参考：linux内存源码分析 - SLAB分配器概述 - tolimit - 博客园 (cnblogs.com) 函数链： 1kmem_cache_alloc()-&gt;slab_alloc()-&gt;__do_cache">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux内核内存分配笔记">
+<meta property="og:url" content="http://pig-007.github.io/2023/04/01/kernel%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="PIG-007">
+<meta property="og:description" content="前言       Linux内核的内存分配很复杂，单独开篇来慢慢记录。                     SLAB       参考：linux内存源码分析 - SLAB分配器概述 - tolimit - 博客园 (cnblogs.com) 函数链： 1kmem_cache_alloc()-&gt;slab_alloc()-&gt;__do_cache">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220517162554930.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220519192842119.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220519210608695.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220519211038094.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220519211452815.png">
+<meta property="og:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220519201826071.png">
+<meta property="article:published_time" content="2023-04-01T02:25:33.000Z">
+<meta property="article:modified_time" content="2023-09-11T12:58:37.880Z">
+<meta property="article:author" content="PIG-007">
+<meta property="article:tag" content="Linux内核">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220517162554930.png"><title>Linux内核内存分配笔记 | PIG-007</title><link ref="canonical" href="http://pig-007.github.io/2023/04/01/kernel%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AC%94%E8%AE%B0/"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.12.1/css/all.min.css" type="text/css"><link rel="stylesheet" href="/css/index.css?v=2.6.2"><script>var Stun = window.Stun || {};
+var CONFIG = {
+  root: '/',
+  algolia: undefined,
+  assistSearch: undefined,
+  fontIcon: {"prompt":{"success":"fas fa-check-circle","info":"fas fa-arrow-circle-right","warning":"fas fa-exclamation-circle","error":"fas fa-times-circle"},"copyBtn":"fas fa-copy"},
+  sidebar: {"offsetTop":"20px","tocMaxDepth":6},
+  header: {"enable":true,"showOnPost":true,"scrollDownIcon":false},
+  postWidget: {"endText":true},
+  nightMode: {"enable":true},
+  back2top: {"enable":true},
+  codeblock: {"style":"default","highlight":"light","wordWrap":true},
+  reward: false,
+  fancybox: false,
+  zoomImage: {"gapAside":"20px"},
+  galleryWaterfall: undefined,
+  lazyload: false,
+  pjax: undefined,
+  externalLink: {"icon":{"enable":true,"name":"fas fa-external-link-alt"}},
+  shortcuts: undefined,
+  prompt: {"copyButton":"Copy","copySuccess":"Copy Success","copyError":"Copy Error"},
+  sourcePath: {"js":"js","css":"css","images":"images"},
+};
+
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content" id="content"><!-- Just used to judge whether it is an article page--><div id="is-post"></div><div class="post"><header class="post-header"><h1 class="post-title">Linux内核内存分配笔记</h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2023-04-01</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2023-09-11</span></span></div></header><div class="post-body">
+        <h1 id="前言"   >
+          <a href="#前言" class="heading-link"><i class="fas fa-link"></i></a><a href="#前言" class="headerlink" title="前言"></a>前言</h1>
+      <p><code>Linux</code>内核的内存分配很复杂，单独开篇来慢慢记录。</p>
+
+        <h1 id="SLAB"   >
+          <a href="#SLAB" class="heading-link"><i class="fas fa-link"></i></a><a href="#SLAB" class="headerlink" title="SLAB"></a>SLAB</h1>
+      <p>参考：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://www.cnblogs.com/tolimit/p/4566189.html?utm_source=tuicool&utm_medium=referral" >linux内存源码分析 - SLAB分配器概述 - tolimit - 博客园 (cnblogs.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>函数链：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kmem_cache_alloc()-&gt;slab_alloc()-&gt;__do_cache_alloc()-&gt;__cache_alloc()</span><br></pre></td></tr></table></div></figure>
+
+<p>最终在<code>__cache_alloc</code>进行实际的内存分配，在这进行分配分叉点。</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//v5.8 /mm/slab.c</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keyword">void</span> *____cache_alloc(struct kmem_cache *cachep, <span class="keyword">gfp_t</span> flags)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">void</span> *objp;</span><br><span class="line">    <span class="comment">//当前slab描述符的对象缓冲池</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">array_cache</span> *<span class="title">ac</span>;</span></span><br><span class="line">	<span class="comment">//...</span></span><br><span class="line">    <span class="comment">//获取缓冲池,实际上为对应的</span></span><br><span class="line">    <span class="comment">//CPU_addr+kmalloc_caches[xx][xx].cpu_cache</span></span><br><span class="line">    <span class="comment">//这个kmalloc_caches[xx][xx]即为对应大小的slab描述符</span></span><br><span class="line">	ac = cpu_cache_get(cachep);</span><br><span class="line">    <span class="comment">//如果存在可用的,就直接进行分配-------freelist式分配</span></span><br><span class="line">	<span class="keyword">if</span> (likely(ac-&gt;avail)) &#123;</span><br><span class="line">		ac-&gt;touched = <span class="number">1</span>;</span><br><span class="line">        <span class="comment">//这里即把avail也当作一个idx进行索引了</span></span><br><span class="line">		objp = ac-&gt;entry[--ac-&gt;avail];</span><br><span class="line">		STATS_INC_ALLOCHIT(cachep);</span><br><span class="line">		<span class="keyword">goto</span> out;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	STATS_INC_ALLOCMISS(cachep);</span><br><span class="line">    <span class="comment">//不存在的话,则进入另一种分配--------其他缓冲池分配</span></span><br><span class="line">	objp = cache_alloc_refill(cachep, flags);</span><br><span class="line">	<span class="comment">/*</span></span><br><span class="line"><span class="comment">	 * the &#x27;ac&#x27; may be updated by cache_alloc_refill(),</span></span><br><span class="line"><span class="comment">	 * and kmemleak_erase() requires its correct value.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	ac = cpu_cache_get(cachep);</span><br><span class="line"></span><br><span class="line">out:</span><br><span class="line">	<span class="comment">/*</span></span><br><span class="line"><span class="comment">	 * To avoid a false negative, if an object that is in one of the</span></span><br><span class="line"><span class="comment">	 * per-CPU caches is leaked, we need to make sure kmemleak doesn&#x27;t</span></span><br><span class="line"><span class="comment">	 * treat the array pointers as a reference to the object.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">if</span> (objp)</span><br><span class="line">		kmemleak_erase(&amp;ac-&gt;entry[ac-&gt;avail]);</span><br><span class="line">	<span class="keyword">return</span> objp;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+
+        <h2 id="1-本地缓冲池分配"   >
+          <a href="#1-本地缓冲池分配" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-本地缓冲池分配" class="headerlink" title="1.本地缓冲池分配"></a>1.本地缓冲池分配</h2>
+      <p>这个就不多说了，依据<code>CPUX_addr + kmalloc_caches[xx][xx].cpu_cache.entry</code>当作一个<code>array_cache</code>进行分配，分配一个即将对应的<code>array_cache.avail</code>减1。</p>
+
+        <h2 id="2-其他缓冲池分配"   >
+          <a href="#2-其他缓冲池分配" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-其他缓冲池分配" class="headerlink" title="2.其他缓冲池分配"></a>2.其他缓冲池分配</h2>
+      <p>进入<code>cache_alloc_refill()</code>函数，还是会有相关的分叉</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//v5.9 /mm/slab.c</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> *<span class="title">cache_alloc_refill</span><span class="params">(struct kmem_cache *cachep, <span class="keyword">gfp_t</span> flags)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">int</span> batchcount;</span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">kmem_cache_node</span> *<span class="title">n</span>;</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">array_cache</span> *<span class="title">ac</span>, *<span class="title">shared</span>;</span></span><br><span class="line">	<span class="keyword">int</span> node;</span><br><span class="line">	<span class="keyword">void</span> *<span class="built_in">list</span> = <span class="literal">NULL</span>;</span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">page</span> *<span class="title">page</span>;</span></span><br><span class="line"></span><br><span class="line">	check_irq_off();</span><br><span class="line">    <span class="comment">//获取node节点id和array_cache相关信息</span></span><br><span class="line">	node = numa_mem_id();</span><br><span class="line">	ac = cpu_cache_get(cachep);</span><br><span class="line">	batchcount = ac-&gt;batchcount;</span><br><span class="line">  	<span class="comment">//不知道干啥的</span></span><br><span class="line">	<span class="keyword">if</span> (!ac-&gt;touched &amp;&amp; batchcount &gt; BATCHREFILL_LIMIT) &#123;</span><br><span class="line">		<span class="comment">/*</span></span><br><span class="line"><span class="comment">		 * If there was little recent activity on this cache, then</span></span><br><span class="line"><span class="comment">		 * perform only a partial refill.  Otherwise we could generate</span></span><br><span class="line"><span class="comment">		 * refill bouncing.</span></span><br><span class="line"><span class="comment">		 */</span></span><br><span class="line">		batchcount = BATCHREFILL_LIMIT;</span><br><span class="line">	&#125;</span><br><span class="line">    <span class="comment">//真实的node节点指针</span></span><br><span class="line">	n = get_node(cachep, node);</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">	BUG_ON(ac-&gt;avail &gt; <span class="number">0</span> || !n);</span><br><span class="line">    <span class="comment">//尝试从共享对象缓冲池shared_entry进行分配</span></span><br><span class="line">	shared = READ_ONCE(n-&gt;shared);</span><br><span class="line">	<span class="keyword">if</span> (!n-&gt;free_objects &amp;&amp; (!shared || !shared-&gt;avail))</span><br><span class="line">		<span class="keyword">goto</span> direct_grow;</span><br><span class="line">	<span class="comment">//相关自旋锁</span></span><br><span class="line">	spin_lock(&amp;n-&gt;list_lock);</span><br><span class="line">	shared = READ_ONCE(n-&gt;shared);</span><br><span class="line">	<span class="comment">/* See if we can refill from the shared array */</span></span><br><span class="line">    <span class="comment">//transfer_objects()函数会从共享对象缓冲池shared_entry</span></span><br><span class="line">    <span class="comment">//转移batchcount个空闲对象到本地缓冲池进行分配</span></span><br><span class="line">	<span class="keyword">if</span> (shared &amp;&amp; transfer_objects(ac, shared, batchcount)) &#123;</span><br><span class="line">        <span class="comment">//为什么设置touched?</span></span><br><span class="line">		shared-&gt;touched = <span class="number">1</span>;</span><br><span class="line">		<span class="keyword">goto</span> alloc_done;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">//共享对象缓冲池shared_entry没有空闲对象时,查看</span></span><br><span class="line">	<span class="comment">//slabs_partial(部分空闲)链表和slabs_free(全部空闲)链表</span></span><br><span class="line">	<span class="keyword">while</span> (batchcount &gt; <span class="number">0</span>) &#123;</span><br><span class="line">		<span class="comment">/* Get slab alloc is to come from. */</span></span><br><span class="line">        <span class="comment">//进入实际分配函数</span></span><br><span class="line">		page = get_first_slab(n, <span class="literal">false</span>);</span><br><span class="line">        <span class="comment">//如果slabs_partial(部分空闲)链表和slabs_free(全部空闲)链表</span></span><br><span class="line">        <span class="comment">//都没有则重新分配一个slab及对应空间</span></span><br><span class="line">		<span class="keyword">if</span> (!page)</span><br><span class="line">			<span class="keyword">goto</span> must_grow;</span><br><span class="line"></span><br><span class="line">		check_spinlock_acquired(cachep);</span><br><span class="line"></span><br><span class="line">		batchcount = alloc_block(cachep, ac, page, batchcount);</span><br><span class="line">		fixup_slab_list(cachep, n, page, &amp;<span class="built_in">list</span>);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//重新分配一个slab</span></span><br><span class="line">must_grow:</span><br><span class="line">	n-&gt;free_objects -= ac-&gt;avail;</span><br><span class="line">alloc_done:</span><br><span class="line">	spin_unlock(&amp;n-&gt;list_lock);</span><br><span class="line">	fixup_objfreelist_debug(cachep, &amp;<span class="built_in">list</span>);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">direct_grow:</span><br><span class="line">	<span class="keyword">if</span> (unlikely(!ac-&gt;avail)) &#123;</span><br><span class="line">		<span class="comment">/* Check if we can use obj in pfmemalloc slab */</span></span><br><span class="line">		<span class="keyword">if</span> (sk_memalloc_socks()) &#123;</span><br><span class="line">			<span class="keyword">void</span> *obj = cache_alloc_pfmemalloc(cachep, n, flags);</span><br><span class="line">			<span class="keyword">if</span> (obj)</span><br><span class="line">				<span class="keyword">return</span> obj;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		page = cache_grow_begin(cachep, gfp_exact_node(flags), node);</span><br><span class="line"></span><br><span class="line">		<span class="comment">/*</span></span><br><span class="line"><span class="comment">		 * cache_grow_begin() can reenable interrupts,</span></span><br><span class="line"><span class="comment">		 * then ac could change.</span></span><br><span class="line"><span class="comment">		 */</span></span><br><span class="line">		ac = cpu_cache_get(cachep);</span><br><span class="line">		<span class="keyword">if</span> (!ac-&gt;avail &amp;&amp; page)</span><br><span class="line">			alloc_block(cachep, ac, page, batchcount);</span><br><span class="line">		cache_grow_end(cachep, page);</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> (!ac-&gt;avail)</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	ac-&gt;touched = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> ac-&gt;entry[--ac-&gt;avail];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+
+
+
+        <h3 id="①shared缓存池分配"   >
+          <a href="#①shared缓存池分配" class="heading-link"><i class="fas fa-link"></i></a><a href="#①shared缓存池分配" class="headerlink" title="①shared缓存池分配"></a>①shared缓存池分配</h3>
+      <p>尝试将<code>kmalloc_caches[xx][xx].node.shared.entry</code>当作一个<code>array_cache</code>进行检测，尝试分配</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220517162554930.png" alt="image-20220517162554930"></p>
+
+        <h3 id="②slabs-partial和slabs-free分配"   >
+          <a href="#②slabs-partial和slabs-free分配" class="heading-link"><i class="fas fa-link"></i></a><a href="#②slabs-partial和slabs-free分配" class="headerlink" title="②slabs_partial和slabs_free分配"></a>②slabs_partial和slabs_free分配</h3>
+      <p>在<code>get_first_slab()</code>函数中进行分配，尝试获取一个<code>slab</code>页框描述符，依据相关索引，从其中的<code>page-&gt;mapping</code>开始获取堆块对象<code>obj</code>，挨个转移到对应<code>CPU</code>的<code>kmalloc-xx</code>的<code>array_cache</code>（即对应的本地缓冲池中）。</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//v5.9 /mm/slab.c</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> struct page *<span class="title">get_first_slab</span><span class="params">(struct kmem_cache_node *n, <span class="keyword">bool</span> pfmemalloc)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">page</span> *<span class="title">page</span>;</span></span><br><span class="line">    </span><br><span class="line">	assert_spin_locked(&amp;n-&gt;list_lock);</span><br><span class="line">	page = list_first_entry_or_null(&amp;n-&gt;slabs_partial, struct page,slab_list);</span><br><span class="line">	<span class="keyword">if</span> (!page) &#123;</span><br><span class="line">		n-&gt;free_touched = <span class="number">1</span>;</span><br><span class="line">		page = list_first_entry_or_null(&amp;n-&gt;slabs_free, struct page,</span><br><span class="line">						slab_list);</span><br><span class="line">		<span class="keyword">if</span> (page)</span><br><span class="line">			n-&gt;free_slabs--;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> (sk_memalloc_socks())</span><br><span class="line">		page = get_valid_first_slab(n, page, pfmemalloc);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> page;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+
+        <h2 id="3-重新分配一个slab"   >
+          <a href="#3-重新分配一个slab" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-重新分配一个slab" class="headerlink" title="3.重新分配一个slab"></a>3.重新分配一个slab</h2>
+      <p>上面也提到，进入到<code>must_grow</code>即进行<code>slab</code>的重新分配，这个着实有点复杂，不是很会，涉及ZONE、NODE什么之类的数据结构，还有NUMA机制之类的。</p>
+
+        <h1 id="SLUB"   >
+          <a href="#SLUB" class="heading-link"><i class="fas fa-link"></i></a><a href="#SLUB" class="headerlink" title="SLUB"></a>SLUB</h1>
+      <p>参考：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/166649492" >Linux内存管理：slub分配器 - 知乎 (zhihu.com)</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></p>
+<p>函数链：</p>
+<figure class="highlight plaintext"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kmem_cache_alloc()-&gt;slab_alloc()-&gt;slab_alloc_node()</span><br></pre></td></tr></table></div></figure>
+
+<p>从<code>slab_alloc_node()</code>函数开始分配</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//v5.9 /mm/slub.c</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> __always_inline <span class="keyword">void</span> *<span class="title">slab_alloc_node</span><span class="params">(struct kmem_cache *s,</span></span></span><br><span class="line"><span class="params"><span class="function">		<span class="keyword">gfp_t</span> gfpflags, <span class="keyword">int</span> node, <span class="keyword">unsigned</span> <span class="keyword">long</span> addr)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">void</span> *object;</span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">kmem_cache_cpu</span> *<span class="title">c</span>;</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">page</span> *<span class="title">page</span>;</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> tid;</span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">obj_cgroup</span> *<span class="title">objcg</span> =</span> <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//获取对应的kmem_cache描述符</span></span><br><span class="line">	s = slab_pre_alloc_hook(s, &amp;objcg, <span class="number">1</span>, gfpflags);</span><br><span class="line">	<span class="keyword">if</span> (!s)</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">redo:</span><br><span class="line">	<span class="comment">//.....</span></span><br><span class="line">    <span class="comment">//尝试从本地缓冲池进行分配</span></span><br><span class="line">	object = c-&gt;freelist;</span><br><span class="line">	page = c-&gt;page;</span><br><span class="line">	<span class="keyword">if</span> (unlikely(!object || !node_match(page, node))) &#123;</span><br><span class="line">        <span class="comment">//本地缓冲池已分配完毕</span></span><br><span class="line">        <span class="comment">//分配不成功就进入后续的__slab_alloc()函数</span></span><br><span class="line">		object = __slab_alloc(s, gfpflags, node, addr, c);</span><br><span class="line">		stat(s, ALLOC_SLOWPATH);</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">//相关SLUB保护的指针运算</span></span><br><span class="line">		<span class="keyword">void</span> *next_object = get_freepointer_safe(s, object);</span><br><span class="line">		<span class="comment">//...一大堆检查</span></span><br><span class="line">	&#125;</span><br><span class="line">    <span class="comment">//一大堆检查看不太懂</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> object;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+
+        <h2 id="1-本地缓冲池分配-1"   >
+          <a href="#1-本地缓冲池分配-1" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-本地缓冲池分配-1" class="headerlink" title="1.本地缓冲池分配"></a>1.本地缓冲池分配</h2>
+      <p>这个就不说了，直接就是从本地的<code>kmem_cache_cpu</code>下<code>cpu_slab</code>的<code>freelist</code>开始分配，上面的<code>slab_alloc_node()</code>函数中也相关体现了。</p>
+<p>之后在<code>__slab_alloc()</code>函数中进行相关判断后会进入到<code>___slab_alloc()</code>函数，进行后续的不同情况判断。不是很懂在干嘛，和<code>CONFIG_PREEMPTION</code>配置有关。</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//v5.9 /mm/slub.c</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> *__slab_alloc(struct kmem_cache *s, <span class="keyword">gfp_t</span> gfpflags, <span class="keyword">int</span> node,</span><br><span class="line">			  <span class="keyword">unsigned</span> <span class="keyword">long</span> addr, struct kmem_cache_cpu *c)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">void</span> *p;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> flags;</span><br><span class="line"></span><br><span class="line">	local_irq_save(flags);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> CONFIG_PREEMPTION</span></span><br><span class="line">	<span class="comment">/*</span></span><br><span class="line"><span class="comment">	 * We may have been preempted and rescheduled on a different</span></span><br><span class="line"><span class="comment">	 * cpu before disabling interrupts. Need to reload cpu area</span></span><br><span class="line"><span class="comment">	 * pointer.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	c = this_cpu_ptr(s-&gt;cpu_slab);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">	p = ___slab_alloc(s, gfpflags, node, addr, c);</span><br><span class="line">	local_irq_restore(flags);</span><br><span class="line">	<span class="keyword">return</span> p;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+<p>如下，当<code>cpu_slab-&gt;freelist</code>被分配完毕之后，<code>cpu_slab-&gt;page</code>也被清空<img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220519192842119.png" alt="image-20220519192842119"></p>
+
+        <h2 id="2-partial分配"   >
+          <a href="#2-partial分配" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-partial分配" class="headerlink" title="2.partial分配"></a>2.<code>partial</code>分配</h2>
+      <p>在定义配置时，需要<code>CONFIG_SLUB_CPU_PARTIAL=y</code>才会有</p>
+<p>进入<code>___slab_alloc()</code>函数后，会分为不少情况</p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> *___slab_alloc(struct kmem_cache *s, <span class="keyword">gfp_t</span> gfpflags, <span class="keyword">int</span> node,</span><br><span class="line">			  <span class="keyword">unsigned</span> <span class="keyword">long</span> addr, struct kmem_cache_cpu *c)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">void</span> *freelist;</span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">page</span> *<span class="title">page</span>;</span></span><br><span class="line">	<span class="comment">//这个c即为对应kmalloc-xx下的cpu_slab</span></span><br><span class="line">    <span class="comment">//检查page是否为NULL,如果为NULL代表本地缓冲池的freelist已经分配完毕</span></span><br><span class="line">    <span class="comment">//那么就会进入到new_slab</span></span><br><span class="line">	page = c-&gt;page;</span><br><span class="line">	<span class="keyword">if</span> (!page) &#123;</span><br><span class="line">		<span class="comment">/*</span></span><br><span class="line"><span class="comment">		 * if the node is not online or has no normal memory, just</span></span><br><span class="line"><span class="comment">		 * ignore the node constraint</span></span><br><span class="line"><span class="comment">		 */</span></span><br><span class="line">		<span class="keyword">if</span> (unlikely(node != NUMA_NO_NODE &amp;&amp;</span><br><span class="line">			     !node_state(node, N_NORMAL_MEMORY)))</span><br><span class="line">			node = NUMA_NO_NODE;</span><br><span class="line">		<span class="keyword">goto</span> new_slab;</span><br><span class="line">	&#125;</span><br><span class="line">redo:</span><br><span class="line">    <span class="comment">//这里有一些匹配检查,会检查page的nid和node是否能对上</span></span><br><span class="line">    <span class="comment">//不能对上就不会进行相关分配,接着重来,不太懂</span></span><br><span class="line">    <span class="comment">//也常常碰上不匹配的partial</span></span><br><span class="line">	<span class="keyword">if</span> (unlikely(!node_match(page, node))) &#123;</span><br><span class="line">		<span class="comment">/*</span></span><br><span class="line"><span class="comment">		 * same as above but node_match() being false already</span></span><br><span class="line"><span class="comment">		 * implies node != NUMA_NO_NODE</span></span><br><span class="line"><span class="comment">		 */</span></span><br><span class="line">		<span class="keyword">if</span> (!node_state(node, N_NORMAL_MEMORY)) &#123;</span><br><span class="line">			node = NUMA_NO_NODE;</span><br><span class="line">			<span class="keyword">goto</span> redo;</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			stat(s, ALLOC_NODE_MISMATCH);</span><br><span class="line">			deactivate_slab(s, page, c-&gt;freelist, c);</span><br><span class="line">			<span class="keyword">goto</span> new_slab;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">/* must check again c-&gt;freelist in case of cpu migration or IRQ */</span></span><br><span class="line">	freelist = c-&gt;freelist;</span><br><span class="line">	<span class="keyword">if</span> (freelist)</span><br><span class="line">		<span class="keyword">goto</span> load_freelist;</span><br><span class="line">    </span><br><span class="line">	freelist = get_freelist(s, page);</span><br><span class="line">	<span class="keyword">if</span> (!freelist) &#123;</span><br><span class="line">		c-&gt;page = <span class="literal">NULL</span>;</span><br><span class="line">		stat(s, DEACTIVATE_BYPASS);</span><br><span class="line">		<span class="keyword">goto</span> new_slab;</span><br><span class="line">	&#125;</span><br><span class="line">	stat(s, ALLOC_REFILL);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//本地CPU的page被赋值之后,加载freelist的过程</span></span><br><span class="line">load_freelist:</span><br><span class="line">	<span class="comment">/*</span></span><br><span class="line"><span class="comment">	 * freelist is pointing to the list of objects to be used.</span></span><br><span class="line"><span class="comment">	 * page is pointing to the page from which the objects are obtained.</span></span><br><span class="line"><span class="comment">	 * That page must be frozen for per cpu allocations to work.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	VM_BUG_ON(!c-&gt;page-&gt;frozen);</span><br><span class="line">	c-&gt;freelist = get_freepointer(s, freelist);</span><br><span class="line">	c-&gt;tid = next_tid(c-&gt;tid);</span><br><span class="line">	<span class="keyword">return</span> freelist;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//这里完成本地CPU的partial寻找以及重新从buddy伙伴中分配slab描述符</span></span><br><span class="line">new_slab:</span><br><span class="line">    <span class="comment">//检查本地CPU的partial是否存在</span></span><br><span class="line">	<span class="keyword">if</span> (slub_percpu_partial(c)) &#123;</span><br><span class="line">        <span class="comment">//本地CPU的partial则直接赋值给本地CPU的page,进入redo加载freelist</span></span><br><span class="line">		page = c-&gt;page = slub_percpu_partial(c);</span><br><span class="line">  		<span class="comment">//对本地CPU刚赋值的page进行相关设置,包括slab_cache等之类的设置</span></span><br><span class="line">		slub_set_percpu_partial(c, page);</span><br><span class="line">		stat(s, CPU_PARTIAL_ALLOC);</span><br><span class="line">        <span class="comment">//跳转redo,依据新的page重新加载freelist</span></span><br><span class="line">		<span class="keyword">goto</span> redo;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">//new_slab_objects会检查当前kmalloc-xx对应的node下</span></span><br><span class="line">    <span class="comment">//是否存在partial可供分配,没有则会从buddy伙伴系统中分配slab页框描述符</span></span><br><span class="line">	freelist = new_slab_objects(s, gfpflags, node, &amp;c);</span><br><span class="line">	<span class="comment">//后面就是一些相关的检查及加载freelist</span></span><br><span class="line">	<span class="keyword">if</span> (unlikely(!freelist)) &#123;</span><br><span class="line">		slab_out_of_memory(s, gfpflags, node);</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	page = c-&gt;page;</span><br><span class="line">	<span class="keyword">if</span> (likely(!kmem_cache_debug(s) &amp;&amp; pfmemalloc_match(page, gfpflags)))</span><br><span class="line">		<span class="keyword">goto</span> load_freelist;</span><br><span class="line">    <span class="comment">//............</span></span><br><span class="line">	deactivate_slab(s, page, get_freepointer(s, freelist), c);</span><br><span class="line">	<span class="keyword">return</span> freelist;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></div></figure>
+
+
+        <h3 id="1-本地CPU的partial"   >
+          <a href="#1-本地CPU的partial" class="heading-link"><i class="fas fa-link"></i></a><a href="#1-本地CPU的partial" class="headerlink" title="(1)本地CPU的partial"></a>(1)本地CPU的<code>partial</code></h3>
+      <p>首先就是判断本地<code>CPU</code>，即<code>cpu_slab</code>的<code>partial</code>，其也为一个<code>page</code>页框，会与其他的页框依据<code>struct list_head lru;</code>域组成双向循环链表。</p>
+<ul>
+<li><p>如果存在，则将该<code>partial</code>当作一个<code>slab</code>描述页框<code>page</code>，遍历其<code>struct list_head lru;</code>域，找到合适的<code>slab</code>描述页框<code>page</code>，赋值给<code>cpu_slab-&gt;page</code>，并且该<code>partial</code>也会在<code>slub_set_percpu_partial(c, page);</code>函数中被原本的<code>partial</code>的<code>next</code>覆盖。</p>
+<p>请忽略这个<code>freelist</code>上还有值，截图的时候没有分配光<code>freelist</code>。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220519210608695.png" alt="image-20220519210608695"></p>
+<p>完成之后如下所示，被覆盖掉</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220519211038094.png" alt="image-20220519211038094"></p>
+</li>
+<li><p>然后进入<code>redo</code>，依据新赋值的<code>page</code>加载<code>freelist</code>，并且保存在<code>page</code>中的<code>freelist</code>被置空，最终如下</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220519211452815.png" alt="image-20220519211452815"></p>
+</li>
+</ul>
+
+        <h3 id="2-node中的partial"   >
+          <a href="#2-node中的partial" class="heading-link"><i class="fas fa-link"></i></a><a href="#2-node中的partial" class="headerlink" title="(2)node中的partial"></a>(2)<code>node</code>中的<code>partial</code></h3>
+      <p>然后进入<code>new_slab_objects</code>函数判断本<code>kmalloc-xx</code>对应的<code>node</code>中是否存在<code>partial</code>，存在则进行相关赋值后，直接返回<code>freelist</code></p>
+<figure class="highlight c"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keyword">void</span> *<span class="title">new_slab_objects</span><span class="params">(struct kmem_cache *s, <span class="keyword">gfp_t</span> flags,</span></span></span><br><span class="line"><span class="params"><span class="function">			<span class="keyword">int</span> node, struct kmem_cache_cpu **pc)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">void</span> *freelist;</span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">kmem_cache_cpu</span> *<span class="title">c</span> =</span> *pc;</span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">page</span> *<span class="title">page</span>;</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">//.....</span></span><br><span class="line">    <span class="comment">//查看本kmalloc-xx对应的node中的partial是否存在</span></span><br><span class="line">    <span class="comment">//存在进行相关赋值后直接返回freelist了</span></span><br><span class="line">	freelist = get_partial(s, flags, node, c);</span><br><span class="line">	<span class="keyword">if</span> (freelist)</span><br><span class="line">		<span class="keyword">return</span> freelist;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//本kmalloc-xx对应的node中的partial不存在,从buddy伙伴系统分配</span></span><br><span class="line">	page = new_slab(s, flags, node);</span><br><span class="line">	<span class="keyword">if</span> (page) &#123;</span><br><span class="line">		c = raw_cpu_ptr(s-&gt;cpu_slab);</span><br><span class="line">		<span class="keyword">if</span> (c-&gt;page)</span><br><span class="line">			flush_slab(s, c);</span><br><span class="line">		<span class="comment">/*</span></span><br><span class="line"><span class="comment">		 * No other reference to the page yet so we can</span></span><br><span class="line"><span class="comment">		 * muck around with it freely without cmpxchg</span></span><br><span class="line"><span class="comment">		 */</span></span><br><span class="line">		freelist = page-&gt;freelist;</span><br><span class="line">		page-&gt;freelist = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">		stat(s, ALLOC_SLAB);</span><br><span class="line">		c-&gt;page = page;</span><br><span class="line">		*pc = c;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> freelist;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></div></figure>
+
+<p>这里有点奇怪的是，遍历对应<code>struct kmem_cache</code>的<code>kmalloc-xx</code>下的<code>node</code>时，其<code>partial</code>指向的是<code>page</code>的<code>struct list_head lru;</code>域地址，而非实际的<code>page</code>地址，所以真实的<code>page</code>地址为<code>struct list_head lru;</code>域地址减去<code>0x8</code>。</p>
+<p><img src="https://pig-007.oss-cn-beijing.aliyuncs.com/img/image-20220519201826071.png" alt="image-20220519201826071"></p>
+<p>之后即从该<code>page</code>中取<code>freelist</code>进行赋值给本地的<code>kmem_cache_cpu</code>下<code>cpu_slab</code>的<code>freelist</code>，即本地缓冲池。</p>
+
+        <h2 id="3-buddy分配"   >
+          <a href="#3-buddy分配" class="heading-link"><i class="fas fa-link"></i></a><a href="#3-buddy分配" class="headerlink" title="3.buddy分配"></a>3.buddy分配</h2>
+      <p>如上述所示，在<code>new_slab_objects()</code>中判断<code>partial</code>不存在之后，即从buddy伙伴算法中分配新的<code>slab</code>页框描述符，之后就太复杂了，后续再学把。</p>
+</div><footer class="post-footer"><div class="post-ending ending"><div class="ending__text">------ END ------</div></div><div class="post-copyright copyright"><div class="copyright-author"><span class="copyright-author__name">Author: </span><span class="copyright-author__value"><a href="http://PIG-007.github.io">PIG-007</a></span></div><div class="copyright-link"><span class="copyright-link__name">Link: </span><span class="copyright-link__value"><a href="http://pig-007.github.io/2023/04/01/kernel%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AC%94%E8%AE%B0/">http://pig-007.github.io/2023/04/01/kernel%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AC%94%E8%AE%B0/</a></span></div><div class="copyright-notice"><span class="copyright-notice__name">Copyright: </span><span class="copyright-notice__value">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" rel="external nofollow" target="_blank">BY-NC-SA</a> unless stating additionally</span></div></div><div class="post-tags"><span class="post-tags-item"><span class="post-tags-item__icon"><i class="fas fa-tag"></i></span><a class="post-tags-item__link" href="http://pig-007.github.io/tags/Linux%E5%86%85%E6%A0%B8/">Linux内核</a></span></div><nav class="post-paginator paginator"><div class="paginator-prev"><a class="paginator-prev__link" href="/2023/04/22/IDA%E9%80%86%E5%90%91%E6%8A%80%E5%B7%A7/"><span class="paginator-prev__icon"><i class="fas fa-angle-left"></i></span><span class="paginator-prev__text">IDA逆向技巧</span></a></div><div class="paginator-next"><a class="paginator-next__link" href="/2023/03/09/NSSCTF-Web%E5%AE%89%E5%85%A8%E5%85%A5%E9%97%A8/"><span class="paginator-prev__text">NSSCTF-Web安全入门刷题</span><span class="paginator-next__icon"><i class="fas fa-angle-right"></i></span></a></div></nav></footer></div></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><div class="sidebar-nav"><span class="sidebar-nav-toc current">Catalog</span><span class="sidebar-nav-ov">Overview</span></div><section class="sidebar-toc"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-text">
+          前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#SLAB"><span class="toc-text">
+          SLAB</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E6%9C%AC%E5%9C%B0%E7%BC%93%E5%86%B2%E6%B1%A0%E5%88%86%E9%85%8D"><span class="toc-text">
+          1.本地缓冲池分配</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%85%B6%E4%BB%96%E7%BC%93%E5%86%B2%E6%B1%A0%E5%88%86%E9%85%8D"><span class="toc-text">
+          2.其他缓冲池分配</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%91%A0shared%E7%BC%93%E5%AD%98%E6%B1%A0%E5%88%86%E9%85%8D"><span class="toc-text">
+          ①shared缓存池分配</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%91%A1slabs-partial%E5%92%8Cslabs-free%E5%88%86%E9%85%8D"><span class="toc-text">
+          ②slabs_partial和slabs_free分配</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E9%87%8D%E6%96%B0%E5%88%86%E9%85%8D%E4%B8%80%E4%B8%AAslab"><span class="toc-text">
+          3.重新分配一个slab</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#SLUB"><span class="toc-text">
+          SLUB</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E6%9C%AC%E5%9C%B0%E7%BC%93%E5%86%B2%E6%B1%A0%E5%88%86%E9%85%8D-1"><span class="toc-text">
+          1.本地缓冲池分配</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-partial%E5%88%86%E9%85%8D"><span class="toc-text">
+          2.partial分配</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%9C%AC%E5%9C%B0CPU%E7%9A%84partial"><span class="toc-text">
+          (1)本地CPU的partial</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-node%E4%B8%AD%E7%9A%84partial"><span class="toc-text">
+          (2)node中的partial</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-buddy%E5%88%86%E9%85%8D"><span class="toc-text">
+          3.buddy分配</span></a></li></ol></li></ol></section><!-- ov = overview--><section class="sidebar-ov hide"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">The way forward</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">133</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">83</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">73</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section><div class="sidebar-reading"><div class="sidebar-reading-info"><span class="sidebar-reading-info__text">You have read </span><span class="sidebar-reading-info__num">0</span><span class="sidebar-reading-info__perc">%</span></div><div class="sidebar-reading-line"></div></div></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2023</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
+  var isXML = true;
+  var search_path = 'search.json';
+
+  if (!search_path) {
+    search_path = 'search.xml';
+  } else if (/json$/i.test(search_path)) {
+    isXML = false;
+  }
+
+  var path = '/' + search_path;
+  $.ajax({
+    url: path,
+    dataType: isXML ? 'xml' : 'json',
+    async: true,
+    success: function (res) {
+      var datas = isXML ? $('entry', res).map(function () {
+        // 将 XML 转为 JSON
+        return {
+          title: $('title', this).text(),
+          content: $('content', this).text(),
+          url: $('url', this).text()
+        };
+      }).get() : res;
+      var $input = $('.search-input input');
+      var $result = $('.search-results');
+      // 搜索对象（标题、内容）的权重，影响显示顺序
+      var WEIGHT = { title: 100, content: 1 };
+      var searchPost = function () {
+        var searchText = $input.val().toLowerCase().trim();
+        // 根据空白字符分隔关键字
+        var keywords = searchText.split(/[\s]+/);
+        // 搜索结果
+        var matchPosts = [];
+
+        // 有多个关键字时，将原文字整个保存下来
+        if (keywords.length > 1) {
+          keywords.push(searchText);
+        }
+        // 防止未输入字符时搜索
+        if (searchText.length > 0) {
+          datas.forEach(function (data) {
+            var isMatch  = false;
+            // 没有标题的文章使用预设的 i18n 变量代替
+            var title = (data.title && data.title.trim()) || '[ Untitled ]';
+            var titleLower = title && title.toLowerCase();
+            // 删除 HTML 标签 和 所有空白字符
+            var content = data.content && data.content.replace(/<[^>]+>/g, '');
+            var contentLower = content && content.toLowerCase();
+            // 删除重复的 /
+            var postURL = data.url && decodeURI(data.url).replace(/\/{2,}/g, '/');
+            // 标题中匹配到的关键词
+            var titleHitSlice = [];
+            // 内容中匹配到的关键词
+            var contentHitSlice = [];
+
+            keywords.forEach(function (keyword) {
+              /**
+              * 获取匹配的关键词的索引
+              * @param {String} keyword 要匹配的关键字
+              * @param {String} text 原文字
+              * @param {Boolean} caseSensitive 是否区分大小写
+              * @param {Number} weight 匹配对象的权重。权重大的优先显示
+              * @return {Array}
+              */
+              function getIndexByword (word, text, caseSensitive, weight) {
+                if (!word || !text) {
+                  return [];
+                };
+
+                var startIndex = 0; // 每次匹配的开始索引
+                var index = -1;     // 匹配到的索引值
+                var result = [];    // 匹配结果
+
+                if (!caseSensitive) {
+                  word = word.toLowerCase();
+                  text = text.toLowerCase();
+                }
+
+                while((index = text.indexOf(word, startIndex)) !== -1) {
+                  var hasMatch = false;
+                  // 索引位置相同的关键词，保留长度较长的
+                  titleHitSlice.forEach(function (hit) {
+                    if (hit.index === index && hit.word.length < word.length) {
+                      hit.word = word;
+                      hasMatch = true;
+                    }
+                  });
+                  startIndex = index + word.length;
+                  !hasMatch && result.push({ index: index, word: word, weight: weight });
+                }
+                return result;
+              }
+              titleHitSlice = titleHitSlice.concat(getIndexByword(keyword, titleLower, false, WEIGHT.title));
+              contentHitSlice = contentHitSlice.concat(getIndexByword(keyword, contentLower, false, WEIGHT.content));
+            });
+
+            var hitTitle = titleHitSlice.length;
+            var hitContent = contentHitSlice.length;
+
+            if (hitTitle > 0 || hitContent > 0) {
+              isMatch = true;
+            }
+            if (isMatch) {
+              ;[titleHitSlice, contentHitSlice].forEach(function (hit) {
+                // 按照匹配文字的索引的递增顺序排序
+                hit.sort(function (left, right) {
+                  return left.index - right.index;
+                });
+              });
+              /**
+              * 给文本中匹配到的关键词添加标记，从而进行高亮显示
+              * @param {String} text 原文本
+              * @param {Array} hitSlice 匹配项的索引信息
+              * @param {Number} start 开始索引
+              * @param {Number} end 结束索引
+              * @return {String}
+              */
+              function highlightKeyword (text, hitSlice, start, end) {
+                if (!text || !hitSlice || !hitSlice.length) {
+                  return;
+                }
+
+                var result = '';
+                var startIndex = start;
+                var endIndex = end;
+                hitSlice.forEach(function (hit) {
+                  if (hit.index < startIndex) {
+                    return;
+                  }
+
+                  var hitWordEnd = hit.index + hit.word.length;
+                  result += text.slice(startIndex, hit.index);
+                  result += '<b>' + text.slice(hit.index, hitWordEnd) + '</b>';
+                  startIndex = hitWordEnd;
+                });
+                result += text.slice(startIndex, endIndex);
+                return result;
+              }
+
+              var postData = {};
+              // 文章总的搜索权重
+              var postWeight = titleHitSlice.length * WEIGHT.title + contentHitSlice.length * WEIGHT.content;
+              // 标记匹配关键词后的标题
+              var postTitle = highlightKeyword(title, titleHitSlice, 0, title.length) || title;
+              // 标记匹配关键词后的内容
+              var postContent;
+              // 显示内容的长度
+              var SHOW_WORD_LENGTH = 200;
+              // 命中关键词前的字符显示长度
+              var SHOW_WORD_FRONT_LENGTH = 20;
+              var SHOW_WORD_END_LENGTH = SHOW_WORD_LENGTH - SHOW_WORD_FRONT_LENGTH;
+
+              // 截取匹配的第一个字符，前后共 200 个字符来显示
+              if (contentHitSlice.length > 0) {
+                var firstIndex = contentHitSlice[0].index;
+                var start = firstIndex > SHOW_WORD_FRONT_LENGTH ? firstIndex - SHOW_WORD_FRONT_LENGTH : 0;
+                var end = firstIndex + SHOW_WORD_END_LENGTH;
+                postContent = highlightKeyword(content, contentHitSlice, start, end);
+              } else { // 未匹配到内容，直接截取前 200 个字符来显示
+                postContent = content.slice(0, SHOW_WORD_LENGTH);
+              }
+              postData.title = postTitle;
+              postData.content = postContent;
+              postData.url = postURL;
+              postData.weight = postWeight;
+              matchPosts.push(postData);
+            }
+          });
+        }
+
+        var resultInnerHtml = '';
+        if (matchPosts.length) {
+          // 按权重递增的顺序排序，使权重大的优先显示
+          matchPosts.sort(function (left, right) {
+            return right.weight - left.weight;
+          });
+          resultInnerHtml += '<ul>';
+          matchPosts.forEach(function (post) {
+            resultInnerHtml += '<li><a class="search-results-title" href="' + post.url + '">';
+            resultInnerHtml += post.title;
+            resultInnerHtml += '</a><div class="search-results-content">';
+            resultInnerHtml += post.content;
+            resultInnerHtml += '</div></li>';
+          });
+          resultInnerHtml += '</ul>';
+        } else {
+          resultInnerHtml += '<div class="search-results-none"><i class="far fa-meh"></i></div>';
+        }
+        $result.html(resultInnerHtml);
+      };
+      $input.on('input', searchPost);
+      $input.on('keyup', function (e) {
+        if (e.keyCode === Stun.utils.codeToKeyCode('Enter')) {
+          searchPost();
+        }
+      });
+    }
+  });
+}
+
+function closeSearch () {
+  $('body').css({ overflow: 'auto' });
+  $('.search-popup').css({ display: 'none' });
+  $('.search-mask').css({ display: 'none' });
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  Stun.utils.pjaxReloadLocalSearch = function () {
+    $('.header-nav-search').on('click', function (e) {
+      e.stopPropagation();
+      $('body').css('overflow', 'hidden');
+      $('.search-popup')
+        .velocity('stop')
+        .velocity('transition.expandIn', {
+          duration: 300,
+          complete: function () {
+            $('.search-popup input').focus();
+          }
+        });
+      $('.search-mask')
+        .velocity('stop')
+        .velocity('transition.fadeIn', {
+          duration: 300
+        });
+
+      initSearch();
+    });
+    $('.search-mask, .search-close').on('click', function () {
+      closeSearch();
+    });
+    $(document).on('keydown', function (e) {
+      // Escape <=> 27
+      if (e.keyCode === Stun.utils.codeToKeyCode('Escape')) {
+        closeSearch();
+      }
+    });
+  };
+
+  Stun.utils.pjaxReloadLocalSearch();
+}, false);
+
+function safeOpenUrl(url) {
+  var newTab = window.open();
+  newTab.opener = null;
+  newTab.location = url;
+}
+
+function extSearch(engine) {
+  var engines = {
+    google: 'https://www.google.com/search?q=',
+    bing: 'https://cn.bing.com/search?q=',
+    baidu: 'https://www.baidu.com/s?ie=UTF-8&wd=',
+  };
+  var host = window.location.host;
+  var query = $('.search-input input').val().toLowerCase().trim();
+  var uri = engines[engine] + query + ' site:' + host;
+
+  if (query) {
+    safeOpenUrl(uri);
+  } else {
+    Stun.utils.popAlert('warning', 'Please enter characters');
+  }
+}
+
+var assistSearchList = window.CONFIG.assistSearch;
+
+if (Array.isArray(assistSearchList)) {
+  assistSearchList.forEach(function (name) {
+    document.querySelector('.search-btns-item--' + name).addEventListener('click', function () {
+      extSearch(name);
+    }, false);
+  });
+}</script><script src="/js/utils.js?v=2.6.2"></script><script src="/js/stun-boot.js?v=2.6.2"></script><script src="/js/scroll.js?v=2.6.2"></script><script src="/js/header.js?v=2.6.2"></script><script src="/js/sidebar.js?v=2.6.2"></script><script type="application/json" src="/search.json"></script><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"superSample":2,"width":150,"height":300,"position":"left","hOffset":0,"vOffset":-80},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body></html>
