@@ -1,0 +1,394 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsfavicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><link rel="mask-icon" href="/%5Bobject%20Object%5D?v=2.6.2" color="#54bcff"><meta name="description" content="遗传算法       常用步骤 变异、交叉、适应度计算、选择                     变异（基因突变）       设置变异率，判断当前个体是否可以变异 123mutation_rate &#x3D; 0.1if random.random() &lt; mutation_rate:	....  设置个体变异比例，判断当前个体能够变异的bits在哪里">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PIG-007">
+<meta property="og:url" content="http://pig-007.github.io/2023/12/13/%E6%A8%A1%E7%B3%8A%E6%B5%8B%E8%AF%95/index.html">
+<meta property="og:site_name" content="PIG-007">
+<meta property="og:description" content="遗传算法       常用步骤 变异、交叉、适应度计算、选择                     变异（基因突变）       设置变异率，判断当前个体是否可以变异 123mutation_rate &#x3D; 0.1if random.random() &lt; mutation_rate:	....  设置个体变异比例，判断当前个体能够变异的bits在哪里">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-12-13T08:41:16.372Z">
+<meta property="article:modified_time" content="2023-12-22T03:07:02.438Z">
+<meta property="article:author" content="PIG-007">
+<meta name="twitter:card" content="summary"><title>[ Untitled ] | PIG-007</title><link ref="canonical" href="http://pig-007.github.io/2023/12/13/%E6%A8%A1%E7%B3%8A%E6%B5%8B%E8%AF%95/"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.12.1/css/all.min.css" type="text/css"><link rel="stylesheet" href="/css/index.css?v=2.6.2"><script>var Stun = window.Stun || {};
+var CONFIG = {
+  root: '/',
+  algolia: undefined,
+  assistSearch: undefined,
+  fontIcon: {"prompt":{"success":"fas fa-check-circle","info":"fas fa-arrow-circle-right","warning":"fas fa-exclamation-circle","error":"fas fa-times-circle"},"copyBtn":"fas fa-copy"},
+  sidebar: {"offsetTop":"20px","tocMaxDepth":6},
+  header: {"enable":true,"showOnPost":true,"scrollDownIcon":false},
+  postWidget: {"endText":true},
+  nightMode: {"enable":true},
+  back2top: {"enable":true},
+  codeblock: {"style":"default","highlight":"light","wordWrap":true},
+  reward: false,
+  fancybox: false,
+  zoomImage: {"gapAside":"20px"},
+  galleryWaterfall: undefined,
+  lazyload: false,
+  pjax: undefined,
+  externalLink: {"icon":{"enable":true,"name":"fas fa-external-link-alt"}},
+  shortcuts: undefined,
+  prompt: {"copyButton":"Copy","copySuccess":"Copy Success","copyError":"Copy Error"},
+  sourcePath: {"js":"js","css":"css","images":"images"},
+};
+
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">Home</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">Archives</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/categories/"><span class="header-nav-menu-item__icon"><i class="fas fa-layer-group"></i></span><span class="header-nav-menu-item__text">Categories</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">Tags</span></a></div></div><div class="header-nav-search"><span class="header-nav-search__icon"><i class="fas fa-search"></i></span><span class="header-nav-search__text">Search</span></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">PIG-007</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content" id="content"><!-- Just used to judge whether it is an article page--><div id="is-post"></div><div class="post"><header class="post-header"><h1 class="post-title">[ Untitled ]</h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">Created</span><span class="post-meta-item__value">2023-12-13</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">Updated</span><span class="post-meta-item__value">2023-12-22</span></span></div></header><div class="post-body">
+        <h1 id="遗传算法"   >
+          <a href="#遗传算法" class="heading-link"><i class="fas fa-link"></i></a><a href="#遗传算法" class="headerlink" title="遗传算法"></a>遗传算法</h1>
+      <p>常用步骤</p>
+<p>变异、交叉、适应度计算、选择</p>
+
+        <h2 id="变异（基因突变）"   >
+          <a href="#变异（基因突变）" class="heading-link"><i class="fas fa-link"></i></a><a href="#变异（基因突变）" class="headerlink" title="变异（基因突变）"></a>变异（基因突变）</h2>
+      <p>设置变异率，判断当前个体是否可以变异</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mutation_rate = <span class="number">0.1</span></span><br><span class="line"><span class="keyword">if</span> random.random() &lt; mutation_rate:</span><br><span class="line">	....</span><br></pre></td></tr></table></div></figure>
+
+<p>设置个体变异比例，判断当前个体能够变异的bits在哪里</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">mutate_point = random.sample(<span class="built_in">range</span>(<span class="number">1</span>, <span class="built_in">len</span>(chromosome)), <span class="built_in">int</span>(<span class="built_in">len</span>(chromosome) * mutation_point_rate))</span><br><span class="line">mutate_point.sort()</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> mutate_point:</span><br><span class="line">    chromosome[i] = chromosome[i] ^ <span class="number">1</span></span><br></pre></td></tr></table></div></figure>
+
+
+        <h2 id="交叉（染色体交换）"   >
+          <a href="#交叉（染色体交换）" class="heading-link"><i class="fas fa-link"></i></a><a href="#交叉（染色体交换）" class="headerlink" title="交叉（染色体交换）"></a>交叉（染色体交换）</h2>
+      <p>可以设置一个交叉点，也可以设置多个交叉点，通常是百分之五十交叉</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 交叉操作</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">crossover</span>(<span class="params">parent1, parent2</span>):</span></span><br><span class="line">    <span class="keyword">if</span> random.random() &lt; crossover_rate:</span><br><span class="line">        <span class="comment"># 随机选择50个不同的交叉点</span></span><br><span class="line">        crossover_points = random.sample(<span class="built_in">range</span>(<span class="number">1</span>, <span class="built_in">len</span>(parent1)), <span class="number">50</span>)</span><br><span class="line">        crossover_points.sort()  <span class="comment"># 将交叉点按顺序排列</span></span><br><span class="line">        child1 = []</span><br><span class="line">        child2 = []</span><br><span class="line">        parent_switch = <span class="literal">True</span>  <span class="comment"># 用于交替选择父代</span></span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(parent1)):</span><br><span class="line">            <span class="keyword">if</span> i <span class="keyword">in</span> crossover_points:</span><br><span class="line">                <span class="comment"># 如果当前位置是交叉点，则切换到另一个父代</span></span><br><span class="line">                <span class="comment">#print(&quot;test&quot;)</span></span><br><span class="line">                parent_switch = <span class="keyword">not</span> parent_switch</span><br><span class="line">            <span class="keyword">if</span> parent_switch:</span><br><span class="line">                child1.append(parent1[i])</span><br><span class="line">                child2.append(parent2[i])</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                child1.append(parent2[i])</span><br><span class="line">                child2.append(parent1[i])</span><br><span class="line">        <span class="keyword">return</span> child1, child2</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">return</span> parent1, parent2</span><br></pre></td></tr></table></div></figure>
+
+
+        <h2 id="适应度计算"   >
+          <a href="#适应度计算" class="heading-link"><i class="fas fa-link"></i></a><a href="#适应度计算" class="headerlink" title="适应度计算"></a>适应度计算</h2>
+      <p>即将生成的后代个体与期望达到的目标进行对比，计算差距，即适应度。</p>
+<ul>
+<li>二进制测试：与能够触发crash的目标进行适应度计算</li>
+<li>CANID测试：与能够响应车机的CANID进行适应度计算</li>
+</ul>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 计算适应度函数</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">fitness</span>(<span class="params">chromosome</span>):</span></span><br><span class="line">    data = []</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(num_targets):</span><br><span class="line">        target_value = input_data[i]</span><br><span class="line">        binary_str = <span class="string">&#x27;&#x27;</span>.join(<span class="built_in">map</span>(<span class="built_in">str</span>, chromosome[i * num_bits:(i + <span class="number">1</span>) * num_bits]))</span><br><span class="line">        decimal_value = <span class="built_in">int</span>(binary_str, <span class="number">2</span>)</span><br><span class="line">        data.append(decimal_value)</span><br><span class="line">    fitness_value = <span class="built_in">sum</span>(<span class="built_in">abs</span>(data[i] - input_data[i]) <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(num_targets))</span><br><span class="line">    <span class="keyword">return</span> fitness_value</span><br></pre></td></tr></table></div></figure>
+
+<p>这里的<code>input_data</code>即为期望达到的目标</p>
+
+        <h2 id="选择"   >
+          <a href="#选择" class="heading-link"><i class="fas fa-link"></i></a><a href="#选择" class="headerlink" title="选择"></a>选择</h2>
+      <p>当种群达到一定规模后，需要控制种群数量，留下更多的优质基因，那么这时候就需要进行自然选择了，也就是选择那些和期望目标差距更小，适应度更小的后代。</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 选择操作</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">selection</span>(<span class="params">population</span>):</span></span><br><span class="line">    fitness_values = [fitness(chromosome) <span class="keyword">for</span> chromosome <span class="keyword">in</span> population]</span><br><span class="line">    total_fitness = <span class="built_in">sum</span>(fitness_values)</span><br><span class="line">    probabilities = [fitness_value / total_fitness <span class="keyword">for</span> fitness_value <span class="keyword">in</span> fitness_values]</span><br><span class="line">    selected_indices = random.choices(<span class="built_in">range</span>(population_size), probabilities, k=population_size)</span><br><span class="line">    selected_population = [population[i] <span class="keyword">for</span> i <span class="keyword">in</span> selected_indices]</span><br><span class="line">    <span class="keyword">return</span> selected_population</span><br></pre></td></tr></table></div></figure>
+
+
+        <h2 id="去世"   >
+          <a href="#去世" class="heading-link"><i class="fas fa-link"></i></a><a href="#去世" class="headerlink" title="去世"></a>去世</h2>
+      <p>按理说应该要加入这个算法的，即当繁殖几代之后，那些老一代就应该死去，不管是不是最优的</p>
+
+        <h2 id="主要遗传算法"   >
+          <a href="#主要遗传算法" class="heading-link"><i class="fas fa-link"></i></a><a href="#主要遗传算法" class="headerlink" title="主要遗传算法"></a>主要遗传算法</h2>
+      <figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 主要遗传算法循环</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">genetic_algorithm</span>():</span></span><br><span class="line">    <span class="comment"># print(&quot;aaaa&quot;)</span></span><br><span class="line">    population = initialize_population()</span><br><span class="line">    <span class="keyword">for</span> generation <span class="keyword">in</span> <span class="built_in">range</span>(num_generations):</span><br><span class="line">        population = selection(population)</span><br><span class="line">        new_population = []</span><br><span class="line">        <span class="keyword">while</span> <span class="built_in">len</span>(new_population) &lt; population_size:</span><br><span class="line">            parent1, parent2 = random.sample(population, <span class="number">2</span>)</span><br><span class="line">            child1, child2 = crossover(parent1, parent2)</span><br><span class="line">            child1 = mutate(child1)</span><br><span class="line">            child2 = mutate(child2)</span><br><span class="line">            new_population.extend([child1, child2])</span><br><span class="line">        population = new_population</span><br><span class="line">        best_chromosome = <span class="built_in">min</span>(population, key=fitness)</span><br><span class="line">        best_data = []</span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(num_targets):</span><br><span class="line">            binary_str = <span class="string">&#x27;&#x27;</span>.join(<span class="built_in">map</span>(<span class="built_in">str</span>, best_chromosome[i * num_bits:(i + <span class="number">1</span>) * num_bits]))</span><br><span class="line">            decimal_value = <span class="built_in">hex</span>(<span class="built_in">int</span>(binary_str, <span class="number">2</span>))</span><br><span class="line">            best_data.append(decimal_value)</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;Generation <span class="subst">&#123;generation + <span class="number">1</span>&#125;</span>: Fitness = <span class="subst">&#123;fitness(best_chromosome)&#125;</span>, Data = <span class="subst">&#123;best_data&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></div></figure>
+
+<p>依据设定最大种群数量，不断进行繁殖，直到种群数量已满，再进行下一轮的繁殖得到的后代应该进行自然选择。</p>
+
+        <h1 id="模拟退火"   >
+          <a href="#模拟退火" class="heading-link"><i class="fas fa-link"></i></a><a href="#模拟退火" class="headerlink" title="模拟退火"></a>模拟退火</h1>
+      <p>主要就是降温和计算概率是否替换新的一代。</p>
+<p>以旅行商TSP问题为例子</p>
+<p>总的代码</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">simulated_annealing_tsp</span>(<span class="params">cities, initial_temperature=<span class="number">1000.0</span>, cooling_rate=<span class="number">0.95</span>, min_temperature=<span class="number">0.1</span></span>):</span></span><br><span class="line">    <span class="comment"># 生成一个初始路径</span></span><br><span class="line">    current_path = <span class="built_in">list</span>(<span class="built_in">range</span>(<span class="built_in">len</span>(cities)))</span><br><span class="line">    random.shuffle(current_path)</span><br><span class="line">    current_distance = total_distance(current_path)</span><br><span class="line"></span><br><span class="line">    temperature = initial_temperature</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> temperature &gt; min_temperature:</span><br><span class="line">        <span class="comment"># 生成一个新路径</span></span><br><span class="line">        new_path = current_path.copy()</span><br><span class="line">        index1, index2 = random.sample(<span class="built_in">range</span>(<span class="built_in">len</span>(new_path)), <span class="number">2</span>)</span><br><span class="line">        new_path[index1], new_path[index2] = new_path[index2], new_path[index1]</span><br><span class="line">        new_distance = total_distance(new_path)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 判断新路径是否被接受</span></span><br><span class="line">        <span class="keyword">if</span> new_distance &lt; current_distance:</span><br><span class="line">            current_path, current_distance = new_path, new_distance</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            delta = new_distance - current_distance</span><br><span class="line">            probability = math.exp(-delta / temperature)</span><br><span class="line">            <span class="keyword">if</span> random.random() &lt; probability:</span><br><span class="line">                current_path, current_distance = new_path, new_distance</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 降低温度</span></span><br><span class="line">        temperature *= cooling_rate</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> current_path, current_distance</span><br><span class="line"></span><br><span class="line"><span class="comment"># 执行模拟退火算法</span></span><br><span class="line">sa_best_path, sa_best_distance = simulated_annealing_tsp(cities)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;最优路径:&quot;</span>, sa_best_path)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;最优距离:&quot;</span>, total_distance(sa_best_path))</span><br><span class="line"></span><br></pre></td></tr></table></div></figure>
+
+<ul>
+<li><p>设定初始温度，降温比例，最小温度，初代路径</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#初始温度</span></span><br><span class="line">initial_temperature=<span class="number">1000.0</span></span><br><span class="line"><span class="comment">#降温率</span></span><br><span class="line">cooling_rate=<span class="number">0.95</span></span><br><span class="line"><span class="comment">#最小温度</span></span><br><span class="line">min_temperature=<span class="number">0.1</span></span><br><span class="line"><span class="comment">#初代路径</span></span><br><span class="line">current_path = <span class="built_in">list</span>(<span class="built_in">range</span>(<span class="built_in">len</span>(cities)))</span><br><span class="line">random.shuffle(current_path)</span><br><span class="line">current_distance = total_distance(current_path)</span><br><span class="line"></span><br><span class="line">temperature = initial_temperature</span><br></pre></td></tr></table></div></figure></li>
+<li><p>判断是否达到最低温度</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> temperature &gt; min_temperature:</span><br></pre></td></tr></table></div></figure>
+
+<ul>
+<li><p>生成新的路径</p>
+<ul>
+<li><p>如果新的路径更优秀，距离更短，那么就直接替换</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#生成新的路径</span></span><br><span class="line">new_path = current_path.copy()</span><br><span class="line">index1, index2 = random.sample(<span class="built_in">range</span>(<span class="built_in">len</span>(new_path)), <span class="number">2</span>)</span><br><span class="line">new_path[index1], new_path[index2] = new_path[index2], new_path[index1]</span><br><span class="line">new_distance = total_distance(new_path)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 判断新路径是否被接受，如果距离更短，无条件接收</span></span><br><span class="line"><span class="keyword">if</span> new_distance &lt; current_distance:</span><br><span class="line">    current_path, current_distance = new_path, new_distance</span><br></pre></td></tr></table></div></figure></li>
+<li><p>如果新的一代更差，那么就依据当前温度，计算替换概率，（温度越高，概率越大），概率越大的，新的替换旧的概率就越大，然后降低问题。</p>
+<p>这个计算概率不知道怎么个计算法</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    <span class="comment">#计算概率</span></span><br><span class="line">    delta = new_distance - current_distance</span><br><span class="line">    probability = math.exp(-delta / temperature)</span><br><span class="line">    <span class="comment">#依据概率判断是否进行距离路径替换</span></span><br><span class="line">    <span class="keyword">if</span> random.random() &lt; probability:</span><br><span class="line">        current_path, current_distance = new_path, new_distance</span><br></pre></td></tr></table></div></figure></li>
+<li><p>降低温度</p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 降低温度</span></span><br><span class="line">temperature *= cooling_rate</span><br></pre></td></tr></table></div></figure></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>依次类推，直到达到最低温度跳出循环</p>
+</li>
+</ul>
+</div><footer class="post-footer"><div class="post-ending ending"><div class="ending__text">------ END ------</div></div><div class="post-copyright copyright"><div class="copyright-author"><span class="copyright-author__name">Author: </span><span class="copyright-author__value"><a href="http://PIG-007.github.io">PIG-007</a></span></div><div class="copyright-link"><span class="copyright-link__name">Link: </span><span class="copyright-link__value"><a href="http://pig-007.github.io/2023/12/13/%E6%A8%A1%E7%B3%8A%E6%B5%8B%E8%AF%95/">http://pig-007.github.io/2023/12/13/%E6%A8%A1%E7%B3%8A%E6%B5%8B%E8%AF%95/</a></span></div><div class="copyright-notice"><span class="copyright-notice__name">Copyright: </span><span class="copyright-notice__value">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" rel="external nofollow" target="_blank">BY-NC-SA</a> unless stating additionally</span></div></div><nav class="post-paginator paginator"><div class="paginator-prev"><a class="paginator-prev__link" href="/2023/12/18/%E7%89%A9%E8%81%94%E7%BD%91%E7%AC%94%E8%AE%B0/"><span class="paginator-prev__icon"><i class="fas fa-angle-left"></i></span><span class="paginator-prev__text">物联网</span></a></div><div class="paginator-next"><a class="paginator-next__link" href="/2023/10/19/Android%E9%80%86%E5%90%91/"><span class="paginator-prev__text">Android逆向</span><span class="paginator-next__icon"><i class="fas fa-angle-right"></i></span></a></div></nav></footer></div></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><div class="sidebar-nav"><span class="sidebar-nav-toc current">Catalog</span><span class="sidebar-nav-ov">Overview</span></div><section class="sidebar-toc"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%81%97%E4%BC%A0%E7%AE%97%E6%B3%95"><span class="toc-text">
+          遗传算法</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%98%E5%BC%82%EF%BC%88%E5%9F%BA%E5%9B%A0%E7%AA%81%E5%8F%98%EF%BC%89"><span class="toc-text">
+          变异（基因突变）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%A4%E5%8F%89%EF%BC%88%E6%9F%93%E8%89%B2%E4%BD%93%E4%BA%A4%E6%8D%A2%EF%BC%89"><span class="toc-text">
+          交叉（染色体交换）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%82%E5%BA%94%E5%BA%A6%E8%AE%A1%E7%AE%97"><span class="toc-text">
+          适应度计算</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%89%E6%8B%A9"><span class="toc-text">
+          选择</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%BB%E4%B8%96"><span class="toc-text">
+          去世</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BB%E8%A6%81%E9%81%97%E4%BC%A0%E7%AE%97%E6%B3%95"><span class="toc-text">
+          主要遗传算法</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%A8%A1%E6%8B%9F%E9%80%80%E7%81%AB"><span class="toc-text">
+          模拟退火</span></a></li></ol></section><!-- ov = overview--><section class="sidebar-ov hide"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://pig-007.oss-cn-beijing.aliyuncs.com/typoraImgsauthor.jpg" alt="avatar"></div><p class="sidebar-ov-author__text">The way forward</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">139</div><div class="sidebar-ov-state-item__name">Archives</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--categories" href="/categories/"><div class="sidebar-ov-state-item__count">93</div><div class="sidebar-ov-state-item__name">Categories</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">79</div><div class="sidebar-ov-state-item__name">Tags</div></a></div><div class="sidebar-ov-cc"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener" data-popover="Creative Commons" data-popover-pos="up"><img src="/images/cc-by-nc-sa.svg"></a></div></section><div class="sidebar-reading"><div class="sidebar-reading-info"><span class="sidebar-reading-info__text">You have read </span><span class="sidebar-reading-info__num">0</span><span class="sidebar-reading-info__perc">%</span></div><div class="sidebar-reading-line"></div></div></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2024</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>PIG-007</span></div><div><span>Powered by <a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a></span><span> v5.4.0</span><span class="footer__devider">|</span><span>Theme - <a href="https://github.com/liuyib/hexo-theme-stun/" title="Stun" target="_blank" rel="noopener">Stun</a></span><span> v2.6.2</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><div class="search-mask"></div><div class="search-popup"><span class="search-close"></span><div class="search-input"><input placeholder="Search for Posts (Support multiple keywords)"></div><div class="search-results"></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script>function initSearch() {
+  var isXML = true;
+  var search_path = 'search.json';
+
+  if (!search_path) {
+    search_path = 'search.xml';
+  } else if (/json$/i.test(search_path)) {
+    isXML = false;
+  }
+
+  var path = '/' + search_path;
+  $.ajax({
+    url: path,
+    dataType: isXML ? 'xml' : 'json',
+    async: true,
+    success: function (res) {
+      var datas = isXML ? $('entry', res).map(function () {
+        // 将 XML 转为 JSON
+        return {
+          title: $('title', this).text(),
+          content: $('content', this).text(),
+          url: $('url', this).text()
+        };
+      }).get() : res;
+      var $input = $('.search-input input');
+      var $result = $('.search-results');
+      // 搜索对象（标题、内容）的权重，影响显示顺序
+      var WEIGHT = { title: 100, content: 1 };
+      var searchPost = function () {
+        var searchText = $input.val().toLowerCase().trim();
+        // 根据空白字符分隔关键字
+        var keywords = searchText.split(/[\s]+/);
+        // 搜索结果
+        var matchPosts = [];
+
+        // 有多个关键字时，将原文字整个保存下来
+        if (keywords.length > 1) {
+          keywords.push(searchText);
+        }
+        // 防止未输入字符时搜索
+        if (searchText.length > 0) {
+          datas.forEach(function (data) {
+            var isMatch  = false;
+            // 没有标题的文章使用预设的 i18n 变量代替
+            var title = (data.title && data.title.trim()) || '[ Untitled ]';
+            var titleLower = title && title.toLowerCase();
+            // 删除 HTML 标签 和 所有空白字符
+            var content = data.content && data.content.replace(/<[^>]+>/g, '');
+            var contentLower = content && content.toLowerCase();
+            // 删除重复的 /
+            var postURL = data.url && decodeURI(data.url).replace(/\/{2,}/g, '/');
+            // 标题中匹配到的关键词
+            var titleHitSlice = [];
+            // 内容中匹配到的关键词
+            var contentHitSlice = [];
+
+            keywords.forEach(function (keyword) {
+              /**
+              * 获取匹配的关键词的索引
+              * @param {String} keyword 要匹配的关键字
+              * @param {String} text 原文字
+              * @param {Boolean} caseSensitive 是否区分大小写
+              * @param {Number} weight 匹配对象的权重。权重大的优先显示
+              * @return {Array}
+              */
+              function getIndexByword (word, text, caseSensitive, weight) {
+                if (!word || !text) {
+                  return [];
+                };
+
+                var startIndex = 0; // 每次匹配的开始索引
+                var index = -1;     // 匹配到的索引值
+                var result = [];    // 匹配结果
+
+                if (!caseSensitive) {
+                  word = word.toLowerCase();
+                  text = text.toLowerCase();
+                }
+
+                while((index = text.indexOf(word, startIndex)) !== -1) {
+                  var hasMatch = false;
+                  // 索引位置相同的关键词，保留长度较长的
+                  titleHitSlice.forEach(function (hit) {
+                    if (hit.index === index && hit.word.length < word.length) {
+                      hit.word = word;
+                      hasMatch = true;
+                    }
+                  });
+                  startIndex = index + word.length;
+                  !hasMatch && result.push({ index: index, word: word, weight: weight });
+                }
+                return result;
+              }
+              titleHitSlice = titleHitSlice.concat(getIndexByword(keyword, titleLower, false, WEIGHT.title));
+              contentHitSlice = contentHitSlice.concat(getIndexByword(keyword, contentLower, false, WEIGHT.content));
+            });
+
+            var hitTitle = titleHitSlice.length;
+            var hitContent = contentHitSlice.length;
+
+            if (hitTitle > 0 || hitContent > 0) {
+              isMatch = true;
+            }
+            if (isMatch) {
+              ;[titleHitSlice, contentHitSlice].forEach(function (hit) {
+                // 按照匹配文字的索引的递增顺序排序
+                hit.sort(function (left, right) {
+                  return left.index - right.index;
+                });
+              });
+              /**
+              * 给文本中匹配到的关键词添加标记，从而进行高亮显示
+              * @param {String} text 原文本
+              * @param {Array} hitSlice 匹配项的索引信息
+              * @param {Number} start 开始索引
+              * @param {Number} end 结束索引
+              * @return {String}
+              */
+              function highlightKeyword (text, hitSlice, start, end) {
+                if (!text || !hitSlice || !hitSlice.length) {
+                  return;
+                }
+
+                var result = '';
+                var startIndex = start;
+                var endIndex = end;
+                hitSlice.forEach(function (hit) {
+                  if (hit.index < startIndex) {
+                    return;
+                  }
+
+                  var hitWordEnd = hit.index + hit.word.length;
+                  result += text.slice(startIndex, hit.index);
+                  result += '<b>' + text.slice(hit.index, hitWordEnd) + '</b>';
+                  startIndex = hitWordEnd;
+                });
+                result += text.slice(startIndex, endIndex);
+                return result;
+              }
+
+              var postData = {};
+              // 文章总的搜索权重
+              var postWeight = titleHitSlice.length * WEIGHT.title + contentHitSlice.length * WEIGHT.content;
+              // 标记匹配关键词后的标题
+              var postTitle = highlightKeyword(title, titleHitSlice, 0, title.length) || title;
+              // 标记匹配关键词后的内容
+              var postContent;
+              // 显示内容的长度
+              var SHOW_WORD_LENGTH = 200;
+              // 命中关键词前的字符显示长度
+              var SHOW_WORD_FRONT_LENGTH = 20;
+              var SHOW_WORD_END_LENGTH = SHOW_WORD_LENGTH - SHOW_WORD_FRONT_LENGTH;
+
+              // 截取匹配的第一个字符，前后共 200 个字符来显示
+              if (contentHitSlice.length > 0) {
+                var firstIndex = contentHitSlice[0].index;
+                var start = firstIndex > SHOW_WORD_FRONT_LENGTH ? firstIndex - SHOW_WORD_FRONT_LENGTH : 0;
+                var end = firstIndex + SHOW_WORD_END_LENGTH;
+                postContent = highlightKeyword(content, contentHitSlice, start, end);
+              } else { // 未匹配到内容，直接截取前 200 个字符来显示
+                postContent = content.slice(0, SHOW_WORD_LENGTH);
+              }
+              postData.title = postTitle;
+              postData.content = postContent;
+              postData.url = postURL;
+              postData.weight = postWeight;
+              matchPosts.push(postData);
+            }
+          });
+        }
+
+        var resultInnerHtml = '';
+        if (matchPosts.length) {
+          // 按权重递增的顺序排序，使权重大的优先显示
+          matchPosts.sort(function (left, right) {
+            return right.weight - left.weight;
+          });
+          resultInnerHtml += '<ul>';
+          matchPosts.forEach(function (post) {
+            resultInnerHtml += '<li><a class="search-results-title" href="' + post.url + '">';
+            resultInnerHtml += post.title;
+            resultInnerHtml += '</a><div class="search-results-content">';
+            resultInnerHtml += post.content;
+            resultInnerHtml += '</div></li>';
+          });
+          resultInnerHtml += '</ul>';
+        } else {
+          resultInnerHtml += '<div class="search-results-none"><i class="far fa-meh"></i></div>';
+        }
+        $result.html(resultInnerHtml);
+      };
+      $input.on('input', searchPost);
+      $input.on('keyup', function (e) {
+        if (e.keyCode === Stun.utils.codeToKeyCode('Enter')) {
+          searchPost();
+        }
+      });
+    }
+  });
+}
+
+function closeSearch () {
+  $('body').css({ overflow: 'auto' });
+  $('.search-popup').css({ display: 'none' });
+  $('.search-mask').css({ display: 'none' });
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  Stun.utils.pjaxReloadLocalSearch = function () {
+    $('.header-nav-search').on('click', function (e) {
+      e.stopPropagation();
+      $('body').css('overflow', 'hidden');
+      $('.search-popup')
+        .velocity('stop')
+        .velocity('transition.expandIn', {
+          duration: 300,
+          complete: function () {
+            $('.search-popup input').focus();
+          }
+        });
+      $('.search-mask')
+        .velocity('stop')
+        .velocity('transition.fadeIn', {
+          duration: 300
+        });
+
+      initSearch();
+    });
+    $('.search-mask, .search-close').on('click', function () {
+      closeSearch();
+    });
+    $(document).on('keydown', function (e) {
+      // Escape <=> 27
+      if (e.keyCode === Stun.utils.codeToKeyCode('Escape')) {
+        closeSearch();
+      }
+    });
+  };
+
+  Stun.utils.pjaxReloadLocalSearch();
+}, false);
+
+function safeOpenUrl(url) {
+  var newTab = window.open();
+  newTab.opener = null;
+  newTab.location = url;
+}
+
+function extSearch(engine) {
+  var engines = {
+    google: 'https://www.google.com/search?q=',
+    bing: 'https://cn.bing.com/search?q=',
+    baidu: 'https://www.baidu.com/s?ie=UTF-8&wd=',
+  };
+  var host = window.location.host;
+  var query = $('.search-input input').val().toLowerCase().trim();
+  var uri = engines[engine] + query + ' site:' + host;
+
+  if (query) {
+    safeOpenUrl(uri);
+  } else {
+    Stun.utils.popAlert('warning', 'Please enter characters');
+  }
+}
+
+var assistSearchList = window.CONFIG.assistSearch;
+
+if (Array.isArray(assistSearchList)) {
+  assistSearchList.forEach(function (name) {
+    document.querySelector('.search-btns-item--' + name).addEventListener('click', function () {
+      extSearch(name);
+    }, false);
+  });
+}</script><script src="/js/utils.js?v=2.6.2"></script><script src="/js/stun-boot.js?v=2.6.2"></script><script src="/js/scroll.js?v=2.6.2"></script><script src="/js/header.js?v=2.6.2"></script><script src="/js/sidebar.js?v=2.6.2"></script><script type="application/json" src="/search.json"></script><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"superSample":2,"width":150,"height":300,"position":"left","hOffset":0,"vOffset":-80},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body></html>
